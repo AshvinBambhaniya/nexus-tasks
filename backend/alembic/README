@@ -1,0 +1,42 @@
+# Alembic Database Migrations
+
+Alembic is a lightweight database migration tool for use with the SQLAlchemy Database Toolkit for Python. It allows you to manage changes to your database schema in a structured, version-controlled way.
+
+## How it works
+1.  **Models:** You define or update your SQLAlchemy models in `backend/models/`.
+2.  **Revision:** You generate a "revision" script that describes the changes needed to sync the database with your models.
+3.  **Upgrade:** You apply the revision to the database.
+
+## Useful Commands
+
+> **Note:** Run these commands from the `backend/` directory with your virtual environment activated.
+
+### 1. Generate a new migration
+Use this after you modify your SQLAlchemy models. Alembic will compare your models against the current database schema and generate the code for you.
+```bash
+alembic revision --autogenerate -m "description of your changes"
+```
+
+### 2. Apply migrations
+Run this to apply all pending migrations and bring your database schema up to the latest version.
+```bash
+alembic upgrade head
+```
+
+### 3. Rollback a migration
+Revert the last migration if something went wrong.
+```bash
+alembic downgrade -1
+```
+
+### 4. View current version
+Check which migration version is currently applied to the database.
+```bash
+alembic current
+```
+
+### 5. View history
+Show the chronological list of all migrations.
+```bash
+alembic history --verbose
+```
