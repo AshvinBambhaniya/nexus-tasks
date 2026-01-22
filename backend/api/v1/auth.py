@@ -7,6 +7,7 @@ from core.database import get_db
 from core.security import verify_password, get_password_hash, create_access_token
 from core.config import settings
 from models.user import User
+from models.workspace import Workspace, WorkspaceMember, WorkspaceType, WorkspaceRole
 from schemas.user import UserCreate, UserResponse, Token
 
 router = APIRouter()
@@ -25,7 +26,24 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     
-    # TODO: Create Default Personal Workspace here (Task 6)
+    # Create Default Personal Workspace
+    personal_ws = Workspace(
+        name="Personal",
+        type=WorkspaceType.PERSONAL,
+        owner_id=new_user.id
+    )
+    db.add(personal_ws)
+    db.commit()
+    db.refresh(personal_ws)
+
+    # Add user as ADMIN of their own personal workspace
+    ws_member = WorkspaceMember(
+        workspace_id=personal_ws.id,
+        user_id=new_user.id,
+        role=WorkspaceRole.ADMIN
+    )
+    db.add(ws_member)
+    db.commit()
     
     return new_user
 
