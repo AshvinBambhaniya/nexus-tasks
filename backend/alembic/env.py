@@ -1,17 +1,11 @@
-import os
-import sys
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
-
-# Add the backend directory to the sys.path so we can import from 'core' and 'models'
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
-from backend.core.database import Base, DATABASE_URL
-from backend.models.user import User  # Import all models here to register them
+from core.config import settings
+from core.database import Base
+from models.user import User
+from models.workspace import Workspace, WorkspaceMember # Import all models here to register them
 
 # this is the Alembic Config object
 config = context.config
@@ -21,7 +15,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Overwrite the sqlalchemy.url in the config object
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Set the metadata target
 target_metadata = Base.metadata
