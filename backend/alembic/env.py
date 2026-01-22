@@ -5,7 +5,8 @@ from alembic import context
 from core.config import settings
 from core.database import Base
 from models.user import User
-from models.workspace import Workspace, WorkspaceMember # Import all models here to register them
+from models.workspace import Workspace, WorkspaceMember 
+from models.task import Task # Import all models here to register them
 
 # this is the Alembic Config object
 config = context.config
