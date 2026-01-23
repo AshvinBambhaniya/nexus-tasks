@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+.git/
+.gitignore
+.env
+.env.local
+npm-debug.log
+yarn-error.log
+Dockerfile
+README.md
