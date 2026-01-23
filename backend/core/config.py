@@ -3,6 +3,7 @@ import os
 class Settings:
     PROJECT_NAME: str = "Nexus Tasks"
     PROJECT_VERSION: str = "1.0.0"
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
