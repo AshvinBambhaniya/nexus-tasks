@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.v1 import auth, workspaces, tasks
+from api.v1 import auth, workspaces, tasks, websockets
 import os
 
 app = FastAPI(title="Nexus Tasks API")
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["Workspaces"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
+app.include_router(websockets.router, tags=["WebSockets"]) # No prefix or /api/v1 prefix? Usually WS are at root or specific path. The task says /ws/{workspace_id}.
 
 @app.get("/health")
 async def health_check():

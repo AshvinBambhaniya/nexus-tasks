@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { CommandPalette } from "@/components/layout/command-palette";
+import { SocketListener } from "@/components/layout/socket-listener";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
         {children}
       </main>
       <CommandPalette />
+      <SocketListener />
     </div>
   );
 }
