@@ -48,3 +48,12 @@ export interface Task {
   created_at: string;
   updated_at: string;
 }
+
+export interface WorkspaceInfo {
+  id: number;
+  name: string;
+}
+
+export interface TaskWithWorkspace extends Task {
+  workspace: WorkspaceInfo;
+}

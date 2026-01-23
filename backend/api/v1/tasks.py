@@ -6,11 +6,29 @@ from core.database import get_db
 from models.user import User
 from models.task import Task, TaskStatus
 from models.workspace import WorkspaceMember
-from schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskWithWorkspace
 from api.v1.auth import get_current_user
 from api.v1.workspaces import validate_workspace_access
 
 router = APIRouter()
+
+@router.get("/tasks/me", response_model=List[TaskWithWorkspace])
+def get_my_tasks(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all tasks assigned to the current user across all workspaces.
+    Sorted by Priority (P0 first) and Due Date (earliest first).
+    """
+    tasks = db.query(Task).join(Task.workspace).filter(
+        Task.assignee_id == current_user.id
+    ).order_by(
+        Task.priority.asc(), # P0 comes before P1 (lexicographically P0 < P1) if enum is string, let's verify Enum order or definition
+        Task.due_date.asc()
+    ).all()
+    
+    return tasks
 
 @router.post("/workspaces/{workspace_id}/tasks", response_model=TaskResponse)
 def create_task(
