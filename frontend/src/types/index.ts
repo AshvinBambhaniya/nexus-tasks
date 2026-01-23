@@ -22,6 +22,16 @@ export interface User {
   is_active: boolean;
 }
 
+export interface WorkspaceMember {
+  workspace_id: number;
+  user_id: number;
+  role: WorkspaceRole;
+  user: {
+    id: number;
+    email: string;
+  };
+}
+
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
