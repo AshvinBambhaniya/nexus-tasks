@@ -30,3 +30,14 @@ class TaskResponse(TaskBase):
     
     class Config:
         from_attributes = True
+
+class WorkspaceInfo(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+class TaskWithWorkspace(TaskResponse):
+    workspace: WorkspaceInfo
+
