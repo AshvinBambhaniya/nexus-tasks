@@ -28,6 +28,7 @@ export function useAuth() {
       Cookies.set("token", res.data.access_token, { expires: 7, secure: true, sameSite: "strict" });
       
       router.push("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to login");
     } finally {
@@ -42,6 +43,7 @@ export function useAuth() {
       await api.post("/api/v1/auth/register", { email, password });
       // Auto-login after register
       await login(email, password);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to register");
       setIsLoading(false);
