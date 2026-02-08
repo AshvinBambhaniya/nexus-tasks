@@ -33,4 +33,6 @@ class Workspace(Base):
 
     # Relationships
     members = relationship("WorkspaceMember", back_populates="workspace", cascade="all, delete-orphan")
+    teams = relationship("Team", back_populates="workspace", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="workspace", cascade="all, delete-orphan")
     owner = relationship("User", foreign_keys=[owner_id])

@@ -3,7 +3,7 @@
 import { useMyTasks } from "@/hooks/use-my-tasks";
 import { TaskCard } from "@/components/tasks/task-card";
 import { Loader2 } from "lucide-react";
-import { TaskWithWorkspace } from "@/types";
+import { TaskWithProject } from "@/types";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,7 +44,7 @@ export default function InboxPage() {
   );
 }
 
-function InboxTaskCard({ task }: { task: TaskWithWorkspace }) {
+function InboxTaskCard({ task }: { task: TaskWithProject }) {
   // We can reuse TaskCard but we might want to show workspace name.
   // Existing TaskCard might not support showing workspace name.
   // Let's create a simple card here or check TaskCard.
@@ -56,7 +56,7 @@ function InboxTaskCard({ task }: { task: TaskWithWorkspace }) {
               <div className="space-y-1">
                   <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {task.workspace.name}
+                          {task.project.name}
                       </span>
                       <Badge variant="outline" className={getPrioColor(task.priority)}>
                           {task.priority}

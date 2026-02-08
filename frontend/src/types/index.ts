@@ -32,6 +32,58 @@ export interface WorkspaceMember {
   };
 }
 
+// Teams
+export enum TeamRole {
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
+}
+
+export interface Team {
+  id: number;
+  name: string;
+  description?: string;
+  workspace_id: number;
+  created_at: string;
+}
+
+export interface TeamMember {
+  team_id: number;
+  user_id: number;
+  role: TeamRole;
+  email: string; // Flattened for display
+}
+
+// Projects
+export enum ProjectRole {
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
+  VIEWER = "VIEWER",
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  workspace_id: number;
+  created_at: string;
+  is_archived: boolean;
+}
+
+export interface ProjectMember {
+  project_id: number;
+  user_id: number;
+  role: ProjectRole;
+  email: string; // Flattened for display
+  is_direct: boolean;
+}
+
+export interface ProjectTeam {
+  project_id: number;
+  team_id: number;
+  team_name: string;
+}
+
+// Tasks
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
@@ -52,18 +104,22 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  workspace_id: number;
+  project_id: number; // Updated from workspace_id
   assignee_id?: number;
+  assignee?: {
+    id: number;
+    email: string;
+  };
   due_date?: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface WorkspaceInfo {
+export interface ProjectInfo {
   id: number;
   name: string;
 }
 
-export interface TaskWithWorkspace extends Task {
-  workspace: WorkspaceInfo;
+export interface TaskWithProject extends Task {
+  project: ProjectInfo;
 }

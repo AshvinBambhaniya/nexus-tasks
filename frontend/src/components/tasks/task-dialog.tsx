@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Task, TaskPriority, TaskStatus } from "@/types";
 import { useTasks } from "@/hooks/use-tasks";
+import { useProjectMembers } from "@/hooks/use-projects";
 
 // Assuming react-hook-form is NOT available based on package.json, 
 // I will use simple state.
@@ -16,10 +17,17 @@ interface TaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
   task?: Task; // If provided, we are editing
+  projectId?: number; // Required for creation
 }
 
-export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
-  const { createTask, updateTask, deleteTask } = useTasks();
+export function TaskDialog({ isOpen, onClose, task, projectId }: TaskDialogProps) {
+  const activeProjectId = projectId || task?.project_id;
+  
+  // Pass projectId to hook. If editing (task exists), we might not need projectId strictly if updateTask uses task.id, 
+  // but createTask needs it.
+  const { createTask, updateTask, deleteTask } = useTasks(activeProjectId);
+  const { members } = useProjectMembers(activeProjectId);
+
   const [isLoading, setIsLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -27,6 +35,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     description: "",
     status: TaskStatus.TODO,
     priority: TaskPriority.P2,
+    assignee_id: undefined as number | undefined,
   });
 
   useEffect(() => {
@@ -36,6 +45,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         description: task.description || "",
         status: task.status,
         priority: task.priority,
+        assignee_id: task.assignee_id,
       });
     } else {
       setFormData({
@@ -43,6 +53,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         description: "",
         status: TaskStatus.TODO,
         priority: TaskPriority.P2, // Default Medium
+        assignee_id: undefined,
       });
     }
   }, [task, isOpen]);
@@ -58,8 +69,9 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         await createTask(formData);
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save task:", error);
+      alert(error.response?.data?.detail || "Failed to save task");
     } finally {
       setIsLoading(false);
     }
@@ -140,6 +152,23 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               <option value={TaskPriority.P3}>P3 - Low</option>
             </select>
           </div>
+        </div>
+
+        <div className="space-y-2">
+            <Label htmlFor="assignee">Assignee</Label>
+            <select
+                id="assignee"
+                className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                value={formData.assignee_id || ""}
+                onChange={(e) => setFormData({ ...formData, assignee_id: e.target.value ? parseInt(e.target.value) : undefined })}
+            >
+                <option value="">Unassigned</option>
+                {members.map(member => (
+                    <option key={member.user_id} value={member.user_id}>
+                        {member.email}
+                    </option>
+                ))}
+            </select>
         </div>
 
         <div className="flex justify-between pt-4">
