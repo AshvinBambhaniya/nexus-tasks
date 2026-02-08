@@ -22,22 +22,29 @@ class TaskUpdate(BaseModel):
     due_date: Optional[datetime] = None
     assignee_id: Optional[int] = None
 
-class TaskResponse(TaskBase):
+class UserInfo(BaseModel):
     id: int
-    workspace_id: int
-    created_at: datetime
-    updated_at: datetime
+    email: str
     
     class Config:
         from_attributes = True
 
-class WorkspaceInfo(BaseModel):
+class TaskResponse(TaskBase):
+    id: int
+    project_id: int
+    created_at: datetime
+    updated_at: datetime
+    assignee: Optional[UserInfo] = None
+    
+    class Config:
+        from_attributes = True
+
+class ProjectInfo(BaseModel):
     id: int
     name: str
 
     class Config:
         from_attributes = True
 
-class TaskWithWorkspace(TaskResponse):
-    workspace: WorkspaceInfo
-
+class TaskWithProject(TaskResponse):
+    project: ProjectInfo

@@ -6,79 +6,126 @@ from core.database import get_db
 from core.websocket import manager
 from models.user import User
 from models.task import Task, TaskStatus
-from models.workspace import WorkspaceMember
-from schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskWithWorkspace
+from models.project import Project, ProjectMember, ProjectRole, ProjectTeam
+from models.team import TeamMember
+from models.workspace import WorkspaceMember, WorkspaceRole
+from schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskWithProject
 from api.v1.auth import get_current_user
-from api.v1.workspaces import validate_workspace_access
 
 router = APIRouter()
 
-@router.get("/tasks/me", response_model=List[TaskWithWorkspace])
+def validate_assignee(project_id: int, assignee_id: Optional[int], db: Session):
+    if not assignee_id:
+        return
+        
+    # Check Direct Membership
+    member = db.query(ProjectMember).filter(
+        ProjectMember.project_id == project_id,
+        ProjectMember.user_id == assignee_id
+    ).first()
+    if member:
+        return
+
+    # Check Team Membership
+    team_member = db.query(ProjectTeam).join(
+        TeamMember, ProjectTeam.team_id == TeamMember.team_id
+    ).filter(
+        ProjectTeam.project_id == project_id,
+        TeamMember.user_id == assignee_id
+    ).first()
+    if team_member:
+        return
+    
+    raise HTTPException(status_code=400, detail="Assignee must be a member of the project (directly or via team)")
+
+def validate_project_access(project_id: int, db: Session, user_id: int) -> bool:
+    # 1. Check direct project membership
+    member = db.query(ProjectMember).filter(
+        ProjectMember.project_id == project_id,
+        ProjectMember.user_id == user_id
+    ).first()
+    if member:
+        return True
+
+    # 2. Check Workspace Admin (Master Access)
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    ws_member = db.query(WorkspaceMember).filter(
+        WorkspaceMember.workspace_id == project.workspace_id,
+        WorkspaceMember.user_id == user_id
+    ).first()
+
+    if ws_member and ws_member.role == WorkspaceRole.ADMIN:
+        return True
+    
+    raise HTTPException(status_code=403, detail="Not a member of this project")
+
+@router.get("/tasks/me", response_model=List[TaskWithProject])
 def get_my_tasks(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get all tasks assigned to the current user across all workspaces.
-    Sorted by Priority (P0 first) and Due Date (earliest first).
+    Get all tasks assigned to the current user across all projects.
     """
-    tasks = db.query(Task).join(Task.workspace).filter(
+    tasks = db.query(Task).join(Task.project).filter(
         Task.assignee_id == current_user.id
     ).order_by(
-        Task.priority.asc(), # P0 comes before P1 (lexicographically P0 < P1) if enum is string, let's verify Enum order or definition
+        Task.priority.asc(), 
         Task.due_date.asc()
     ).all()
     
     return tasks
 
-@router.post("/workspaces/{workspace_id}/tasks", response_model=TaskResponse)
+@router.post("/projects/{project_id}/tasks", response_model=TaskResponse)
 def create_task(
-    workspace_id: int,
+    project_id: int,
     task: TaskCreate,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Create a new task in a specific workspace.
+    Create a new task in a specific project.
     """
-    # 1. Validate Access
-    validate_workspace_access(workspace_id, db, current_user.id)
+    validate_project_access(project_id, db, current_user.id)
 
-    # 2. Create Task
-    new_task = Task(
-        **task.model_dump(),
-        workspace_id=workspace_id
-    )
+    # Force project_id from URL to match body or override
+    task_data = task.model_dump()
+    task_data['project_id'] = project_id
+
+    validate_assignee(project_id, task_data.get('assignee_id'), db)
+
+    new_task = Task(**task_data)
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
 
-    # 3. Broadcast Event
+    # Broadcast Event
+    # We broadcast to the PROJECT channel now, not workspace
+    # Need to update WebSocket manager to handle Project channels or generic channels
+    # For now, let's use project_id as the channel ID
     background_tasks.add_task(
         manager.broadcast, 
-        workspace_id, 
+        project_id, 
         {"type": "TASK_CREATED", "task": TaskResponse.model_validate(new_task).model_dump(mode='json')}
     )
 
     return new_task
 
-@router.get("/workspaces/{workspace_id}/tasks", response_model=List[TaskResponse])
-def list_workspace_tasks(
-    workspace_id: int,
+@router.get("/projects/{project_id}/tasks", response_model=List[TaskResponse])
+def list_project_tasks(
+    project_id: int,
     status: Optional[TaskStatus] = Query(None),
     assignee_id: Optional[int] = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    List tasks in a workspace with optional filters.
-    """
-    # 1. Validate Access
-    validate_workspace_access(workspace_id, db, current_user.id)
+    validate_project_access(project_id, db, current_user.id)
 
-    # 2. Query Tasks
-    query = db.query(Task).filter(Task.workspace_id == workspace_id)
+    query = db.query(Task).filter(Task.project_id == project_id)
     
     if status:
         query = query.filter(Task.status == status)
@@ -95,29 +142,26 @@ def update_task(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Update a task. Verifies user is member of the task's workspace.
-    """
-    # 1. Get Task
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # 2. Validate Access (using task.workspace_id)
-    validate_workspace_access(task.workspace_id, db, current_user.id)
+    validate_project_access(task.project_id, db, current_user.id)
 
-    # 3. Update Fields
     update_data = task_update.model_dump(exclude_unset=True)
+    
+    if 'assignee_id' in update_data:
+        validate_assignee(task.project_id, update_data['assignee_id'], db)
+
     for key, value in update_data.items():
         setattr(task, key, value)
 
     db.commit()
     db.refresh(task)
 
-    # 4. Broadcast Event
     background_tasks.add_task(
         manager.broadcast, 
-        task.workspace_id, 
+        task.project_id, 
         {"type": "TASK_UPDATED", "task": TaskResponse.model_validate(task).model_dump(mode='json')}
     )
 
@@ -130,27 +174,19 @@ def delete_task(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Delete a task.
-    """
-    # 1. Get Task
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    workspace_id = task.workspace_id # Store before delete
+    project_id = task.project_id
+    validate_project_access(project_id, db, current_user.id)
 
-    # 2. Validate Access
-    validate_workspace_access(workspace_id, db, current_user.id)
-
-    # 3. Delete
     db.delete(task)
     db.commit()
 
-    # 4. Broadcast Event
     background_tasks.add_task(
         manager.broadcast, 
-        workspace_id, 
+        project_id, 
         {"type": "TASK_DELETED", "task_id": task_id}
     )
 

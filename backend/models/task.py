@@ -26,7 +26,7 @@ class Task(Base):
     priority = Column(SqEnum(TaskPriority), default=TaskPriority.P2, nullable=False)
     
     # Foreign Keys
-    workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     assignee_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
     # Dates
@@ -35,5 +35,5 @@ class Task(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    workspace = relationship("Workspace", backref="tasks")
+    project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", foreign_keys=[assignee_id])
