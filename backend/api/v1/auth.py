@@ -9,7 +9,7 @@ from core.security import verify_password, get_password_hash, create_access_toke
 from core.config import settings
 from models.user import User
 from models.workspace import Workspace, WorkspaceMember, WorkspaceType, WorkspaceRole
-from schemas.user import UserCreate, UserResponse, Token
+from schemas.user import UserCreate, UserResponse, Token, UserUpdate
 
 router = APIRouter()
 
@@ -109,4 +109,24 @@ async def get_current_user(
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if user_update.email is not None and user_update.email != current_user.email:
+        # Check if email is already taken
+        existing_user = db.query(User).filter(User.email == user_update.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        current_user.email = user_update.email
+    
+    if user_update.full_name is not None:
+        current_user.full_name = user_update.full_name
+        
+    db.commit()
+    db.refresh(current_user)
     return current_user

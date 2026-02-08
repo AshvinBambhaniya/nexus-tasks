@@ -7,7 +7,9 @@ import { useWorkspaces } from "@/hooks/use-workspaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Trash2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
+import { Loader2, Trash2, UserPlus, Mail, Shield, User as UserIcon } from "lucide-react";
 import { WorkspaceMember } from "@/types";
 
 export function MemberSettings() {
@@ -49,81 +51,106 @@ export function MemberSettings() {
     }
   };
 
-  if (!activeWorkspace) return <div>Please select a workspace.</div>;
+  if (!activeWorkspace) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center text-gray-500">
+          Please select a workspace to manage members.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-gray-200 p-4">
-        <h2 className="text-lg font-semibold mb-4 text-gray-900">Invite Member</h2>
-        <form onSubmit={handleInvite} className="flex gap-2">
-          <Input 
-            placeholder="Enter email address" 
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            required
-            className="text-gray-900"
-          />
-          <Button type="submit" disabled={isInviting}>
-            {isInviting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Invite"}
-          </Button>
-        </form>
-      </div>
+      {/* Invite Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Invite Members</CardTitle>
+          <CardDescription>Add new members to your team by email.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleInvite} className="flex gap-3">
+            <div className="relative flex-1">
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input 
+                placeholder="name@example.com" 
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                required
+                className="pl-9"
+              />
+            </div>
+            <Button type="submit" disabled={isInviting}>
+              {isInviting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              Invite
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-          <h3 className="font-medium text-gray-900">Team Members</h3>
-        </div>
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-          </div>
-        ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-white text-gray-500 font-medium border-b border-gray-100">
-              <tr>
-                <th className="px-4 py-3 text-gray-700">User</th>
-                <th className="px-4 py-3 text-gray-700">Role</th>
-                <th className="px-4 py-3 text-right text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+      {/* Members List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+          <CardDescription>Manage existing members and their roles.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-12 flex justify-center">
+               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
               {members?.map((member) => (
-                <tr key={member.user_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{member.user.full_name || member.user.email}</div>
-                    {member.user.full_name && (
-                      <div className="text-xs text-gray-500">{member.user.email}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
-                      {member.role}
+                <div key={member.user_id} className="flex items-center justify-between p-6 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <Avatar 
+                       fallback={(member.user.full_name || member.user.email)[0].toUpperCase()} 
+                       className="bg-blue-100 text-blue-700 font-medium"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {member.user.full_name || member.user.email.split("@")[0]}
+                      </div>
+                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                        {member.user.email}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <Badge variant={member.role === "ADMIN" ? "default" : "secondary"} className="capitalize">
+                      {member.role === "ADMIN" && <Shield className="mr-1 h-3 w-3" />}
+                      {member.role.toLowerCase()}
                     </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {member.role !== "ADMIN" && ( // Simple logic: can't remove admins for now to be safe
+                    
+                    {member.role !== "ADMIN" && (
                        <Button 
                          variant="ghost" 
-                         size="sm" 
-                         className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                         size="icon" 
+                         className="text-gray-400 hover:text-red-600 hover:bg-red-50"
                          onClick={() => handleRemove(member.user_id)}
+                         title="Remove member"
                        >
                          <Trash2 className="h-4 w-4" />
                        </Button>
                     )}
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
+              
               {members?.length === 0 && (
-                <tr>
-                   <td colSpan={3} className="px-4 py-8 text-center text-gray-500">No members found.</td>
-                </tr>
+                <div className="p-12 text-center text-gray-500">
+                  <UserIcon className="mx-auto h-12 w-12 text-gray-200 mb-3" />
+                  <p>No members found in this workspace.</p>
+                </div>
               )}
-            </tbody>
-          </table>
-        )}
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
