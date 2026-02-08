@@ -27,7 +27,9 @@ export function Sidebar() {
   const { projects } = useProjects();
   const { teams } = useTeams();
 
-  const userInitial = user?.email?.substring(0, 2).toUpperCase() || "??";
+  const userInitial = user?.full_name
+    ? user.full_name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+    : user?.email?.substring(0, 2).toUpperCase() || "??";
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-gray-50/50">
@@ -125,7 +127,7 @@ export function Sidebar() {
                   {isLoading ? "..." : userInitial}
               </div>
               <div className="text-sm">
-                  <p className="font-medium text-gray-700">{isLoading ? "Loading..." : user?.email.split("@")[0]}</p>
+                  <p className="font-medium text-gray-700">{isLoading ? "Loading..." : (user?.full_name || user?.email?.split("@")[0])}</p>
                   <p className="text-xs text-gray-500">{isLoading ? "Please wait" : user?.email}</p>
               </div>
           </div>

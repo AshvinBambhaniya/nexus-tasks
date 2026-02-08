@@ -13,7 +13,6 @@ from api.v1.auth import get_current_user
 router = APIRouter()
 
 
-
 def validate_project_access(project_id: int, db: Session, user_id: int, require_admin: bool = False) -> ProjectMember:
     # Check direct project membership
     member = db.query(ProjectMember).filter(

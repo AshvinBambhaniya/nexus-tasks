@@ -20,6 +20,7 @@ export interface User {
   id: number;
   email: string;
   is_active: boolean;
+  full_name?: string;
 }
 
 export interface WorkspaceMember {
@@ -29,6 +30,7 @@ export interface WorkspaceMember {
   user: {
     id: number;
     email: string;
+    full_name?: string;
   };
 }
 
@@ -109,6 +111,7 @@ export interface Task {
   assignee?: {
     id: number;
     email: string;
+    full_name?: string;
   };
   due_date?: string;
   created_at: string;

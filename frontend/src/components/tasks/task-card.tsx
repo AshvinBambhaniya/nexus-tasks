@@ -26,7 +26,11 @@ export function TaskCard({ task }: TaskCardProps) {
                 {task.priority}
              </Badge>
              {task.assignee && (
-                <Avatar className="h-5 w-5" fallback={task.assignee.email[0].toUpperCase()} title={task.assignee.email} />
+                <Avatar 
+                  className="h-5 w-5" 
+                  fallback={(task.assignee.full_name || task.assignee.email)[0].toUpperCase()} 
+                  title={task.assignee.full_name || task.assignee.email} 
+                />
              )}
         </div>
       </div>
