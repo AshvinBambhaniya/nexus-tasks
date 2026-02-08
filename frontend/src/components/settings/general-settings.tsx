@@ -18,11 +18,11 @@ export function GeneralSettings() {
         <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-lg font-bold">
-            {user?.email.substring(0, 2).toUpperCase()}
+            {(user?.full_name || user?.email || "??").substring(0, 2).toUpperCase()}
           </div>
           <div>
-            <p className="font-medium text-gray-900">{user?.email}</p>
-            <p className="text-sm text-gray-500">User ID: {user?.id}</p>
+            <p className="font-medium text-gray-900">{user?.full_name || user?.email?.split("@")[0]}</p>
+            <p className="text-sm text-gray-500">{user?.email}</p>
           </div>
         </div>
       </div>

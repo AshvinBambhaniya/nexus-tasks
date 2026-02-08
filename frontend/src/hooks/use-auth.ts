@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useSWRConfig } from "swr";
-import Cookies from "js-cookie";
 
 export function useAuth() {
   const router = useRouter();
@@ -20,12 +19,11 @@ export function useAuth() {
       formData.append("username", email);
       formData.append("password", password);
 
-      const res = await api.post("/api/v1/auth/login", formData, {
+      await api.post("/api/v1/auth/login", formData, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
-      // Store token in cookie (expires in 7 days)
-      Cookies.set("token", res.data.access_token, { expires: 7, secure: true, sameSite: "strict" });
+      // Token is now set in HttpOnly cookie by backend
       
       router.push("/dashboard");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,11 +34,11 @@ export function useAuth() {
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, fullName?: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      await api.post("/api/v1/auth/register", { email, password });
+      await api.post("/api/v1/auth/register", { email, password, full_name: fullName });
       // Auto-login after register
       await login(email, password);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,8 +48,13 @@ export function useAuth() {
     }
   };
 
-  const logout = () => {
-    Cookies.remove("token");
+  const logout = async () => {
+    try {
+        await api.post("/api/v1/auth/logout");
+    } catch (error) {
+        console.error("Logout failed", error);
+    }
+    
     localStorage.removeItem("workspace-storage");
     mutate(() => true, undefined, { revalidate: false });
     router.push("/login");

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import Cookies from "js-cookie";
 import { useSWRConfig } from "swr";
 import { useWorkspaceStore } from "@/store/workspace-store";
 import { API_URL } from "@/lib/api";
@@ -13,13 +12,10 @@ export function useSocket() {
   useEffect(() => {
     if (!activeWorkspaceId) return;
 
-    const token = Cookies.get("token");
-    if (!token) return;
-
     // Construct WS URL
     const wsProtocol = API_URL.startsWith("https") ? "wss" : "ws";
     const wsBaseUrl = API_URL.replace(/^https?:\/\//, "");
-    const wsUrl = `${wsProtocol}://${wsBaseUrl}/ws/${activeWorkspaceId}?token=${token}`;
+    const wsUrl = `${wsProtocol}://${wsBaseUrl}/ws/${activeWorkspaceId}`;
 
     const socket = new WebSocket(wsUrl);
     socketRef.current = socket;

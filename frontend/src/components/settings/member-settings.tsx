@@ -91,7 +91,10 @@ export function MemberSettings() {
               {members?.map((member) => (
                 <tr key={member.user_id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{member.user.email}</div>
+                    <div className="font-medium text-gray-900">{member.user.full_name || member.user.email}</div>
+                    {member.user.full_name && (
+                      <div className="text-xs text-gray-500">{member.user.email}</div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
