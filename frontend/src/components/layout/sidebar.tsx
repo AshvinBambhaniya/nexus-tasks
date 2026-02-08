@@ -1,7 +1,7 @@
 "use client";
 
 import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
-import { LayoutDashboard, CheckSquare, Inbox, Settings, LogOut, Folder, Users } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Inbox, Settings, LogOut, Folder, Users, Kanban } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -13,8 +13,9 @@ import { ProjectDialog } from "@/components/project/project-dialog";
 import { TeamDialog } from "@/components/team/team-dialog";
 
 const navigation = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "My Focus", href: "/inbox", icon: Inbox },
-  { name: "Boards", href: "/boards", icon: LayoutDashboard },
+  { name: "Boards", href: "/boards", icon: Kanban },
   { name: "All Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
