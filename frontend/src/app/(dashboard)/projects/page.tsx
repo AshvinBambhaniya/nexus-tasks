@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Folder, Search, Plus, ArrowRight, Filter, Inbox } from "lucide-react";
+import { Folder, Search, Plus, ArrowRight } from "lucide-react";
 
 import { useProjects } from "@/hooks/use-projects";
 import { cn } from "@/lib/utils";

@@ -132,3 +132,25 @@ export interface ProjectInfo {
 export interface TaskWithProject extends Task {
   project: ProjectInfo;
 }
+
+export interface Comment {
+  id: number;
+  content: string;
+  task_id: number;
+  author_id: number;
+  author?: {
+    id: number;
+    email: string;
+    full_name?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiError {
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
+}

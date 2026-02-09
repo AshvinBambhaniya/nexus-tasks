@@ -47,7 +47,7 @@ export default function NewTaskPage({
         status,
         priority,
         assignee_id: assigneeId,
-      } as any);
+      });
       router.push(`/projects/${projectId}`);
     } catch (error) {
       console.error(error);

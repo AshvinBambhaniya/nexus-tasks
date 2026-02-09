@@ -8,7 +8,6 @@ import {
   useSensor,
   PointerSensor,
   DragStartEvent,
-  DragOverEvent,
   closestCorners,
 } from "@dnd-kit/core";
 import { useState, useEffect } from "react";
@@ -55,18 +54,6 @@ export function BoardView({
     setActiveTask(event.active.data.current?.task);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    // If moving over a different column (container), update status optimistically
-    // Note: DND Kit Sortable handles reordering, but moving between containers needs state update if we want "live" preview
-    // For simplicity, we stick to DragEnd for status changes, but DragOver helps visual placement
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
@@ -104,7 +91,6 @@ export function BoardView({
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full gap-4 overflow-x-auto pb-4">

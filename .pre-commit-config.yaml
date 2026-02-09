@@ -22,19 +22,15 @@ repos:
       - id: prettier
         types_or: [css, javascript, tsx, ts, json, markdown]
 
-  # Frontend: ESLint (Linting)
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-beta.2
+  # Frontend: ESLint (Linting) - Local hook for better monorepo support
+  - repo: local
     hooks:
-      - id: eslint
-        files: \.(js|jsx|ts|tsx)$
-        types: [file]
-        additional_dependencies:
-          - eslint@9
-          - eslint-config-next@14.1.0
-          - typescript
-          - '@typescript-eslint/parser'
-          - '@typescript-eslint/eslint-plugin'
+      - id: frontend-eslint
+        name: Frontend ESLint
+        entry: bash -c 'cd frontend && npx eslint --fix "${@#frontend/}"' --
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        pass_filenames: true
 
   # Commit Compliance
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook

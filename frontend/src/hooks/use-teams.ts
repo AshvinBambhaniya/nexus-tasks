@@ -1,6 +1,6 @@
 import useSWR, { useSWRConfig } from "swr";
 import api from "@/lib/api";
-import { Team } from "@/types";
+import { Team, Project, TeamMember } from "@/types";
 import { useWorkspaceStore } from "@/store/workspace-store";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
@@ -85,7 +85,7 @@ export function useTeams() {
 }
 
 export function useTeamProjects(teamId: number) {
-  const { data, error, isLoading } = useSWR<any[]>(
+  const { data, error, isLoading } = useSWR<Project[]>(
     teamId ? `/api/v1/teams/${teamId}/projects` : null,
     fetcher
   );
@@ -99,7 +99,7 @@ export function useTeamProjects(teamId: number) {
 
 export function useTeamMembers(teamId: number) {
   const { mutate } = useSWRConfig();
-  const { data, error, isLoading } = useSWR<any[]>(
+  const { data, error, isLoading } = useSWR<TeamMember[]>(
     teamId ? `/api/v1/teams/${teamId}/members` : null,
     fetcher
   );

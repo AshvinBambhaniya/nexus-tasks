@@ -300,7 +300,7 @@ function FeatureCard({
   title,
   description,
 }: {
-  icon: any;
+  icon: React.ElementType;
   title: string;
   description: string;
 }) {
@@ -315,7 +315,13 @@ function FeatureCard({
   );
 }
 
-function TechBadge({ icon: Icon, label }: { icon: any; label: string }) {
+function TechBadge({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) {
   return (
     <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm">
       <Icon className="h-4 w-4 text-gray-400" />

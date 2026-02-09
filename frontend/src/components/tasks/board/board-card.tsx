@@ -80,10 +80,10 @@ export function BoardCard({ task, onClick }: BoardCardProps) {
             </Badge>
 
             <div className="flex items-center gap-2">
-              {(task as any).comment_count > 0 && (
+              {(task.comment_count ?? 0) > 0 && (
                 <div className="flex items-center gap-1 text-xs text-gray-400">
                   <MessageSquare className="h-3 w-3" />
-                  <span>{(task as any).comment_count}</span>
+                  <span>{task.comment_count}</span>
                 </div>
               )}
               {task.assignee && (

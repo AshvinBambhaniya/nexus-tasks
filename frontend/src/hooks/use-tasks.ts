@@ -1,6 +1,6 @@
 import useSWR, { useSWRConfig } from "swr";
 import api from "@/lib/api";
-import { Task, TaskStatus, TaskPriority } from "@/types";
+import { Task, TaskStatus, TaskPriority, Comment } from "@/types";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
@@ -17,7 +17,7 @@ export function useTask(taskId: number) {
     error: commentsError,
     isLoading: commentsLoading,
     mutate: mutateComments,
-  } = useSWR<any[]>(
+  } = useSWR<Comment[]>(
     taskId ? `/api/v1/tasks/${taskId}/comments` : null,
     fetcher
   );
@@ -66,6 +66,7 @@ export function useTasks(projectId?: number) {
     description?: string;
     priority?: TaskPriority;
     status?: TaskStatus;
+    assignee_id?: number;
   }) => {
     if (!projectId) return;
     try {

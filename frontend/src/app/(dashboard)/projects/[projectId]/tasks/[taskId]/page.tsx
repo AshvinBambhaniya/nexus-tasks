@@ -4,12 +4,11 @@ import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTask, useTasks } from "@/hooks/use-tasks";
 import { useProjectMembers } from "@/hooks/use-projects";
-import { TaskStatus, TaskPriority } from "@/types";
+import { TaskStatus, TaskPriority, ApiError } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CommentItem } from "@/components/tasks/comment-item";
@@ -18,7 +17,6 @@ import {
   Loader2,
   Trash2,
   Settings2,
-  MessageSquare,
   Clock,
   User as UserIcon,
   CheckCircle2,
@@ -79,7 +77,7 @@ export default function TaskDetailPage({
   };
 
   const handleUpdateAssignee = async (assigneeId: number | undefined) => {
-    await updateTask(taskId, { assignee_id: assigneeId as any });
+    await updateTask(taskId, { assignee_id: assigneeId });
     mutateTask();
   };
 
@@ -107,7 +105,7 @@ export default function TaskDetailPage({
     try {
       await createComment(commentContent);
       setCommentContent("");
-    } catch (error) {
+    } catch {
       alert("Failed to add comment");
     } finally {
       setIsSubmittingComment(false);
@@ -119,7 +117,9 @@ export default function TaskDetailPage({
     try {
       await deleteComment(commentId);
     } catch (err) {
-      alert("Failed to delete comment");
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to delete comment"
+      );
     }
   };
 
@@ -132,7 +132,7 @@ export default function TaskDetailPage({
   if (!task)
     return <div className="p-8 text-center text-gray-500">Task not found</div>;
 
-  const statusIcons: Record<TaskStatus, any> = {
+  const statusIcons: Record<TaskStatus, React.ElementType> = {
     [TaskStatus.BACKLOG]: Clock,
     [TaskStatus.TODO]: Circle,
     [TaskStatus.IN_PROGRESS]: AlertCircle,

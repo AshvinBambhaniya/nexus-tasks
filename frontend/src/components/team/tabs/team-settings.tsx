@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTeam, useTeams } from "@/hooks/use-teams";
+import { useTeams } from "@/hooks/use-teams";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +44,7 @@ export function TeamSettings({ team }: TeamSettingsProps) {
       await updateTeam(team.id, { name, description });
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 3000);
-    } catch (err) {
+    } catch {
       alert("Failed to update team");
     } finally {
       setIsSaving(false);
@@ -61,7 +61,7 @@ export function TeamSettings({ team }: TeamSettingsProps) {
     try {
       await deleteTeam(team.id);
       router.push("/teams");
-    } catch (err) {
+    } catch {
       alert("Failed to delete team");
     }
   };

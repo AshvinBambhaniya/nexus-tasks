@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Check, Archive, Trash2 } from "lucide-react";
+import { Loader2, Check, Archive } from "lucide-react";
 import { Project } from "@/types";
 
 interface ProjectSettingsProps {
@@ -44,7 +44,7 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
       await updateProject(project.id, { name, description });
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 3000);
-    } catch (err) {
+    } catch {
       alert("Failed to update project");
     } finally {
       setIsSaving(false);
@@ -61,7 +61,7 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
     try {
       await updateProject(project.id, { is_archived: true });
       router.push("/dashboard");
-    } catch (err) {
+    } catch {
       alert("Failed to archive project");
     }
   };

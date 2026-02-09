@@ -2,7 +2,7 @@ import useSWR, { useSWRConfig } from "swr";
 import api from "@/lib/api";
 import { Workspace } from "@/types";
 import { useWorkspaceStore } from "@/store/workspace-store";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
@@ -14,7 +14,7 @@ export function useWorkspaces() {
   );
   const { activeWorkspaceId, setActiveWorkspaceId } = useWorkspaceStore();
 
-  const workspaces = data || [];
+  const workspaces = useMemo(() => data || [], [data]);
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
 
   // Auto-select first workspace if none selected and data loaded
