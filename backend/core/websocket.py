@@ -1,5 +1,7 @@
 from typing import Dict, List
+
 from fastapi import WebSocket
+
 
 class ConnectionManager:
     def __init__(self):
@@ -29,5 +31,6 @@ class ConnectionManager:
                     # For now, we might want to log it or remove the connection,
                     # but disconnect() usually handles the cleanup on the receive side.
                     pass
+
 
 manager = ConnectionManager()

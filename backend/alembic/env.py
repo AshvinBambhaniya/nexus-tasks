@@ -1,14 +1,11 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+
+from sqlalchemy import engine_from_config, pool
+
 from alembic import context
 from core.config import settings
 from core.database import Base
-from models.user import User
-from models.workspace import Workspace, WorkspaceMember 
-from models.task import Task 
-from models.team import Team, TeamMember
-from models.project import Project, ProjectMember, ProjectTeam
+
 # Import all models here to register them
 
 # this is the Alembic Config object
@@ -23,6 +20,7 @@ config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Set the metadata target
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
@@ -40,10 +38,10 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    
+
     # We can use the engine from our code, or create one from config.
     # Here we use engine_from_config but with our URL.
-    
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -51,9 +49,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
