@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { useProject } from "@/hooks/use-projects";
 import { ProjectTasks } from "@/components/project/tabs/project-tasks";
+import { ProjectBoard } from "@/components/project/tabs/project-board";
 import { ProjectMembers } from "@/components/project/tabs/project-members";
 import { ProjectSettings } from "@/components/project/tabs/project-settings";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
   
   const { project, isLoading } = useProject(projectId); 
   
-  const [activeTab, setActiveTab] = useState<"tasks" | "members" | "settings">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "board" | "members" | "settings">("tasks");
 
   if (isLoading) {
     return (
@@ -50,7 +51,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
          
          {/* Tab Navigation */}
          <div className="flex gap-6 mt-6 border-b border-gray-200">
-            {(["tasks", "members", "settings"] as const).map((tab) => (
+            {(["tasks", "board", "members", "settings"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -70,6 +71,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
       {/* Tab Content */}
       <div className="flex-1 min-h-0">
           {activeTab === "tasks" && <ProjectTasks projectId={projectId} />}
+          {activeTab === "board" && <ProjectBoard projectId={projectId} />}
           {activeTab === "members" && <ProjectMembers projectId={projectId} />}
           {activeTab === "settings" && <ProjectSettings project={project} />}
       </div>
