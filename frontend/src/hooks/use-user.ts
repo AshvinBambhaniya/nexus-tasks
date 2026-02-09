@@ -5,7 +5,10 @@ import { User } from "@/types";
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 export function useUser() {
-  const { data, error, isLoading, mutate } = useSWR<User>("/api/v1/auth/me", fetcher);
+  const { data, error, isLoading, mutate } = useSWR<User>(
+    "/api/v1/auth/me",
+    fetcher
+  );
 
   const updateUser = async (updates: Partial<User>) => {
     try {

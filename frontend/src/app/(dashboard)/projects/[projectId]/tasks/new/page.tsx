@@ -16,11 +16,15 @@ import { AssigneeSelector } from "@/components/tasks/selectors/assignee-selector
 import { StatusSelector } from "@/components/tasks/selectors/status-selector";
 import { PrioritySelector } from "@/components/tasks/selectors/priority-selector";
 
-export default function NewTaskPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default function NewTaskPage({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}) {
   const resolvedParams = use(params);
   const projectId = parseInt(resolvedParams.projectId);
   const router = useRouter();
-  
+
   const { createTask } = useTasks(projectId);
   const { members } = useProjectMembers(projectId);
 
@@ -54,30 +58,38 @@ export default function NewTaskPage({ params }: { params: Promise<{ projectId: s
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/projects/${projectId}`} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <Link
+          href={`/projects/${projectId}`}
+          className="rounded-full p-2 transition-colors hover:bg-gray-100"
+        >
           <ArrowLeft className="h-5 w-5 text-gray-500" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <CheckSquare className="h-6 w-6 text-blue-600" />
           Create new task
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 gap-8 lg:grid-cols-4"
+      >
         {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="space-y-6 lg:col-span-3">
           <Card className="border-gray-200">
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="space-y-4 p-6">
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-semibold">Title</Label>
+                <Label htmlFor="title" className="text-sm font-semibold">
+                  Title
+                </Label>
                 <Input
                   id="title"
                   placeholder="Task title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="text-lg h-12 focus-visible:ring-blue-500"
+                  className="h-12 text-lg focus-visible:ring-blue-500"
                   required
                 />
               </div>
@@ -91,46 +103,52 @@ export default function NewTaskPage({ params }: { params: Promise<{ projectId: s
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-end gap-3">
-             <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-             <Button type="submit" disabled={isSubmitting || !title.trim()} className="px-8">
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit New Task
-             </Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !title.trim()}
+              className="px-8"
+            >
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Submit New Task
+            </Button>
           </div>
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="space-y-6 lg:col-span-1">
           <Card className="border-gray-200 shadow-none">
-            <CardContent className="p-4 space-y-6">
-              
+            <CardContent className="space-y-6 p-4">
               <div className="space-y-2 border-b border-gray-100 pb-4">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assignee</Label>
-                <AssigneeSelector 
-                    members={members} 
-                    value={assigneeId} 
-                    onChange={setAssigneeId} 
+                <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Assignee
+                </Label>
+                <AssigneeSelector
+                  members={members}
+                  value={assigneeId}
+                  onChange={setAssigneeId}
                 />
               </div>
 
               <div className="space-y-2 border-b border-gray-100 pb-4">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</Label>
-                <StatusSelector 
-                    value={status} 
-                    onChange={setStatus} 
-                />
+                <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Status
+                </Label>
+                <StatusSelector value={status} onChange={setStatus} />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority</Label>
-                <PrioritySelector 
-                    value={priority} 
-                    onChange={setPriority} 
-                />
+                <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Priority
+                </Label>
+                <PrioritySelector value={priority} onChange={setPriority} />
               </div>
-
             </CardContent>
           </Card>
         </div>

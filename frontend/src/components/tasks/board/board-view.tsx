@@ -9,7 +9,7 @@ import {
   PointerSensor,
   DragStartEvent,
   DragOverEvent,
-  closestCorners
+  closestCorners,
 } from "@dnd-kit/core";
 import { useState, useEffect } from "react";
 import { Task, TaskStatus } from "@/types";
@@ -31,14 +31,18 @@ const COLUMNS = [
   { id: TaskStatus.DONE, title: "Done", color: "bg-green-500" },
 ];
 
-export function BoardView({ tasks: initialTasks, onTaskMove, onTaskClick }: BoardViewProps) {
+export function BoardView({
+  tasks: initialTasks,
+  onTaskMove,
+  onTaskClick,
+}: BoardViewProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  
+
   useEffect(() => {
-      setTasks(initialTasks);
+    setTasks(initialTasks);
   }, [initialTasks]);
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -74,34 +78,34 @@ export function BoardView({ tasks: initialTasks, onTaskMove, onTaskClick }: Boar
 
     // Check if dropped on a column (status change)
     if (Object.values(TaskStatus).includes(overId as TaskStatus)) {
-        if (activeTask.status !== overId) {
-            onTaskMove(activeTask.id, overId as TaskStatus);
-        }
-        return;
+      if (activeTask.status !== overId) {
+        onTaskMove(activeTask.id, overId as TaskStatus);
+      }
+      return;
     }
 
     // Check if dropped on another task (reorder or status change if diff column)
-    const overTask = tasks.find(t => t.id === overId);
+    const overTask = tasks.find((t) => t.id === overId);
     if (overTask) {
-        if (activeTask.status !== overTask.status) {
-             onTaskMove(activeTask.id, overTask.status);
-        } else {
-            // Reorder logic (local only since backend doesn't support it yet)
-            // We can update local state to show reordering visually
-            const oldIndex = tasks.findIndex((t) => t.id === active.id);
-            const newIndex = tasks.findIndex((t) => t.id === over.id);
-            setTasks((items) => arrayMove(items, oldIndex, newIndex));
-        }
+      if (activeTask.status !== overTask.status) {
+        onTaskMove(activeTask.id, overTask.status);
+      } else {
+        // Reorder logic (local only since backend doesn't support it yet)
+        // We can update local state to show reordering visually
+        const oldIndex = tasks.findIndex((t) => t.id === active.id);
+        const newIndex = tasks.findIndex((t) => t.id === over.id);
+        setTasks((items) => arrayMove(items, oldIndex, newIndex));
+      }
     }
   };
 
   return (
-    <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart} 
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
     >
       <div className="flex h-full gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((col) => (
@@ -115,13 +119,14 @@ export function BoardView({ tasks: initialTasks, onTaskMove, onTaskClick }: Boar
           />
         ))}
       </div>
-      
-      {typeof document !== "undefined" && createPortal(
-        <DragOverlay>
-          {activeTask ? <BoardCard task={activeTask} /> : null}
-        </DragOverlay>,
-        document.body
-      )}
+
+      {typeof document !== "undefined" &&
+        createPortal(
+          <DragOverlay>
+            {activeTask ? <BoardCard task={activeTask} /> : null}
+          </DragOverlay>,
+          document.body
+        )}
     </DndContext>
   );
 }

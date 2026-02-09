@@ -53,14 +53,18 @@ function handleMessage(message: any, workspaceId: number, mutate: any) {
     case "TASK_CREATED":
     case "TASK_UPDATED":
       const task: Task = message.task;
-      
+
       // Update Workspace Tasks
-      mutate(tasksKey, (currentTasks: Task[] = []) => {
-        if (message.type === "TASK_CREATED") {
-          return [...currentTasks, task];
-        }
-        return currentTasks.map((t) => (t.id === task.id ? task : t));
-      }, false); // false = do not revalidate immediately
+      mutate(
+        tasksKey,
+        (currentTasks: Task[] = []) => {
+          if (message.type === "TASK_CREATED") {
+            return [...currentTasks, task];
+          }
+          return currentTasks.map((t) => (t.id === task.id ? task : t));
+        },
+        false
+      ); // false = do not revalidate immediately
 
       // Update My Tasks (Inbox) - only if assigned to me (but we don't know current user id here easily without store)
       // For simplicity, we can revalidate the inbox or optimistic update if we knew the user ID.
@@ -70,10 +74,14 @@ function handleMessage(message: any, workspaceId: number, mutate: any) {
 
     case "TASK_DELETED":
       const taskId = message.task_id;
-      
-      mutate(tasksKey, (currentTasks: Task[] = []) => {
-        return currentTasks.filter((t) => t.id !== taskId);
-      }, false);
+
+      mutate(
+        tasksKey,
+        (currentTasks: Task[] = []) => {
+          return currentTasks.filter((t) => t.id !== taskId);
+        },
+        false
+      );
 
       mutate(myTasksKey);
       break;

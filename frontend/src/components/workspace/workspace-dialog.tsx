@@ -42,7 +42,9 @@ export function WorkspaceDialog({ isOpen, onClose }: WorkspaceDialogProps) {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-gray-700">Workspace Name</Label>
+          <Label htmlFor="name" className="text-gray-700">
+            Workspace Name
+          </Label>
           <Input
             id="name"
             required
@@ -54,7 +56,12 @@ export function WorkspaceDialog({ isOpen, onClose }: WorkspaceDialogProps) {
         </div>
 
         <div className="flex justify-end gap-2 pt-4 text-gray-700">
-          <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={isLoading || !name.trim()}>

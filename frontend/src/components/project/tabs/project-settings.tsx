@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Loader2, Check, Archive, Trash2 } from "lucide-react";
 import { Project } from "@/types";
 
@@ -18,7 +24,7 @@ interface ProjectSettingsProps {
 export function ProjectSettings({ project }: ProjectSettingsProps) {
   const router = useRouter();
   const { updateProject } = useProjects();
-  
+
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -46,17 +52,22 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
   };
 
   const handleArchive = async () => {
-    if (!confirm("Are you sure you want to archive this project? It will be hidden from the active list.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to archive this project? It will be hidden from the active list."
+      )
+    )
+      return;
     try {
-        await updateProject(project.id, { is_archived: true });
-        router.push("/dashboard");
+      await updateProject(project.id, { is_archived: true });
+      router.push("/dashboard");
     } catch (err) {
-        alert("Failed to archive project");
+      alert("Failed to archive project");
     }
   };
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="max-w-3xl space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
@@ -73,7 +84,7 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -86,10 +97,14 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
             </div>
 
             <div className="pt-2">
-               <Button type="submit" disabled={isSaving}>
-                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : isSuccess ? <Check className="mr-2 h-4 w-4" /> : null}
-                 {isSaving ? "Saving..." : isSuccess ? "Saved!" : "Save Changes"}
-               </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : isSuccess ? (
+                  <Check className="mr-2 h-4 w-4" />
+                ) : null}
+                {isSaving ? "Saving..." : isSuccess ? "Saved!" : "Save Changes"}
+              </Button>
             </div>
           </form>
         </CardContent>
@@ -98,20 +113,28 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
       <Card className="border-red-100 bg-red-50/30">
         <CardHeader>
           <CardTitle className="text-red-900">Danger Zone</CardTitle>
-          <CardDescription className="text-red-700">Irreversible actions for this project.</CardDescription>
+          <CardDescription className="text-red-700">
+            Irreversible actions for this project.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-           <div className="flex items-center justify-between">
-               <div>
-                   <h4 className="font-medium text-gray-900">Archive Project</h4>
-                   <p className="text-sm text-gray-500">Hide this project from your workspace.</p>
-               </div>
-               <Button variant="outline" onClick={handleArchive} className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 bg-white">
-                   <Archive className="mr-2 h-4 w-4" /> Archive
-               </Button>
-           </div>
-           
-           {/* Delete functionality not yet implemented in backend properly (hard delete), so we keep it simple or minimal */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-gray-900">Archive Project</h4>
+              <p className="text-sm text-gray-500">
+                Hide this project from your workspace.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleArchive}
+              className="border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Archive className="mr-2 h-4 w-4" /> Archive
+            </Button>
+          </div>
+
+          {/* Delete functionality not yet implemented in backend properly (hard delete), so we keep it simple or minimal */}
         </CardContent>
       </Card>
     </div>

@@ -32,8 +32,8 @@ export function ProjectBoard({ projectId }: ProjectBoardProps) {
 
   return (
     <div className="h-full">
-      <BoardView 
-        tasks={tasks} 
+      <BoardView
+        tasks={tasks}
         onTaskMove={handleTaskMove}
         onTaskClick={handleTaskClick}
       />

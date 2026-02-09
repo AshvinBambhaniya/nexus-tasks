@@ -7,21 +7,38 @@ import { useWorkspaces } from "@/hooks/use-workspaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Loader2, Trash2, UserPlus, Mail, Shield, User as UserIcon } from "lucide-react";
+import {
+  Loader2,
+  Trash2,
+  UserPlus,
+  Mail,
+  Shield,
+  User as UserIcon,
+} from "lucide-react";
 import { WorkspaceMember } from "@/types";
 
 export function MemberSettings() {
   const { activeWorkspace } = useWorkspaces();
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
-  
-  const { data: members, error, mutate } = useSWR<WorkspaceMember[]>(
+
+  const {
+    data: members,
+    error,
+    mutate,
+  } = useSWR<WorkspaceMember[]>(
     activeWorkspace ? `/api/v1/workspaces/${activeWorkspace.id}/members` : null,
-    (url: string) => api.get(url).then(res => res.data)
+    (url: string) => api.get(url).then((res) => res.data)
   );
-  
+
   const isLoading = !members && !error;
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -30,7 +47,9 @@ export function MemberSettings() {
 
     setIsInviting(true);
     try {
-      await api.post(`/api/v1/workspaces/${activeWorkspace.id}/members`, { email: inviteEmail });
+      await api.post(`/api/v1/workspaces/${activeWorkspace.id}/members`, {
+        email: inviteEmail,
+      });
       setInviteEmail("");
       mutate(); // Refresh list
     } catch (err: any) {
@@ -41,10 +60,16 @@ export function MemberSettings() {
   };
 
   const handleRemove = async (userId: number) => {
-    if (!activeWorkspace || !confirm("Are you sure you want to remove this member?")) return;
+    if (
+      !activeWorkspace ||
+      !confirm("Are you sure you want to remove this member?")
+    )
+      return;
 
     try {
-      await api.delete(`/api/v1/workspaces/${activeWorkspace.id}/members/${userId}`);
+      await api.delete(
+        `/api/v1/workspaces/${activeWorkspace.id}/members/${userId}`
+      );
       mutate();
     } catch (err: any) {
       alert(err.response?.data?.detail || "Failed to remove member");
@@ -67,14 +92,16 @@ export function MemberSettings() {
       <Card>
         <CardHeader>
           <CardTitle>Invite Members</CardTitle>
-          <CardDescription>Add new members to your team by email.</CardDescription>
+          <CardDescription>
+            Add new members to your team by email.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleInvite} className="flex gap-3">
             <div className="relative flex-1">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="name@example.com" 
+              <Mail className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="name@example.com"
                 type="email"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
@@ -83,7 +110,11 @@ export function MemberSettings() {
               />
             </div>
             <Button type="submit" disabled={isInviting}>
-              {isInviting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isInviting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="mr-2 h-4 w-4" />
+              )}
               Invite
             </Button>
           </form>
@@ -94,56 +125,70 @@ export function MemberSettings() {
       <Card>
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
-          <CardDescription>Manage existing members and their roles.</CardDescription>
+          <CardDescription>
+            Manage existing members and their roles.
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-12 flex justify-center">
-               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <div className="flex justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
               {members?.map((member) => (
-                <div key={member.user_id} className="flex items-center justify-between p-6 hover:bg-gray-50/50 transition-colors">
+                <div
+                  key={member.user_id}
+                  className="flex items-center justify-between p-6 transition-colors hover:bg-gray-50/50"
+                >
                   <div className="flex items-center gap-4">
-                    <Avatar 
-                       fallback={(member.user.full_name || member.user.email)[0].toUpperCase()} 
-                       className="bg-blue-100 text-blue-700 font-medium"
+                    <Avatar
+                      fallback={(member.user.full_name ||
+                        member.user.email)[0].toUpperCase()}
+                      className="bg-blue-100 font-medium text-blue-700"
                     />
                     <div>
                       <div className="font-medium text-gray-900">
-                        {member.user.full_name || member.user.email.split("@")[0]}
+                        {member.user.full_name ||
+                          member.user.email.split("@")[0]}
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
                         {member.user.email}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
-                    <Badge variant={member.role === "ADMIN" ? "default" : "secondary"} className="capitalize">
-                      {member.role === "ADMIN" && <Shield className="mr-1 h-3 w-3" />}
+                    <Badge
+                      variant={
+                        member.role === "ADMIN" ? "default" : "secondary"
+                      }
+                      className="capitalize"
+                    >
+                      {member.role === "ADMIN" && (
+                        <Shield className="mr-1 h-3 w-3" />
+                      )}
                       {member.role.toLowerCase()}
                     </Badge>
-                    
+
                     {member.role !== "ADMIN" && (
-                       <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         className="text-gray-400 hover:text-red-600 hover:bg-red-50"
-                         onClick={() => handleRemove(member.user_id)}
-                         title="Remove member"
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => handleRemove(member.user_id)}
+                        title="Remove member"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 </div>
               ))}
-              
+
               {members?.length === 0 && (
                 <div className="p-12 text-center text-gray-500">
-                  <UserIcon className="mx-auto h-12 w-12 text-gray-200 mb-3" />
+                  <UserIcon className="mx-auto mb-3 h-12 w-12 text-gray-200" />
                   <p>No members found in this workspace.</p>
                 </div>
               )}

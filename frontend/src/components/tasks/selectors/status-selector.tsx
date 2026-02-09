@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Check, ChevronDown, Circle, PlayCircle, CheckCircle2, Archive } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Circle,
+  PlayCircle,
+  CheckCircle2,
+  Archive,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { TaskStatus } from "@/types";
@@ -12,10 +19,30 @@ interface StatusSelectorProps {
 }
 
 const statusConfig = {
-  [TaskStatus.TODO]: { label: "Todo", icon: Circle, color: "text-gray-500", bg: "bg-gray-100" },
-  [TaskStatus.IN_PROGRESS]: { label: "In Progress", icon: PlayCircle, color: "text-blue-500", bg: "bg-blue-50" },
-  [TaskStatus.DONE]: { label: "Done", icon: CheckCircle2, color: "text-green-500", bg: "bg-green-50" },
-  [TaskStatus.BACKLOG]: { label: "Backlog", icon: Archive, color: "text-gray-400", bg: "bg-gray-50" },
+  [TaskStatus.TODO]: {
+    label: "Todo",
+    icon: Circle,
+    color: "text-gray-500",
+    bg: "bg-gray-100",
+  },
+  [TaskStatus.IN_PROGRESS]: {
+    label: "In Progress",
+    icon: PlayCircle,
+    color: "text-blue-500",
+    bg: "bg-blue-50",
+  },
+  [TaskStatus.DONE]: {
+    label: "Done",
+    icon: CheckCircle2,
+    color: "text-green-500",
+    bg: "bg-green-50",
+  },
+  [TaskStatus.BACKLOG]: {
+    label: "Backlog",
+    icon: Archive,
+    color: "text-gray-400",
+    bg: "bg-gray-50",
+  },
 };
 
 export function StatusSelector({ value, onChange }: StatusSelectorProps) {
@@ -33,7 +60,7 @@ export function StatusSelector({ value, onChange }: StatusSelectorProps) {
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 transition-colors"
+          "flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         )}
       >
         <div className="flex items-center gap-2">
@@ -44,7 +71,7 @@ export function StatusSelector({ value, onChange }: StatusSelectorProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-2 z-50 w-full rounded-md border border-gray-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 duration-100 p-1">
+        <div className="animate-in fade-in-0 zoom-in-95 absolute top-full z-50 mt-2 w-full rounded-md border border-gray-200 bg-white p-1 shadow-lg duration-100">
           {Object.entries(statusConfig).map(([key, config]) => {
             const StatusIcon = config.icon;
             const isSelected = value === key;
@@ -57,7 +84,7 @@ export function StatusSelector({ value, onChange }: StatusSelectorProps) {
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 transition-colors",
+                  "flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm transition-colors outline-none hover:bg-gray-100",
                   isSelected && "bg-gray-50"
                 )}
               >

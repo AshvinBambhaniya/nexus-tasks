@@ -14,7 +14,11 @@ interface AssigneeSelectorProps {
   onChange: (value: number | undefined) => void;
 }
 
-export function AssigneeSelector({ members, value, onChange }: AssigneeSelectorProps) {
+export function AssigneeSelector({
+  members,
+  value,
+  onChange,
+}: AssigneeSelectorProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -28,18 +32,18 @@ export function AssigneeSelector({ members, value, onChange }: AssigneeSelectorP
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-50 transition-colors",
+          "flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white transition-colors placeholder:text-gray-500 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-gray-500"
         )}
       >
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           {selectedMember ? (
             <>
-               <Avatar 
-                 fallback={selectedMember.email[0].toUpperCase()} 
-                 className="h-5 w-5 bg-blue-100 text-[10px] shrink-0"
-               />
-               <span className="truncate">{selectedMember.email}</span>
+              <Avatar
+                fallback={selectedMember.email[0].toUpperCase()}
+                className="h-5 w-5 shrink-0 bg-blue-100 text-[10px]"
+              />
+              <span className="truncate">{selectedMember.email}</span>
             </>
           ) : (
             <>
@@ -54,7 +58,7 @@ export function AssigneeSelector({ members, value, onChange }: AssigneeSelectorP
       </button>
 
       {open && (
-        <div className="absolute top-full mt-2 z-50 w-full min-w-[200px] rounded-md border border-gray-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="animate-in fade-in-0 zoom-in-95 absolute top-full z-50 mt-2 w-full min-w-[200px] rounded-md border border-gray-200 bg-white shadow-lg duration-100">
           <Command className="w-full overflow-hidden rounded-md">
             <div className="flex items-center border-b px-3">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -67,22 +71,24 @@ export function AssigneeSelector({ members, value, onChange }: AssigneeSelectorP
               <Command.Empty className="py-2 text-center text-xs text-gray-500">
                 No member found.
               </Command.Empty>
-              
+
               <Command.Item
                 onSelect={() => {
                   onChange(undefined);
                   setOpen(false);
                 }}
                 className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none data-[selected=true]:bg-gray-100 data-[selected=true]:text-gray-900",
+                  "relative flex cursor-default items-center rounded-sm px-2 py-2 text-sm outline-none select-none data-[selected=true]:bg-gray-100 data-[selected=true]:text-gray-900",
                   !value && "bg-gray-50 text-gray-900"
                 )}
               >
-                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-gray-400 mr-2 shrink-0">
+                <div className="mr-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-dashed border-gray-400">
                   <UserIcon className="h-3 w-3 text-gray-400" />
                 </div>
                 <span className="flex-1 truncate">Unassigned</span>
-                {!value && <Check className="ml-2 h-4 w-4 shrink-0 text-blue-600" />}
+                {!value && (
+                  <Check className="ml-2 h-4 w-4 shrink-0 text-blue-600" />
+                )}
               </Command.Item>
 
               {members.map((member) => (
@@ -93,12 +99,12 @@ export function AssigneeSelector({ members, value, onChange }: AssigneeSelectorP
                     setOpen(false);
                   }}
                   className={cn(
-                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none data-[selected=true]:bg-gray-100 data-[selected=true]:text-gray-900",
+                    "relative flex cursor-default items-center rounded-sm px-2 py-2 text-sm outline-none select-none data-[selected=true]:bg-gray-100 data-[selected=true]:text-gray-900",
                     value === member.user_id && "bg-gray-50 text-gray-900"
                   )}
                 >
-                  <Avatar 
-                    fallback={member.email[0].toUpperCase()} 
+                  <Avatar
+                    fallback={member.email[0].toUpperCase()}
                     className="mr-2 h-5 w-5 shrink-0 bg-blue-100 text-[10px]"
                   />
                   <span className="flex-1 truncate">{member.email}</span>

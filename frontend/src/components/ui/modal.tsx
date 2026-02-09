@@ -43,10 +43,10 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-200">
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-lg bg-white shadow-lg animate-in zoom-in-95 duration-200",
+          "animate-in zoom-in-95 relative w-full max-w-lg rounded-lg bg-white shadow-lg duration-200",
           className
         )}
         role="dialog"
