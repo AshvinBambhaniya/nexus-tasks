@@ -28,6 +28,7 @@ class Task(Base):
     # Foreign Keys
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     assignee_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    author_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
     # Dates
     due_date = Column(DateTime, nullable=True)
@@ -37,3 +38,9 @@ class Task(Base):
     # Relationships
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", foreign_keys=[assignee_id])
+    author = relationship("User", foreign_keys=[author_id])
+    comments = relationship("Comment", back_populates="task", cascade="all, delete-orphan")
+
+    @property
+    def comment_count(self) -> int:
+        return len(self.comments)

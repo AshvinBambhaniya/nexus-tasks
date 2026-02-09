@@ -10,6 +10,8 @@ from models.project import Project, ProjectMember, ProjectRole, ProjectTeam
 from models.team import TeamMember
 from models.workspace import WorkspaceMember, WorkspaceRole
 from schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskWithProject
+from schemas.comment import CommentCreate, CommentResponse
+from models.comment import Comment
 from api.v1.auth import get_current_user
 
 router = APIRouter()
@@ -62,6 +64,57 @@ def validate_project_access(project_id: int, db: Session, user_id: int) -> bool:
     
     raise HTTPException(status_code=403, detail="Not a member of this project")
 
+@router.get("/tasks/{task_id}", response_model=TaskResponse)
+def get_task(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    validate_project_access(task.project_id, db, current_user.id)
+    return task
+
+@router.get("/tasks/{task_id}/comments", response_model=List[CommentResponse])
+def list_task_comments(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    validate_project_access(task.project_id, db, current_user.id)
+    
+    comments = db.query(Comment).filter(Comment.task_id == task_id).order_by(Comment.created_at.asc()).all()
+    return comments
+
+@router.post("/tasks/{task_id}/comments", response_model=CommentResponse)
+def create_comment(
+    task_id: int,
+    comment: CommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    validate_project_access(task.project_id, db, current_user.id)
+    
+    new_comment = Comment(
+        content=comment.content,
+        task_id=task_id,
+        author_id=current_user.id
+    )
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    return new_comment
+
 @router.get("/tasks/me", response_model=List[TaskWithProject])
 def get_my_tasks(
     current_user: User = Depends(get_current_user),
@@ -99,6 +152,7 @@ def create_task(
     validate_assignee(project_id, task_data.get('assignee_id'), db)
 
     new_task = Task(**task_data)
+    new_task.author_id = current_user.id # Set author
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
@@ -133,6 +187,29 @@ def list_project_tasks(
         query = query.filter(Task.assignee_id == assignee_id)
         
     return query.all()
+
+@router.delete("/comments/{comment_id}")
+def delete_comment(
+    comment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    comment = db.query(Comment).filter(Comment.id == comment_id).first()
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+        
+    # Check permissions: Author or Admin?
+    # For now, allow author to delete.
+    if comment.author_id != current_user.id:
+         # Optionally check if project admin
+         task = db.query(Task).filter(Task.id == comment.task_id).first()
+         # Simple check: Only author can delete for now to be safe
+         raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+
+    db.delete(comment)
+    db.commit()
+    
+    return {"status": "success", "message": "Comment deleted"}
 
 @router.patch("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(

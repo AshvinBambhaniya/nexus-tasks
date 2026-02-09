@@ -113,9 +113,15 @@ export interface Task {
     email: string;
     full_name?: string;
   };
+  author?: {
+    id: number;
+    email: string;
+    full_name?: string;
+  };
   due_date?: string;
   created_at: string;
   updated_at: string;
+  comment_count?: number;
 }
 
 export interface ProjectInfo {

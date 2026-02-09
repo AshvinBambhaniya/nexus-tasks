@@ -4,6 +4,49 @@ import { Task, TaskStatus, TaskPriority } from "@/types";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
+export function useTask(taskId: number) {
+  const { data: task, error: taskError, isLoading: taskLoading, mutate: mutateTask } = useSWR<Task>(
+    taskId ? `/api/v1/tasks/${taskId}` : null,
+    fetcher
+  );
+
+  const { data: comments, error: commentsError, isLoading: commentsLoading, mutate: mutateComments } = useSWR<any[]>(
+    taskId ? `/api/v1/tasks/${taskId}/comments` : null,
+    fetcher
+  );
+
+  const createComment = async (content: string) => {
+    try {
+      await api.post(`/api/v1/tasks/${taskId}/comments`, { content });
+      mutateComments();
+    } catch (err) {
+      console.error("Failed to create comment", err);
+      throw err;
+    }
+  };
+
+  const deleteComment = async (commentId: number) => {
+      try {
+          await api.delete(`/api/v1/comments/${commentId}`);
+          mutateComments();
+      } catch (err) {
+          console.error("Failed to delete comment", err);
+          throw err;
+      }
+  }
+
+  return {
+    task,
+    comments: comments || [],
+    isLoading: taskLoading || commentsLoading,
+    isError: taskError || commentsError,
+    mutateTask,
+    mutateComments,
+    createComment,
+    deleteComment
+  };
+}
+
 export function useTasks(projectId?: number) {
   const { mutate } = useSWRConfig();
   
