@@ -1,14 +1,19 @@
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
 from models.team import TeamRole
+
 
 class TeamBase(BaseModel):
     name: str
     description: Optional[str] = None
 
+
 class TeamCreate(TeamBase):
     pass
+
 
 class TeamResponse(TeamBase):
     id: int
@@ -18,9 +23,11 @@ class TeamResponse(TeamBase):
     class Config:
         from_attributes = True
 
+
 class TeamMemberAdd(BaseModel):
     email: str
     role: TeamRole = TeamRole.MEMBER
+
 
 class TeamMemberResponse(BaseModel):
     user_id: int

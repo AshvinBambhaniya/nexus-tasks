@@ -42,12 +42,14 @@ This section guides you through submitting an enhancement suggestion for Nexus T
 We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting, linting) before every commit.
 
 1. **Install pre-commit:**
+
    ```bash
    pip install pre-commit
    # Or via brew: brew install pre-commit
    ```
 
 2. **Install the hooks:**
+
    ```bash
    pre-commit install
    ```
@@ -98,12 +100,12 @@ We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting,
 
 ### Git Commit Messages
 
-* Use the present tense ("Add feature" not "Added feature")
-* Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-* Limit the first line to 72 characters or less
-* Reference issues and pull requests liberally after the first line
+- Use the present tense ("Add feature" not "Added feature")
+- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+- Limit the first line to 72 characters or less
+- Reference issues and pull requests liberally after the first line
 
 ### Coding Standards
 
-* **Python:** Follow PEP 8 style guide.
-* **TypeScript/React:** Follow standard React best practices (Functional components, Hooks).
+- **Python:** Follow PEP 8 style guide.
+- **TypeScript/React:** Follow standard React best practices (Functional components, Hooks).

@@ -1,14 +1,16 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.v1 import auth, workspaces, tasks, websockets, teams, projects
-import os
+
+from api.v1 import auth, projects, tasks, teams, websockets, workspaces
 
 app = FastAPI(title="Nexus Tasks API")
 
 # CORS Configuration
 origins = [
     "http://localhost:3000",  # Next.js Frontend
-    os.getenv("FRONTEND_URL", ""), # Production URL from env
+    os.getenv("FRONTEND_URL", ""),  # Production URL from env
 ]
 
 app.add_middleware(
@@ -24,7 +26,8 @@ app.include_router(workspaces.router, prefix="/api/v1/workspaces", tags=["Worksp
 app.include_router(teams.router, prefix="/api/v1", tags=["Teams"])
 app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
-app.include_router(websockets.router, tags=["WebSockets"]) # No prefix or /api/v1 prefix? Usually WS are at root or specific path. The task says /ws/{workspace_id}.
+app.include_router(websockets.router, tags=["WebSockets"])
+
 
 @app.get("/health")
 async def health_check():

@@ -1,8 +1,12 @@
 import enum
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum as SqEnum, DateTime, Text
-from sqlalchemy.orm import relationship
-from core.database import Base
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SqEnum
+from sqlalchemy.orm import relationship
+
+from core.database import Base
+
 
 class TaskStatus(str, enum.Enum):
     TODO = "TODO"
@@ -10,11 +14,13 @@ class TaskStatus(str, enum.Enum):
     DONE = "DONE"
     BACKLOG = "BACKLOG"
 
+
 class TaskPriority(str, enum.Enum):
-    P0 = "P0" # Critical
-    P1 = "P1" # High
-    P2 = "P2" # Medium
-    P3 = "P3" # Low
+    P0 = "P0"  # Critical
+    P1 = "P1"  # High
+    P2 = "P2"  # Medium
+    P3 = "P3"  # Low
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -24,12 +30,18 @@ class Task(Base):
     description = Column(Text, nullable=True)
     status = Column(SqEnum(TaskStatus), default=TaskStatus.TODO, nullable=False)
     priority = Column(SqEnum(TaskPriority), default=TaskPriority.P2, nullable=False)
-    
+
     # Foreign Keys
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    assignee_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    author_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    
+    project_id = Column(
+        Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    assignee_id = Column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    author_id = Column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
     # Dates
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -39,7 +51,9 @@ class Task(Base):
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", foreign_keys=[assignee_id])
     author = relationship("User", foreign_keys=[author_id])
-    comments = relationship("Comment", back_populates="task", cascade="all, delete-orphan")
+    comments = relationship(
+        "Comment", back_populates="task", cascade="all, delete-orphan"
+    )
 
     @property
     def comment_count(self) -> int:

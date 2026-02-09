@@ -27,12 +27,14 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 ## Tech Stack
 
 **Frontend**
+
 - Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
 - Zustand (State Management)
 
 **Backend**
+
 - FastAPI (Python 3.12)
 - SQLAlchemy & Alembic
 - PostgreSQL
@@ -41,6 +43,7 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 ## Getting Started
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - Node.js 20+ (for local development)
 - Python 3.12+ (for local development)
@@ -50,11 +53,13 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 To run the entire stack (Frontend, Backend, Database) in production mode:
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/AshvinBambhaniya/nexus-tasks.git
    ```
 
 2. Navigate to the project directory:
+
    ```bash
    cd nexus-tasks
    ```
@@ -65,6 +70,7 @@ To run the entire stack (Frontend, Backend, Database) in production mode:
    ```
 
 The application will be available at:
+
 - Frontend: http://localhost:3000
 - API Documentation: http://localhost:8000/docs
 
@@ -75,27 +81,32 @@ If you wish to contribute or run services individually:
 #### 1. Backend
 
 Navigate to the backend directory:
+
 ```bash
 cd backend
 ```
 
 Create a virtual environment:
+
 ```bash
 python -m venv venv
 ```
 
 Activate the virtual environment:
+
 ```bash
 source venv/bin/activate
 # On Windows use: venv\Scripts\activate
 ```
 
 Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 Start the backend server:
+
 ```bash
 uvicorn main:app --reload
 ```
@@ -103,16 +114,19 @@ uvicorn main:app --reload
 #### 2. Frontend
 
 Navigate to the frontend directory:
+
 ```bash
 cd frontend
 ```
 
 Install dependencies:
+
 ```bash
 npm install
 ```
 
 Start the development server:
+
 ```bash
 npm run dev
 ```

@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
-from sqlalchemy.orm import relationship
-from core.database import Base
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
+from sqlalchemy.orm import relationship
+
+from core.database import Base
+
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -12,8 +15,12 @@ class Comment(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Foreign Keys
-    task_id = Column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
-    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    task_id = Column(
+        Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False
+    )
+    author_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Relationships
     task = relationship("Task", back_populates="comments")
