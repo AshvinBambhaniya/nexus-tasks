@@ -13,11 +13,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CommentItem } from "@/components/tasks/comment-item";
-import { 
-  ArrowLeft, 
-  Loader2, 
-  Trash2, 
-  Settings2, 
+import {
+  ArrowLeft,
+  Loader2,
+  Trash2,
+  Settings2,
   MessageSquare,
   Clock,
   User as UserIcon,
@@ -33,12 +33,16 @@ import { formatDistanceToNow } from "date-fns";
 
 import { useUser } from "@/hooks/use-user";
 
+import { AssigneeSelector } from "@/components/tasks/selectors/assignee-selector";
+import { StatusSelector } from "@/components/tasks/selectors/status-selector";
+import { PrioritySelector } from "@/components/tasks/selectors/priority-selector";
+
 export default function TaskDetailPage({ params }: { params: Promise<{ projectId: string, taskId: string }> }) {
   const resolvedParams = use(params);
   const projectId = parseInt(resolvedParams.projectId);
   const taskId = parseInt(resolvedParams.taskId);
   const router = useRouter();
-  
+
   const { user } = useUser();
   const { task, comments, isLoading, mutateTask, createComment, deleteComment } = useTask(taskId);
   const { updateTask, deleteTask } = useTasks(projectId);
@@ -63,15 +67,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
     mutateTask();
   };
 
-  const handleUpdateAssignee = async (assigneeId: number | null) => {
+  const handleUpdateAssignee = async (assigneeId: number | undefined) => {
     await updateTask(taskId, { assignee_id: assigneeId as any });
     mutateTask();
   };
 
   const handleUpdateTitle = async () => {
     if (!titleValue.trim() || titleValue === task?.title) {
-        setIsEditTitle(false);
-        return;
+      setIsEditTitle(false);
+      return;
     }
     await updateTask(taskId, { title: titleValue });
     setIsEditTitle(false);
@@ -98,14 +102,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
       setIsSubmittingComment(false);
     }
   };
-  
+
   const handleDeleteComment = async (commentId: number) => {
-      if (!confirm("Delete this comment?")) return;
-      try {
-          await deleteComment(commentId);
-      } catch (err) {
-          alert("Failed to delete comment");
-      }
+    if (!confirm("Delete this comment?")) return;
+    try {
+      await deleteComment(commentId);
+    } catch (err) {
+      alert("Failed to delete comment");
+    }
   }
 
   if (isLoading) return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /></div>;
@@ -131,9 +135,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
           <div className="flex items-start justify-between gap-4">
             {isEditingTitle ? (
               <div className="flex-1 flex gap-2">
-                <Input 
-                  value={titleValue} 
-                  onChange={(e) => setTitleValue(e.target.value)} 
+                <Input
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
                   className="text-2xl font-bold h-12"
                   autoFocus
                 />
@@ -144,7 +148,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
               <h1 className="text-3xl font-bold text-gray-900 group flex items-center gap-2">
                 {task.title}
                 <span className="text-gray-400 font-normal">#{task.id}</span>
-                <button 
+                <button
                   onClick={() => setIsEditTitle(true)}
                   className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-all"
                 >
@@ -153,22 +157,48 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
               </h1>
             )}
             <div className="flex gap-2">
-               <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE)}>
-                  {task.status === TaskStatus.DONE ? "Reopen" : "Complete"}
-               </Button>
+              {task.status === TaskStatus.DONE ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleUpdateStatus(TaskStatus.TODO)}
+                  className="text-gray-600 hover:text-gray-900 border-gray-200"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Reopen Task
+                </Button>
+              ) : (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleUpdateStatus(TaskStatus.DONE)}
+                  className="bg-green-600 hover:bg-green-700 text-white border-transparent"
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Complete Task
+                </Button>
+              )}
+              <Button
+                variant="destructive"
+                className="w-small"
+                onClick={handleDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Task
+              </Button>
             </div>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap border-b border-gray-200 pb-6">
-            <Badge className={cn("flex items-center gap-1.5 px-3 py-1 text-sm rounded-full", 
-                task.status === TaskStatus.DONE ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
+            <Badge className={cn("flex items-center gap-1.5 px-3 py-1 text-sm rounded-full font-medium transition-colors",
+              task.status === TaskStatus.DONE ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-blue-100 text-blue-700 hover:bg-blue-200"
             )}>
               <StatusIcon className="h-4 w-4" />
               {task.status.replace("_", " ")}
             </Badge>
-            <span className="text-gray-500 text-sm flex items-center gap-1.5">
-               <UserIcon className="h-4 w-4" />
-               <span className="font-semibold text-gray-700">{task.author?.full_name || task.author?.email || "Unknown"}</span> opened this task {formatDistanceToNow(new Date(task.created_at))} ago • {comments.length} comments
+            <span className="text-gray-500 text-sm flex items-center gap-1.5 font-medium">
+              <UserIcon className="h-4 w-4" />
+              <span className="font-semibold text-gray-900">{task.author?.full_name || task.author?.email || "Unknown"}</span> opened this task {formatDistanceToNow(new Date(task.created_at))} ago • {comments.length} comments
             </span>
           </div>
         </div>
@@ -179,102 +209,81 @@ export default function TaskDetailPage({ params }: { params: Promise<{ projectId
         <div className="lg:col-span-3 space-y-8">
           {/* Description */}
           <div className="flex gap-4">
-             <Avatar fallback="U" className="h-10 w-10 mt-1 border border-gray-100" />
-             <div className="flex-1">
-                <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-                   <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
-                      <span className="text-sm font-medium text-gray-700">Description</span>
-                   </div>
-                   <div className="p-4 prose prose-sm max-w-none prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{task.description || "_No description provided._"}</ReactMarkdown>
-                   </div>
+            <Avatar fallback={task.author?.full_name?.[0] || task.author?.email?.[0] || "U"} className="h-10 w-10 mt-1 border border-gray-100 shadow-sm" />
+            <div className="flex-1">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-gray-50/50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-700">Description</span>
                 </div>
-             </div>
+                <div className="p-4 prose prose-sm max-w-none prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{task.description || "_No description provided._"}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Comments List */}
           <div className="relative space-y-8 before:absolute before:left-[1.25rem] before:top-0 before:bottom-0 before:w-0.5 before:bg-gray-100">
-             {comments.map((comment) => (
-                <CommentItem 
-                    key={comment.id} 
-                    comment={comment} 
-                    currentUserId={user?.id}
-                    onDelete={handleDeleteComment}
-                />
-             ))}
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                currentUserId={user?.id}
+                onDelete={handleDeleteComment}
+              />
+            ))}
           </div>
 
           {/* New Comment Box */}
           <div className="flex gap-4 border-t border-gray-200 pt-8">
-             <Avatar fallback="U" className="h-10 w-10 mt-1 border border-gray-100 shadow-sm" />
-             <div className="flex-1">
-                <form onSubmit={handleSubmitComment} className="space-y-4">
-                   <MarkdownEditor 
-                      value={commentContent} 
-                      onChange={setCommentContent}
-                      placeholder="Add a comment..."
-                      className="shadow-sm"
-                   />
-                   <div className="flex justify-end">
-                      <Button type="submit" disabled={isSubmittingComment || !commentContent.trim()}>
-                         {isSubmittingComment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                         Comment
-                      </Button>
-                   </div>
-                </form>
-             </div>
+            <Avatar fallback={user?.full_name?.[0] || user?.email?.[0] || "U"} className="h-10 w-10 mt-1 border border-gray-100 shadow-sm" />
+            <div className="flex-1">
+              <form onSubmit={handleSubmitComment} className="space-y-4">
+                <MarkdownEditor
+                  value={commentContent}
+                  onChange={setCommentContent}
+                  placeholder="Add a comment..."
+                  className="shadow-sm border-gray-200"
+                />
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={isSubmittingComment || !commentContent.trim()} className="bg-blue-600 hover:bg-blue-700 text-white px-6">
+                    {isSubmittingComment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Comment
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
 
         {/* Sidebar Controls */}
         <div className="lg:col-span-1 space-y-8">
-           <div className="space-y-6">
-              <div className="space-y-2 pb-4 border-b border-gray-100">
-                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assignees</Label>
-                 <select 
-                    className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    value={task.assignee_id || ""}
-                    onChange={(e) => handleUpdateAssignee(e.target.value ? parseInt(e.target.value) : null)}
-                 >
-                    <option value="">Unassigned</option>
-                    {members.map(m => <option key={m.user_id} value={m.user_id}>{m.email}</option>)}
-                 </select>
-              </div>
+          <div className="space-y-6">
+            <div className="space-y-2 pb-4 border-b border-gray-100">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assignees</Label>
+              <AssigneeSelector
+                members={members}
+                value={task.assignee_id || undefined}
+                onChange={handleUpdateAssignee}
+              />
+            </div>
 
-              <div className="space-y-2 pb-4 border-b border-gray-100">
-                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</Label>
-                 <select 
-                    className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    value={task.status}
-                    onChange={(e) => handleUpdateStatus(e.target.value as TaskStatus)}
-                 >
-                    {Object.values(TaskStatus).map(s => (
-                        <option key={s} value={s}>{s.replace("_", " ")}</option>
-                    ))}
-                 </select>
-              </div>
+            <div className="space-y-2 pb-4 border-b border-gray-100">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</Label>
+              <StatusSelector
+                value={task.status}
+                onChange={handleUpdateStatus}
+              />
+            </div>
 
-              <div className="space-y-2 pb-4 border-b border-gray-100">
-                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority</Label>
-                 <select 
-                    className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    value={task.priority}
-                    onChange={(e) => handleUpdatePriority(e.target.value as TaskPriority)}
-                 >
-                    <option value={TaskPriority.P0}>Critical (P0)</option>
-                    <option value={TaskPriority.P1}>High (P1)</option>
-                    <option value={TaskPriority.P2}>Medium (P2)</option>
-                    <option value={TaskPriority.P3}>Low (P3)</option>
-                 </select>
-              </div>
-
-              <div className="pt-4">
-                 <Button variant="outline" className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 border-red-100" onClick={handleDelete}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Task
-                 </Button>
-              </div>
-           </div>
+            <div className="space-y-2 pb-4 border-b border-gray-100">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority</Label>
+              <PrioritySelector
+                value={task.priority}
+                onChange={handleUpdatePriority}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
