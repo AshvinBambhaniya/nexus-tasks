@@ -12,8 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Trash2, UserPlus, Mail } from "lucide-react";
+import { ApiError } from "@/types";
 
 interface TeamMembersProps {
   teamId: number;
@@ -33,8 +33,8 @@ export function TeamMembers({ teamId }: TeamMembersProps) {
     try {
       await addMember(inviteEmail);
       setInviteEmail("");
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to add member");
+    } catch (err) {
+      alert((err as ApiError).response?.data?.detail || "Failed to add member");
     } finally {
       setIsInviting(false);
     }
@@ -44,8 +44,10 @@ export function TeamMembers({ teamId }: TeamMembersProps) {
     if (!confirm("Remove this member from the team?")) return;
     try {
       await removeMember(userId);
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to remove member");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to remove member"
+      );
     }
   };
 

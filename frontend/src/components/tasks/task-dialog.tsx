@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Task, TaskPriority, TaskStatus } from "@/types";
+import { Task, TaskPriority, TaskStatus, ApiError } from "@/types";
 import { useTasks } from "@/hooks/use-tasks";
 import { useProjectMembers } from "@/hooks/use-projects";
 
@@ -74,9 +74,11 @@ export function TaskDialog({
         await createTask(formData);
       }
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to save task:", error);
-      alert(error.response?.data?.detail || "Failed to save task");
+      alert(
+        (error as ApiError).response?.data?.detail || "Failed to save task"
+      );
     } finally {
       setIsLoading(false);
     }

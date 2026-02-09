@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Workspace } from "@/types";
 
 interface WorkspaceState {
   activeWorkspaceId: number | null;

@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  User as UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -21,7 +20,7 @@ interface TaskIssueItemProps {
 }
 
 export function TaskIssueItem({ task, projectId }: TaskIssueItemProps) {
-  const statusIcons: Record<TaskStatus, any> = {
+  const statusIcons: Record<TaskStatus, React.ElementType> = {
     [TaskStatus.BACKLOG]: Clock,
     [TaskStatus.TODO]: Circle,
     [TaskStatus.IN_PROGRESS]: AlertCircle,
@@ -89,10 +88,10 @@ export function TaskIssueItem({ task, projectId }: TaskIssueItemProps) {
       </div>
 
       <div className="flex shrink-0 items-center gap-4 text-gray-400">
-        {(task as any).comment_count > 0 && (
+        {(task.comment_count ?? 0) > 0 && (
           <div className="flex items-center gap-1 text-xs">
             <MessageSquare className="h-3.5 w-3.5" />
-            <span>{(task as any).comment_count}</span>
+            <span>{task.comment_count}</span>
           </div>
         )}
         <div className="hidden items-center gap-1 text-xs group-hover:flex">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMyTasks } from "@/hooks/use-my-tasks";
-import { TaskCard } from "@/components/tasks/task-card";
 import { Loader2 } from "lucide-react";
 import { TaskWithProject } from "@/types";
 import { format } from "date-fns";

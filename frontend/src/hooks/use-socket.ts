@@ -3,6 +3,13 @@ import { useSWRConfig } from "swr";
 import { useWorkspaceStore } from "@/store/workspace-store";
 import { API_URL } from "@/lib/api";
 import { Task } from "@/types";
+import { ScopedMutator } from "swr/_internal";
+
+interface SocketMessage {
+  type: "TASK_CREATED" | "TASK_UPDATED" | "TASK_DELETED";
+  task?: Task;
+  task_id?: number;
+}
 
 export function useSocket() {
   const { activeWorkspaceId } = useWorkspaceStore();
@@ -39,20 +46,23 @@ export function useSocket() {
 
     return () => {
       socket.close();
+      socketRef.current = null;
     };
   }, [activeWorkspaceId, mutate]);
-
-  return socketRef.current;
 }
 
-function handleMessage(message: any, workspaceId: number, mutate: any) {
+function handleMessage(
+  message: SocketMessage,
+  workspaceId: number,
+  mutate: ScopedMutator
+) {
   const tasksKey = `/api/v1/workspaces/${workspaceId}/tasks`;
   const myTasksKey = "/api/v1/tasks/me";
 
   switch (message.type) {
     case "TASK_CREATED":
     case "TASK_UPDATED":
-      const task: Task = message.task;
+      const task: Task = message.task!;
 
       // Update Workspace Tasks
       mutate(
@@ -64,11 +74,8 @@ function handleMessage(message: any, workspaceId: number, mutate: any) {
           return currentTasks.map((t) => (t.id === task.id ? task : t));
         },
         false
-      ); // false = do not revalidate immediately
+      );
 
-      // Update My Tasks (Inbox) - only if assigned to me (but we don't know current user id here easily without store)
-      // For simplicity, we can revalidate the inbox or optimistic update if we knew the user ID.
-      // Let's just revalidate inbox to be safe and simple.
       mutate(myTasksKey);
       break;
 

@@ -15,9 +15,38 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # Frontend: Prettier (Formatting)
+  # Frontend: Prettier (Formatting) - Local hook to ensure local config is used
+  - repo: local
+    hooks:
+      - id: frontend-prettier
+        name: Frontend Prettier
+        entry: bash -c 'cd frontend && npx prettier --write "${@#frontend/}"' --
+        language: system
+        files: ^frontend/.*\.(css|javascript|js|jsx|ts|tsx|json|md)$
+        pass_filenames: true
+
+  # General: Prettier for non-frontend files (Markdown, YAML in root)
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
     hooks:
       - id: prettier
-        types_or: [css, javascript, tsx, ts, json, markdown]
+        types_or: [yaml, markdown]
+        exclude: ^frontend/
+
+  # Frontend: ESLint (Linting) - Local hook for better monorepo support
+  - repo: local
+    hooks:
+      - id: frontend-eslint
+        name: Frontend ESLint
+        entry: bash -c 'cd frontend && npx eslint --fix "${@#frontend/}"' --
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        pass_filenames: true
+
+  # Commit Compliance
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.13.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]

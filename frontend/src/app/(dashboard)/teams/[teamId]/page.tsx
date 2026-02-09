@@ -61,7 +61,9 @@ export default function TeamPage({
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() =>
+                setActiveTab(tab.id as "projects" | "members" | "settings")
+              }
               className={cn(
                 "border-b-2 pb-3 text-sm font-medium transition-colors",
                 activeTab === tab.id

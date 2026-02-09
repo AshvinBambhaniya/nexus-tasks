@@ -52,7 +52,7 @@ export function ProjectMemberDialog({
     try {
       await addMember(email);
       setEmail("");
-    } catch (err) {
+    } catch {
       alert("Failed to add member.");
     } finally {
       setIsSubmittingMember(false);
@@ -67,7 +67,7 @@ export function ProjectMemberDialog({
     try {
       await addTeam(parseInt(selectedTeamId));
       setSelectedTeamId("");
-    } catch (err) {
+    } catch {
       alert("Failed to add team.");
     } finally {
       setIsSubmittingTeam(false);

@@ -6,7 +6,7 @@ import { BoardView } from "@/components/tasks/board/board-view";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Task, TaskStatus } from "@/types";
+import { TaskStatus } from "@/types";
 
 export default function BoardsPage() {
   const { tasks, isLoading, updateTask } = useMyTasks();

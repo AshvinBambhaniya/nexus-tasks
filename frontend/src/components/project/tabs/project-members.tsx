@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useProjectMembers, useProjectTeams } from "@/hooks/use-projects";
-import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useTeams } from "@/hooks/use-teams";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,7 @@ import {
   Link as LinkIcon,
   Mail,
 } from "lucide-react";
+import { ApiError } from "@/types";
 
 interface ProjectMembersProps {
   projectId: number;
@@ -51,8 +51,8 @@ function DirectMembersSection({ projectId }: { projectId: number }) {
     try {
       await addMember(inviteEmail);
       setInviteEmail("");
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to add member");
+    } catch (err) {
+      alert((err as ApiError).response?.data?.detail || "Failed to add member");
     } finally {
       setIsInviting(false);
     }
@@ -62,8 +62,10 @@ function DirectMembersSection({ projectId }: { projectId: number }) {
     if (!confirm("Remove this member from the project?")) return;
     try {
       await removeMember(userId);
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to remove member");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to remove member"
+      );
     }
   };
 
@@ -184,8 +186,8 @@ function TeamMembersSection({ projectId }: { projectId: number }) {
     try {
       await addTeam(parseInt(selectedTeamId));
       setSelectedTeamId("");
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to link team");
+    } catch (err) {
+      alert((err as ApiError).response?.data?.detail || "Failed to link team");
     } finally {
       setIsLinking(false);
     }
@@ -195,8 +197,10 @@ function TeamMembersSection({ projectId }: { projectId: number }) {
     if (!confirm("Unlink this team from the project?")) return;
     try {
       await removeTeam(teamId);
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to unlink team");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to unlink team"
+      );
     }
   };
 

@@ -6,13 +6,8 @@ import { useWorkspaces } from "@/hooks/use-workspaces";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  LogOut,
-  Building,
-  User as UserIcon,
-  Loader2,
-  Check,
-} from "lucide-react";
+import { LogOut, Building, Loader2, Check } from "lucide-react";
+import { ApiError } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Card,
@@ -48,8 +43,10 @@ export function GeneralSettings() {
       await updateUser({ full_name: fullName, email });
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 3000);
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to update profile");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to update profile"
+      );
     } finally {
       setIsUpdating(false);
     }

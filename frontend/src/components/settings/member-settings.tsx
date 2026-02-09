@@ -23,7 +23,7 @@ import {
   Shield,
   User as UserIcon,
 } from "lucide-react";
-import { WorkspaceMember } from "@/types";
+import { WorkspaceMember, ApiError } from "@/types";
 
 export function MemberSettings() {
   const { activeWorkspace } = useWorkspaces();
@@ -52,8 +52,10 @@ export function MemberSettings() {
       });
       setInviteEmail("");
       mutate(); // Refresh list
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to invite user");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to invite user"
+      );
     } finally {
       setIsInviting(false);
     }
@@ -71,8 +73,10 @@ export function MemberSettings() {
         `/api/v1/workspaces/${activeWorkspace.id}/members/${userId}`
       );
       mutate();
-    } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to remove member");
+    } catch (err) {
+      alert(
+        (err as ApiError).response?.data?.detail || "Failed to remove member"
+      );
     }
   };
 

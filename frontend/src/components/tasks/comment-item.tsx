@@ -4,18 +4,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Comment } from "@/types";
 
 interface CommentItemProps {
-  comment: {
-    id: number;
-    content: string;
-    created_at: string;
-    author: {
-      id: number;
-      email: string;
-      full_name?: string;
-    };
-  };
+  comment: Comment;
   currentUserId?: number;
   onDelete?: (id: number) => void;
 }
@@ -25,11 +17,14 @@ export function CommentItem({
   currentUserId,
   onDelete,
 }: CommentItemProps) {
-  const authorName =
-    comment.author.full_name || comment.author.email.split("@")[0];
-  const initial = (comment.author.full_name ||
-    comment.author.email)[0].toUpperCase();
-  const isAuthor = currentUserId === comment.author.id;
+  const author = comment.author || {
+    id: 0,
+    email: "unknown@user.com",
+    full_name: "Unknown User",
+  };
+  const authorName = author.full_name || author.email.split("@")[0];
+  const initial = (author.full_name || author.email)[0].toUpperCase();
+  const isAuthor = currentUserId === author.id;
 
   return (
     <div className="group flex gap-4">

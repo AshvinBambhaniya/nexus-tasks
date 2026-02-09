@@ -24,7 +24,6 @@ import { WorkspaceMember, TaskStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ProjectDialog } from "@/components/project/project-dialog";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { useState } from "react";
 
@@ -43,7 +42,6 @@ export default function DashboardPage() {
   );
 
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
-  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false); // Controlled by Dialog Trigger usually, but for button we might need state
 
   // Filter tasks for this workspace (since /me returns all)
   // Assuming MyTasks API might return workspace_id in the future, currently we filter by project which has workspace_id
@@ -147,7 +145,6 @@ export default function DashboardPage() {
           icon={Activity}
           isLoading={false}
           color="green"
-          simple
         />
       </div>
 
@@ -306,6 +303,15 @@ export default function DashboardPage() {
   );
 }
 
+interface StatsCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ElementType;
+  isLoading: boolean;
+  color: "blue" | "indigo" | "orange" | "green";
+  label?: string;
+}
+
 function StatsCard({
   title,
   value,
@@ -313,9 +319,8 @@ function StatsCard({
   isLoading,
   color,
   label,
-  simple,
-}: any) {
-  const colors = {
+}: StatsCardProps) {
+  const colors: Record<string, string> = {
     blue: "bg-blue-50 text-blue-600",
     indigo: "bg-indigo-50 text-indigo-600",
     orange: "bg-orange-50 text-orange-600",
@@ -340,12 +345,7 @@ function StatsCard({
             </div>
           )}
         </div>
-        <div
-          className={cn(
-            "rounded-lg p-2",
-            (colors as any)[color] || colors.blue
-          )}
-        >
+        <div className={cn("rounded-lg p-2", colors[color] || colors.blue)}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
