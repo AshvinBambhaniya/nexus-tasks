@@ -12,6 +12,9 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckSquare, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { AssigneeSelector } from "@/components/tasks/selectors/assignee-selector";
+import { StatusSelector } from "@/components/tasks/selectors/status-selector";
+import { PrioritySelector } from "@/components/tasks/selectors/priority-selector";
 
 export default function NewTaskPage({ params }: { params: Promise<{ projectId: string }> }) {
   const resolvedParams = use(params);
@@ -102,46 +105,32 @@ export default function NewTaskPage({ params }: { params: Promise<{ projectId: s
         <div className="lg:col-span-1 space-y-6">
           <Card className="border-gray-200 shadow-none">
             <CardContent className="p-4 space-y-6">
+              
               <div className="space-y-2 border-b border-gray-100 pb-4">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assignees</Label>
-                <select
-                  className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={assigneeId || ""}
-                  onChange={(e) => setAssigneeId(e.target.value ? parseInt(e.target.value) : undefined)}
-                >
-                  <option value="">Unassigned</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>{m.email}</option>
-                  ))}
-                </select>
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assignee</Label>
+                <AssigneeSelector 
+                    members={members} 
+                    value={assigneeId} 
+                    onChange={setAssigneeId} 
+                />
               </div>
 
               <div className="space-y-2 border-b border-gray-100 pb-4">
                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</Label>
-                <select
-                  className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                >
-                  {Object.values(TaskStatus).map((s) => (
-                    <option key={s} value={s}>{s.replace("_", " ")}</option>
-                  ))}
-                </select>
+                <StatusSelector 
+                    value={status} 
+                    onChange={setStatus} 
+                />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Priority</Label>
-                <select
-                  className="w-full text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                >
-                  <option value={TaskPriority.P0}>P0 - Critical</option>
-                  <option value={TaskPriority.P1}>P1 - High</option>
-                  <option value={TaskPriority.P2}>P2 - Medium</option>
-                  <option value={TaskPriority.P3}>P3 - Low</option>
-                </select>
+                <PrioritySelector 
+                    value={priority} 
+                    onChange={setPriority} 
+                />
               </div>
+
             </CardContent>
           </Card>
         </div>

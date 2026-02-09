@@ -333,11 +333,6 @@ def update_project(
     db.refresh(project)
     
     return project
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 76ca9b1 (feat: implement GitHub-style task management with Markdown and comments)
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 def get_project(
@@ -350,7 +345,3 @@ def get_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
-<<<<<<< HEAD
->>>>>>> 2202828 (feat: refactor project navigation and details page)
-=======
->>>>>>> 76ca9b1 (feat: implement GitHub-style task management with Markdown and comments)
