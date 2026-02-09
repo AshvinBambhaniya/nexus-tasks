@@ -33,12 +33,6 @@ export default function BoardsPage() {
         <BoardView tasks={tasks} onTaskMove={handleTaskMove} />
       </div>
 
-      {/* 
-        TaskDialog requires a projectId if we are creating a new task.
-        If we are editing (selectedTask is set), it has a project_id in it.
-        So editing should work. Creating new might be disabled or need enhancement.
-        For now, I'll comment out the create button above and only allow editing.
-      */}
       <TaskDialog 
         isOpen={isDialogOpen} 
         onClose={() => setIsDialogOpen(false)} 
