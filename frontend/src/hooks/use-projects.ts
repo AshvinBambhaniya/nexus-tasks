@@ -99,6 +99,20 @@ export function useProjectTeams(projectId?: number) {
   };
 }
 
+export function useProject(id: number) {
+  const { data, error, isLoading, mutate } = useSWR<Project>(
+    id ? `/api/v1/projects/${id}` : null,
+    fetcher
+  );
+
+  return {
+    project: data,
+    isLoading,
+    isError: error,
+    mutate
+  };
+}
+
 export function useProjects() {
   const { mutate } = useSWRConfig();
   const { activeWorkspaceId } = useWorkspaceStore();

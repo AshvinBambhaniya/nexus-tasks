@@ -12,7 +12,6 @@ from api.v1.auth import get_current_user
 
 router = APIRouter()
 
-
 def validate_project_access(project_id: int, db: Session, user_id: int, require_admin: bool = False) -> ProjectMember:
     # Check direct project membership
     member = db.query(ProjectMember).filter(
@@ -334,3 +333,18 @@ def update_project(
     db.refresh(project)
     
     return project
+<<<<<<< HEAD
+=======
+
+@router.get("/projects/{project_id}", response_model=ProjectResponse)
+def get_project(
+    project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_project_access(project_id, db, current_user.id)
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
+>>>>>>> 2202828 (feat: refactor project navigation and details page)

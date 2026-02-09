@@ -1,20 +1,19 @@
 "use client";
 
 import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
-import { LayoutDashboard, CheckSquare, Inbox, Settings, LogOut, Folder, Users, Kanban } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Inbox, Settings, LogOut, Users, Kanban, Folder } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useUser } from "@/hooks/use-user";
-import { useProjects } from "@/hooks/use-projects";
 import { useTeams } from "@/hooks/use-teams";
-import { ProjectDialog } from "@/components/project/project-dialog";
 import { TeamDialog } from "@/components/team/team-dialog";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "My Focus", href: "/inbox", icon: Inbox },
+  { name: "Projects", href: "/projects", icon: Folder },
   { name: "Boards", href: "/boards", icon: Kanban },
   { name: "All Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -25,7 +24,6 @@ export function Sidebar() {
   const { logout } = useAuth();
   const { user, isLoading } = useUser();
   
-  const { projects } = useProjects();
   const { teams } = useTeams();
 
   const userInitial = user?.full_name
@@ -42,7 +40,7 @@ export function Sidebar() {
         {/* Main Nav */}
         <nav className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href === "/projects" && pathname.startsWith("/projects"));
             return (
               <Link
                 key={item.name}
@@ -65,33 +63,6 @@ export function Sidebar() {
             );
           })}
         </nav>
-
-        {/* Projects Section */}
-        <div>
-          <div className="px-3 mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Projects</h3>
-          </div>
-          <div className="space-y-1">
-            {projects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className={cn(
-                  "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === `/projects/${project.id}`
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <Folder className="mr-3 h-4 w-4 text-gray-400" />
-                <span className="truncate">{project.name}</span>
-              </Link>
-            ))}
-            <div className="px-1 pt-1">
-              <ProjectDialog />
-            </div>
-          </div>
-        </div>
 
         {/* Teams Section */}
         <div>
