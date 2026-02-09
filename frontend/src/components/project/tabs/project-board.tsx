@@ -1,7 +1,7 @@
 "use client";
 
 import { useTasks } from "@/hooks/use-tasks";
-import { TaskBoardView } from "@/components/tasks/task-board-view";
+import { BoardView } from "@/components/tasks/board/board-view";
 import { Loader2 } from "lucide-react";
 import { TaskStatus, Task } from "@/types";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,7 @@ export function ProjectBoard({ projectId }: ProjectBoardProps) {
 
   return (
     <div className="h-full">
-      <TaskBoardView 
+      <BoardView 
         tasks={tasks} 
         onTaskMove={handleTaskMove}
         onTaskClick={handleTaskClick}

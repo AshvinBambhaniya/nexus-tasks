@@ -2,67 +2,36 @@
 
 import { useState } from "react";
 import { useMyTasks } from "@/hooks/use-my-tasks"; // Changed hook
-import { TaskBoardView } from "@/components/tasks/task-board-view";
+import { BoardView } from "@/components/tasks/board/board-view";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Task, TaskStatus } from "@/types";
 
 export default function BoardsPage() {
-  const { tasks, isLoading, updateTask } = useMyTasks(); // Use my tasks hook
-  
+  const { tasks, isLoading, updateTask } = useMyTasks();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
 
   const handleTaskMove = (taskId: number, newStatus: TaskStatus) => {
     updateTask(taskId, { status: newStatus });
   };
 
-  const handleCreateClick = () => {
-    setSelectedTask(undefined);
-    setIsDialogOpen(true);
-  };
-
-  const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSelectedTask(undefined);
-  };
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
 
   return (
-    <div className="flex flex-col h-full space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">My Board</h1>
-            <p className="text-sm text-gray-500 mt-1">Board view of all tasks assigned to you across projects.</p>
-        </div>
-        {/* Creating a task from "My Board" is tricky because we need a project ID. 
-            The TaskDialog might support selecting a project, or we might disable creation here.
-            For now, let's keep the button but it might fail if TaskDialog requires projectId 
-            and we don't pass it.
-        */}
-        {/* <Button onClick={handleCreateClick}>
-            <Plus className="mr-2 h-4 w-4" /> Create Task
-        </Button> */}
+    <div className="h-full flex flex-col space-y-4">
+      <div className="flex items-center justify-between px-2">
+        <h1 className="text-2xl font-bold">My Boards</h1>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> New Task
+        </Button>
       </div>
-
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-hidden">
-             <TaskBoardView 
-                tasks={tasks} 
-                onTaskMove={handleTaskMove} 
-                onTaskClick={handleTaskClick} 
-             />
-        </div>
-      )}
+      
+      <div className="flex-1 overflow-hidden">
+        <BoardView tasks={tasks} onTaskMove={handleTaskMove} />
+      </div>
 
       {/* 
         TaskDialog requires a projectId if we are creating a new task.
@@ -72,9 +41,7 @@ export default function BoardsPage() {
       */}
       <TaskDialog 
         isOpen={isDialogOpen} 
-        onClose={handleCloseDialog} 
-        task={selectedTask}
-        projectId={selectedTask?.project_id || 0} // Fallback, creation disabled anyway
+        onClose={() => setIsDialogOpen(false)} 
       />
     </div>
   );
