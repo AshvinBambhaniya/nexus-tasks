@@ -7,13 +7,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useUser } from "@/hooks/use-user";
-import { useTeams } from "@/hooks/use-teams";
-import { TeamDialog } from "@/components/team/team-dialog";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "My Focus", href: "/inbox", icon: Inbox },
   { name: "Projects", href: "/projects", icon: Folder },
+  { name: "Teams", href: "/teams", icon: Users },
   { name: "Boards", href: "/boards", icon: Kanban },
   { name: "All Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -23,8 +22,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { user, isLoading } = useUser();
-  
-  const { teams } = useTeams();
 
   const userInitial = user?.full_name
     ? user.full_name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
@@ -40,7 +37,8 @@ export function Sidebar() {
         {/* Main Nav */}
         <nav className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (item.href === "/projects" && pathname.startsWith("/projects"));
+            const isActive = pathname === item.href || 
+              (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
@@ -63,33 +61,6 @@ export function Sidebar() {
             );
           })}
         </nav>
-
-        {/* Teams Section */}
-        <div>
-          <div className="px-3 mb-2 flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Teams</h3>
-          </div>
-          <div className="space-y-1">
-            {teams.map((team) => (
-              <Link
-                key={team.id}
-                href={`/teams/${team.id}`}
-                className={cn(
-                  "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === `/teams/${team.id}`
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <Users className="mr-3 h-4 w-4 text-gray-400" />
-                <span className="truncate">{team.name}</span>
-              </Link>
-            ))}
-            <div className="px-1 pt-1">
-              <TeamDialog />
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="border-t border-gray-200 p-4">
