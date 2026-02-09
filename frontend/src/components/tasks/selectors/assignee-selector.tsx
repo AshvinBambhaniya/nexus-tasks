@@ -6,10 +6,10 @@ import { Check, ChevronsUpDown, User as UserIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { Avatar } from "@/components/ui/avatar";
-import { ProjectMemberResponse } from "@/types";
+import { ProjectMember } from "@/types";
 
 interface AssigneeSelectorProps {
-  members: ProjectMemberResponse[];
+  members: ProjectMember[];
   value?: number;
   onChange: (value: number | undefined) => void;
 }
