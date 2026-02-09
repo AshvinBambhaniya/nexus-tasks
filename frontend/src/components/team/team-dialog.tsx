@@ -8,37 +8,36 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTeams } from "@/hooks/use-teams";
 
-export function TeamDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+interface TeamModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function TeamModal({ isOpen, onClose }: TeamModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const { createTeam } = useTeams();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
+    setIsLoading(true);
     try {
       await createTeam(name, description);
-      setIsOpen(false);
+      onClose();
       setName("");
       setDescription("");
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full justify-start text-xs text-gray-500 hover:text-gray-900 px-2"
-        onClick={() => setIsOpen(true)}
-      >
-        + Add Team
-      </Button>
-      <Modal title="Create Team" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+    <Modal title="Create Team" isOpen={isOpen} onClose={onClose}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="team-name">Team Name</Label>
@@ -60,13 +59,32 @@ export function TeamDialog() {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit">Create Team</Button>
+            <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Team"}
+            </Button>
           </div>
         </form>
-      </Modal>
+    </Modal>
+  );
+}
+
+export function TeamDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="w-full justify-start text-xs text-gray-500 hover:text-gray-900 px-2"
+        onClick={() => setIsOpen(true)}
+      >
+        + Add Team
+      </Button>
+      <TeamModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 }

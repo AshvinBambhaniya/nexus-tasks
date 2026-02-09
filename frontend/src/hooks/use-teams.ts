@@ -5,6 +5,20 @@ import { useWorkspaceStore } from "@/store/workspace-store";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
+export function useTeam(teamId: number) {
+  const { data, error, isLoading, mutate } = useSWR<Team>(
+    teamId ? `/api/v1/teams/${teamId}` : null,
+    fetcher
+  );
+
+  return {
+    team: data,
+    isLoading,
+    isError: error,
+    mutate
+  };
+}
+
 export function useTeams() {
   const { mutate } = useSWRConfig();
   const { activeWorkspaceId } = useWorkspaceStore();
@@ -25,11 +39,47 @@ export function useTeams() {
     }
   };
 
+  const updateTeam = async (teamId: number, data: { name?: string; description?: string }) => {
+     try {
+         await api.patch(`/api/v1/teams/${teamId}`, data);
+         mutate(activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null);
+         mutate(`/api/v1/teams/${teamId}`);
+     } catch (err) {
+         console.error("Failed to update team", err);
+         throw err;
+     }
+  }
+
+  const deleteTeam = async (teamId: number) => {
+      try {
+          await api.delete(`/api/v1/teams/${teamId}`);
+          mutate(activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null);
+      } catch (err) {
+          console.error("Failed to delete team", err);
+          throw err;
+      }
+  }
+
   return {
     teams: data || [],
     isLoading,
     isError: error,
     createTeam,
+    updateTeam,
+    deleteTeam
+  };
+}
+
+export function useTeamProjects(teamId: number) {
+  const { data, error, isLoading } = useSWR<any[]>(
+    teamId ? `/api/v1/teams/${teamId}/projects` : null, 
+    fetcher
+  );
+
+  return {
+    projects: data || [],
+    isLoading,
+    isError: error,
   };
 }
 
@@ -50,10 +100,21 @@ export function useTeamMembers(teamId: number) {
     }
   };
 
+  const removeMember = async (userId: number) => {
+    try {
+        await api.delete(`/api/v1/teams/${teamId}/members/${userId}`);
+        mutate(`/api/v1/teams/${teamId}/members`);
+    } catch (err) {
+        console.error("Failed to remove member", err);
+        throw err;
+    }
+  }
+
   return {
     members: data || [],
     isLoading,
     isError: error,
     addMember,
+    removeMember
   };
 }

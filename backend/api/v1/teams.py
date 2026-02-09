@@ -115,6 +115,75 @@ def list_workspace_teams(
     teams = db.query(Team).filter(Team.workspace_id == workspace_id).all()
     return teams
 
+@router.get("/teams/{team_id}", response_model=TeamResponse)
+def get_team(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_team_access(team_id, db, current_user.id)
+    team = db.query(Team).filter(Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    return team
+
+@router.patch("/teams/{team_id}", response_model=TeamResponse)
+def update_team(
+    team_id: int,
+    team_update: TeamCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_team_access(team_id, db, current_user.id, require_admin=True)
+    
+    team = db.query(Team).filter(Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+        
+    if team_update.name:
+        team.name = team_update.name
+    if team_update.description is not None:
+        team.description = team_update.description
+        
+    db.commit()
+    db.refresh(team)
+    return team
+
+@router.delete("/teams/{team_id}")
+def delete_team(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_team_access(team_id, db, current_user.id, require_admin=True)
+    
+    team = db.query(Team).filter(Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+        
+    db.delete(team)
+    db.commit()
+    return {"status": "success", "message": "Team deleted"}
+
+from models.project import Project, ProjectTeam
+from schemas.project import ProjectResponse
+
+@router.get("/teams/{team_id}/projects", response_model=List[ProjectResponse])
+def list_team_projects(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_team_access(team_id, db, current_user.id)
+    
+    projects = db.query(Project).join(
+        ProjectTeam, Project.id == ProjectTeam.project_id
+    ).filter(
+        ProjectTeam.team_id == team_id
+    ).all()
+    
+    return projects
+
 @router.post("/teams/{team_id}/members", response_model=TeamMemberResponse)
 def add_team_member(
     team_id: int,
@@ -155,6 +224,28 @@ def add_team_member(
         "role": new_member.role,
         "email": user_to_add.email
     }
+
+@router.delete("/teams/{team_id}/members/{user_id}")
+def remove_team_member(
+    team_id: int,
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    validate_team_access(team_id, db, current_user.id, require_admin=True)
+
+    member = db.query(TeamMember).filter(
+        TeamMember.team_id == team_id,
+        TeamMember.user_id == user_id
+    ).first()
+    
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    db.delete(member)
+    db.commit()
+    
+    return {"status": "success", "message": "Member removed"}
 
 @router.get("/teams/{team_id}/members", response_model=List[TeamMemberResponse])
 def list_team_members(
