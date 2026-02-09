@@ -8,7 +8,10 @@ const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 export function useWorkspaces() {
   const { mutate } = useSWRConfig();
-  const { data, error, isLoading } = useSWR<Workspace[]>("/api/v1/workspaces", fetcher);
+  const { data, error, isLoading } = useSWR<Workspace[]>(
+    "/api/v1/workspaces",
+    fetcher
+  );
   const { activeWorkspaceId, setActiveWorkspaceId } = useWorkspaceStore();
 
   const workspaces = data || [];

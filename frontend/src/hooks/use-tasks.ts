@@ -5,12 +5,19 @@ import { Task, TaskStatus, TaskPriority } from "@/types";
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 export function useTask(taskId: number) {
-  const { data: task, error: taskError, isLoading: taskLoading, mutate: mutateTask } = useSWR<Task>(
-    taskId ? `/api/v1/tasks/${taskId}` : null,
-    fetcher
-  );
+  const {
+    data: task,
+    error: taskError,
+    isLoading: taskLoading,
+    mutate: mutateTask,
+  } = useSWR<Task>(taskId ? `/api/v1/tasks/${taskId}` : null, fetcher);
 
-  const { data: comments, error: commentsError, isLoading: commentsLoading, mutate: mutateComments } = useSWR<any[]>(
+  const {
+    data: comments,
+    error: commentsError,
+    isLoading: commentsLoading,
+    mutate: mutateComments,
+  } = useSWR<any[]>(
     taskId ? `/api/v1/tasks/${taskId}/comments` : null,
     fetcher
   );
@@ -26,14 +33,14 @@ export function useTask(taskId: number) {
   };
 
   const deleteComment = async (commentId: number) => {
-      try {
-          await api.delete(`/api/v1/comments/${commentId}`);
-          mutateComments();
-      } catch (err) {
-          console.error("Failed to delete comment", err);
-          throw err;
-      }
-  }
+    try {
+      await api.delete(`/api/v1/comments/${commentId}`);
+      mutateComments();
+    } catch (err) {
+      console.error("Failed to delete comment", err);
+      throw err;
+    }
+  };
 
   return {
     task,
@@ -43,18 +50,23 @@ export function useTask(taskId: number) {
     mutateTask,
     mutateComments,
     createComment,
-    deleteComment
+    deleteComment,
   };
 }
 
 export function useTasks(projectId?: number) {
   const { mutate } = useSWRConfig();
-  
+
   const key = projectId ? `/api/v1/projects/${projectId}/tasks` : null;
-  
+
   const { data, error, isLoading } = useSWR<Task[]>(key, fetcher);
 
-  const createTask = async (task: { title: string; description?: string; priority?: TaskPriority; status?: TaskStatus }) => {
+  const createTask = async (task: {
+    title: string;
+    description?: string;
+    priority?: TaskPriority;
+    status?: TaskStatus;
+  }) => {
     if (!projectId) return;
     try {
       await api.post(`/api/v1/projects/${projectId}/tasks`, task);

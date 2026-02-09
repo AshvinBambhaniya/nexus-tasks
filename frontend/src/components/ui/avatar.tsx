@@ -1,13 +1,19 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
-  src?: string
-  alt?: string
-  fallback: string
+  src?: string;
+  alt?: string;
+  fallback: string;
 }
 
-export function Avatar({ className, src, alt, fallback, ...props }: AvatarProps) {
+export function Avatar({
+  className,
+  src,
+  alt,
+  fallback,
+  ...props
+}: AvatarProps) {
   return (
     <div
       className={cn(
@@ -28,5 +34,5 @@ export function Avatar({ className, src, alt, fallback, ...props }: AvatarProps)
         </div>
       )}
     </div>
-  )
+  );
 }

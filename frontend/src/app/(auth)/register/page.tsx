@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  
+
   const { register, isLoading, error: authError } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,8 +22,8 @@ export default function RegisterPage() {
     setValidationError(null);
 
     if (password !== confirmPassword) {
-        setValidationError("Passwords do not match");
-        return;
+      setValidationError("Passwords do not match");
+      return;
     }
 
     await register(email, password, fullName);
@@ -32,14 +32,16 @@ export default function RegisterPage() {
   const error = validationError || authError;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md space-y-8 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center text-center">
-          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-             <CheckSquare className="h-6 w-6 text-blue-600" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+            <CheckSquare className="h-6 w-6 text-blue-600" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Create an account</h2>
-          <p className="text-sm text-gray-500 mt-2">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+            Create an account
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
             Enter your details below to get started
           </p>
         </div>
@@ -101,7 +103,7 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <div className="text-sm font-medium text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
               {error}
             </div>
           )}
@@ -113,7 +115,10 @@ export default function RegisterPage() {
 
         <div className="text-center text-sm">
           <span className="text-gray-500">Already have an account? </span>
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+          <Link
+            href="/login"
+            className="font-medium text-blue-600 hover:text-blue-500 hover:underline"
+          >
             Log in
           </Link>
         </div>

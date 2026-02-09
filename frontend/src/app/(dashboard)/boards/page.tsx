@@ -21,21 +21,21 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col space-y-4">
+    <div className="flex h-full flex-col space-y-4">
       <div className="flex items-center justify-between px-2">
         <h1 className="text-2xl font-bold">My Boards</h1>
         <Button onClick={() => setIsDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> New Task
         </Button>
       </div>
-      
+
       <div className="flex-1 overflow-hidden">
         <BoardView tasks={tasks} onTaskMove={handleTaskMove} />
       </div>
 
-      <TaskDialog 
-        isOpen={isDialogOpen} 
-        onClose={() => setIsDialogOpen(false)} 
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
       />
     </div>
   );

@@ -11,8 +11,18 @@ export function middleware(request: NextRequest) {
   }
 
   // 2. If user is NOT authenticated and tries to access protected routes
-  const protectedPrefixes = ["/dashboard", "/inbox", "/boards", "/tasks", "/settings", "/projects", "/teams"];
-  const isProtectedRoute = protectedPrefixes.some(route => pathname.startsWith(route));
+  const protectedPrefixes = [
+    "/dashboard",
+    "/inbox",
+    "/boards",
+    "/tasks",
+    "/settings",
+    "/projects",
+    "/teams",
+  ];
+  const isProtectedRoute = protectedPrefixes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));

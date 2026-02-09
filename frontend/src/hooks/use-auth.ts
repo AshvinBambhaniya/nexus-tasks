@@ -24,9 +24,9 @@ export function useAuth() {
       });
 
       // Token is now set in HttpOnly cookie by backend
-      
+
       router.push("/dashboard");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to login");
     } finally {
@@ -34,14 +34,22 @@ export function useAuth() {
     }
   };
 
-  const register = async (email: string, password: string, fullName?: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName?: string
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
-      await api.post("/api/v1/auth/register", { email, password, full_name: fullName });
+      await api.post("/api/v1/auth/register", {
+        email,
+        password,
+        full_name: fullName,
+      });
       // Auto-login after register
       await login(email, password);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to register");
       setIsLoading(false);
@@ -50,11 +58,11 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-        await api.post("/api/v1/auth/logout");
+      await api.post("/api/v1/auth/logout");
     } catch (error) {
-        console.error("Logout failed", error);
+      console.error("Logout failed", error);
     }
-    
+
     localStorage.removeItem("workspace-storage");
     mutate(() => true, undefined, { revalidate: false });
     router.push("/login");

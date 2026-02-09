@@ -15,23 +15,26 @@ export function useTeam(teamId: number) {
     team: data,
     isLoading,
     isError: error,
-    mutate
+    mutate,
   };
 }
 
 export function useTeams() {
   const { mutate } = useSWRConfig();
   const { activeWorkspaceId } = useWorkspaceStore();
-  
+
   const { data, error, isLoading } = useSWR<Team[]>(
-    activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null, 
+    activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null,
     fetcher
   );
 
   const createTeam = async (name: string, description?: string) => {
     if (!activeWorkspaceId) return;
     try {
-      await api.post(`/api/v1/workspaces/${activeWorkspaceId}/teams`, { name, description });
+      await api.post(`/api/v1/workspaces/${activeWorkspaceId}/teams`, {
+        name,
+        description,
+      });
       mutate(`/api/v1/workspaces/${activeWorkspaceId}/teams`);
     } catch (err) {
       console.error("Failed to create team", err);
@@ -39,26 +42,37 @@ export function useTeams() {
     }
   };
 
-  const updateTeam = async (teamId: number, data: { name?: string; description?: string }) => {
-     try {
-         await api.patch(`/api/v1/teams/${teamId}`, data);
-         mutate(activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null);
-         mutate(`/api/v1/teams/${teamId}`);
-     } catch (err) {
-         console.error("Failed to update team", err);
-         throw err;
-     }
-  }
+  const updateTeam = async (
+    teamId: number,
+    data: { name?: string; description?: string }
+  ) => {
+    try {
+      await api.patch(`/api/v1/teams/${teamId}`, data);
+      mutate(
+        activeWorkspaceId
+          ? `/api/v1/workspaces/${activeWorkspaceId}/teams`
+          : null
+      );
+      mutate(`/api/v1/teams/${teamId}`);
+    } catch (err) {
+      console.error("Failed to update team", err);
+      throw err;
+    }
+  };
 
   const deleteTeam = async (teamId: number) => {
-      try {
-          await api.delete(`/api/v1/teams/${teamId}`);
-          mutate(activeWorkspaceId ? `/api/v1/workspaces/${activeWorkspaceId}/teams` : null);
-      } catch (err) {
-          console.error("Failed to delete team", err);
-          throw err;
-      }
-  }
+    try {
+      await api.delete(`/api/v1/teams/${teamId}`);
+      mutate(
+        activeWorkspaceId
+          ? `/api/v1/workspaces/${activeWorkspaceId}/teams`
+          : null
+      );
+    } catch (err) {
+      console.error("Failed to delete team", err);
+      throw err;
+    }
+  };
 
   return {
     teams: data || [],
@@ -66,13 +80,13 @@ export function useTeams() {
     isError: error,
     createTeam,
     updateTeam,
-    deleteTeam
+    deleteTeam,
   };
 }
 
 export function useTeamProjects(teamId: number) {
   const { data, error, isLoading } = useSWR<any[]>(
-    teamId ? `/api/v1/teams/${teamId}/projects` : null, 
+    teamId ? `/api/v1/teams/${teamId}/projects` : null,
     fetcher
   );
 
@@ -86,13 +100,16 @@ export function useTeamProjects(teamId: number) {
 export function useTeamMembers(teamId: number) {
   const { mutate } = useSWRConfig();
   const { data, error, isLoading } = useSWR<any[]>(
-    teamId ? `/api/v1/teams/${teamId}/members` : null, 
+    teamId ? `/api/v1/teams/${teamId}/members` : null,
     fetcher
   );
 
   const addMember = async (email: string) => {
     try {
-      await api.post(`/api/v1/teams/${teamId}/members`, { email, role: "MEMBER" });
+      await api.post(`/api/v1/teams/${teamId}/members`, {
+        email,
+        role: "MEMBER",
+      });
       mutate(`/api/v1/teams/${teamId}/members`);
     } catch (err) {
       console.error("Failed to add member", err);
@@ -102,19 +119,19 @@ export function useTeamMembers(teamId: number) {
 
   const removeMember = async (userId: number) => {
     try {
-        await api.delete(`/api/v1/teams/${teamId}/members/${userId}`);
-        mutate(`/api/v1/teams/${teamId}/members`);
+      await api.delete(`/api/v1/teams/${teamId}/members/${userId}`);
+      mutate(`/api/v1/teams/${teamId}/members`);
     } catch (err) {
-        console.error("Failed to remove member", err);
-        throw err;
+      console.error("Failed to remove member", err);
+      throw err;
     }
-  }
+  };
 
   return {
     members: data || [],
     isLoading,
     isError: error,
     addMember,
-    removeMember
+    removeMember,
   };
 }
