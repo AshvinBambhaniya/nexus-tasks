@@ -37,6 +37,26 @@ This section guides you through submitting an enhancement suggestion for Nexus T
 5. Make sure your code lints.
 6. Issue that pull request!
 
+### Pre-commit Hooks
+
+We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting, linting) before every commit.
+
+1. **Install pre-commit:**
+   ```bash
+   pip install pre-commit
+   # Or via brew: brew install pre-commit
+   ```
+
+2. **Install the hooks:**
+   ```bash
+   pre-commit install
+   ```
+
+3. **Run manually (optional):**
+   ```bash
+   pre-commit run --all-files
+   ```
+
 ## Development Setup
 
 ### Backend (FastAPI)
