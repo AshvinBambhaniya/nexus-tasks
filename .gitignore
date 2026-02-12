@@ -24,3 +24,7 @@ build/
 *.swp
 .DS_Store
 tmp/
+
+# Helm
+charts/**/charts/
+*.tar

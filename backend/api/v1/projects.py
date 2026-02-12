@@ -149,7 +149,7 @@ def list_workspace_projects(
     # Return all active projects in workspace
     projects = (
         db.query(Project)
-        .filter(Project.workspace_id == workspace_id, Project.is_archived is False)
+        .filter(Project.workspace_id == workspace_id, Project.is_archived.is_(False))
         .all()
     )
     return projects
