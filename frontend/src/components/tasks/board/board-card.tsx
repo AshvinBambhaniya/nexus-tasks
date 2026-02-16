@@ -6,8 +6,9 @@ import { Task, TaskPriority } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Clock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { format, isPast, isToday } from "date-fns";
 
 interface BoardCardProps {
   task: Task;
@@ -69,15 +70,38 @@ export function BoardCard({ task, onClick }: BoardCardProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 border px-1.5 py-0 text-[10px] font-bold",
-                priorityColors[task.priority]
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-5 border px-1.5 py-0 text-[10px] font-bold",
+                  priorityColors[task.priority]
+                )}
+              >
+                {task.priority}
+              </Badge>
+              {task.status === "DONE" && task.completed_at ? (
+                <div className="flex items-center gap-1 text-[10px] text-green-600 font-medium">
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span>{format(new Date(task.completed_at), "MMM d")}</span>
+                </div>
+              ) : (
+                task.due_date && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-1 text-[10px]",
+                      isPast(new Date(task.due_date)) &&
+                        !isToday(new Date(task.due_date))
+                        ? "font-medium text-red-600"
+                        : "text-gray-500"
+                    )}
+                  >
+                    <Clock className="h-3 w-3" />
+                    <span>{format(new Date(task.due_date), "MMM d")}</span>
+                  </div>
+                )
               )}
-            >
-              {task.priority}
-            </Badge>
+            </div>
 
             <div className="flex items-center gap-2">
               {(task.comment_count ?? 0) > 0 && (

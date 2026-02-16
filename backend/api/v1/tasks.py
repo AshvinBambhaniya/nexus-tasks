@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -260,6 +261,13 @@ def update_task(
 
     if "assignee_id" in update_data:
         validate_assignee(task.project_id, update_data["assignee_id"], db)
+
+    if "status" in update_data:
+        new_status = update_data["status"]
+        if new_status == TaskStatus.DONE and task.status != TaskStatus.DONE:
+            task.completed_at = datetime.utcnow()
+        elif new_status != TaskStatus.DONE and task.status == TaskStatus.DONE:
+            task.completed_at = None
 
     for key, value in update_data.items():
         setattr(task, key, value)

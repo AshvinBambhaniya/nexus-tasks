@@ -67,6 +67,7 @@ export function useTasks(projectId?: number) {
     priority?: TaskPriority;
     status?: TaskStatus;
     assignee_id?: number;
+    due_date?: string;
   }) => {
     if (!projectId) return;
     try {

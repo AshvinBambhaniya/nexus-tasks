@@ -41,6 +41,7 @@ export function TaskDialog({
     status: TaskStatus.TODO,
     priority: TaskPriority.P2,
     assignee_id: undefined as number | undefined,
+    due_date: undefined as string | undefined,
   });
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function TaskDialog({
         status: task.status,
         priority: task.priority,
         assignee_id: task.assignee_id,
+        due_date: task.due_date ? task.due_date.split("T")[0] : undefined,
       });
     } else {
       setFormData({
@@ -59,6 +61,7 @@ export function TaskDialog({
         status: TaskStatus.TODO,
         priority: TaskPriority.P2, // Default Medium
         assignee_id: undefined,
+        due_date: undefined,
       });
     }
   }, [task, isOpen]);
@@ -177,28 +180,45 @@ export function TaskDialog({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="assignee">Assignee</Label>
-          <select
-            id="assignee"
-            className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-            value={formData.assignee_id || ""}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                assignee_id: e.target.value
-                  ? parseInt(e.target.value)
-                  : undefined,
-              })
-            }
-          >
-            <option value="">Unassigned</option>
-            {members.map((member) => (
-              <option key={member.user_id} value={member.user_id}>
-                {member.email}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="assignee">Assignee</Label>
+            <select
+              id="assignee"
+              className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              value={formData.assignee_id || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  assignee_id: e.target.value
+                    ? parseInt(e.target.value)
+                    : undefined,
+                })
+              }
+            >
+              <option value="">Unassigned</option>
+              {members.map((member) => (
+                <option key={member.user_id} value={member.user_id}>
+                  {member.email}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="due_date">Due Date</Label>
+            <Input
+              id="due_date"
+              type="date"
+              value={formData.due_date || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  due_date: e.target.value || undefined,
+                })
+              }
+            />
+          </div>
         </div>
 
         <div className="flex justify-between pt-4">

@@ -33,6 +33,7 @@ export default function NewTaskPage({
   const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO);
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.P2);
   const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
+  const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,6 +48,7 @@ export default function NewTaskPage({
         status,
         priority,
         assignee_id: assigneeId,
+        due_date: dueDate,
       });
       router.push(`/projects/${projectId}`);
     } catch (error) {
@@ -125,6 +127,17 @@ export default function NewTaskPage({
         <div className="space-y-6 lg:col-span-1">
           <Card className="border-gray-200 shadow-none">
             <CardContent className="space-y-6 p-4">
+              <div className="space-y-2 border-b border-gray-100 pb-4">
+                <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Due Date
+                </Label>
+                <Input
+                  type="date"
+                  value={dueDate || ""}
+                  onChange={(e) => setDueDate(e.target.value || undefined)}
+                />
+              </div>
+
               <div className="space-y-2 border-b border-gray-100 pb-4">
                 <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
                   Assignee

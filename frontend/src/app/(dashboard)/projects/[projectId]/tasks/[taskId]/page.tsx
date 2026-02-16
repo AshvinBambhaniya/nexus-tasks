@@ -81,6 +81,11 @@ export default function TaskDetailPage({
     mutateTask();
   };
 
+  const handleUpdateDueDate = async (dateStr: string) => {
+    await updateTask(taskId, { due_date: (dateStr || null) as string });
+    mutateTask();
+  };
+
   const handleUpdateTitle = async () => {
     if (!titleValue.trim() || titleValue === task?.title) {
       setIsEditTitle(false);
@@ -310,6 +315,17 @@ export default function TaskDetailPage({
           <div className="space-y-6">
             <div className="space-y-2 border-b border-gray-100 pb-4">
               <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                Due Date
+              </Label>
+              <Input
+                type="date"
+                value={task.due_date ? task.due_date.split("T")[0] : ""}
+                onChange={(e) => handleUpdateDueDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2 border-b border-gray-100 pb-4">
+              <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
                 Assignees
               </Label>
               <AssigneeSelector
@@ -328,6 +344,18 @@ export default function TaskDetailPage({
                 onChange={handleUpdateStatus}
               />
             </div>
+
+            {task.completed_at && (
+              <div className="space-y-2 border-b border-gray-100 pb-4">
+                <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Completed On
+                </Label>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  {new Date(task.completed_at).toLocaleDateString()}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2 border-b border-gray-100 pb-4">
               <Label className="text-xs font-bold tracking-wider text-gray-500 uppercase">

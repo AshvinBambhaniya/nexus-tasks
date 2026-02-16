@@ -8,9 +8,10 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -73,6 +74,28 @@ export function TaskIssueItem({ task, projectId }: TaskIssueItemProps) {
           <span>
             opened {formatDistanceToNow(new Date(task.created_at))} ago
           </span>
+          {task.status === "DONE" && task.completed_at ? (
+            <div className="flex items-center gap-1 text-green-600 font-medium">
+              <CheckCircle2 className="h-3 w-3" />
+              <span>{format(new Date(task.completed_at), "MMM d")}</span>
+            </div>
+          ) : (
+            task.due_date && (
+              <div
+                className={cn(
+                  "flex items-center gap-1",
+                  isPast(new Date(task.due_date)) &&
+                    !isToday(new Date(task.due_date)) &&
+                    task.status !== "DONE"
+                    ? "font-medium text-red-600"
+                    : "text-gray-500"
+                )}
+              >
+                <Calendar className="h-3 w-3" />
+                <span>{format(new Date(task.due_date), "MMM d")}</span>
+              </div>
+            )
+          )}
           {task.assignee && (
             <div className="flex items-center gap-1">
               <Avatar

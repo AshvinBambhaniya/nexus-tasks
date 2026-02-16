@@ -2,6 +2,7 @@
 
 import { Task, TaskPriority, TaskStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 interface TaskListViewProps {
   tasks: Task[];
@@ -25,6 +26,7 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
             <th className="px-4 py-3 font-medium">Title</th>
             <th className="px-4 py-3 font-medium">Status</th>
             <th className="px-4 py-3 font-medium">Priority</th>
+            <th className="px-4 py-3 font-medium">Due / Completed</th>
             <th className="px-4 py-3 font-medium">Created</th>
           </tr>
         </thead>
@@ -43,6 +45,17 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
               </td>
               <td className="px-4 py-3">
                 <PriorityBadge priority={task.priority} />
+              </td>
+              <td className="px-4 py-3 text-gray-500">
+                {task.status === "DONE" && task.completed_at ? (
+                  <span className="text-green-600 font-medium">
+                    {format(new Date(task.completed_at), "MMM d, yyyy")}
+                  </span>
+                ) : task.due_date ? (
+                  format(new Date(task.due_date), "MMM d, yyyy")
+                ) : (
+                  <span className="text-gray-300">-</span>
+                )}
               </td>
               <td className="px-4 py-3 text-gray-500">
                 {new Date(task.created_at).toLocaleDateString()}

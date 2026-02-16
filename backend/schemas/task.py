@@ -44,6 +44,7 @@ class TaskResponse(TaskBase):
     assignee: Optional[UserInfo] = None
     author: Optional[UserInfo] = None  # Added author
     comment_count: int = 0
+    completed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
