@@ -11,3 +11,6 @@ pytest==8.0.0
 httpx==0.26.0
 email-validator==2.2.0
 ruff==0.3.0
+celery==5.3.6
+redis==5.0.1
+fastapi-mail==1.4.1

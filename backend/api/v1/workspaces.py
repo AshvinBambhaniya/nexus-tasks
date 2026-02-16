@@ -13,6 +13,7 @@ from schemas.workspace import (
     WorkspaceMemberResponse,
     WorkspaceResponse,
 )
+from tasks.email_tasks import send_workspace_invitation_email
 
 router = APIRouter()
 
@@ -147,6 +148,9 @@ def invite_member(
     db.add(new_member)
     db.commit()
     db.refresh(new_member)
+
+    # Trigger Email Notification
+    send_workspace_invitation_email.delay(invite.email, member.workspace.name)
 
     return new_member
 
