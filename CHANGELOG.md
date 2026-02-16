@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-16
+
+### 🚀 New Features
+
+- **Task Completion Tracking**: Added `completed_at` field to tasks to track exactly when they are moved to the "DONE" status. This enables better historical data and future cycle time analytics.
+- **Enhanced Due Date Support**: Improved UI for setting and viewing due dates across task boards and list views.
+- **Workspace Invitation Emails**: Implemented email notifications for workspace invitations, allowing users to join workspaces seamlessly.
+
 ## [1.0.0] - 2026-02-12
 
 ### 🚀 Initial Release: Nexus Tasks
