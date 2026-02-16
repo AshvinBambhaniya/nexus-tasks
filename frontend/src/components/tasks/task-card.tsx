@@ -2,6 +2,9 @@ import { Task, TaskWithProject } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
+import { Clock, CheckCircle2 } from "lucide-react";
+import { format, isPast, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task | TaskWithProject;
@@ -24,9 +27,33 @@ export function TaskCard({ task }: TaskCardProps) {
           </span>
         </div>
         <div className="mt-1 flex items-center justify-between">
-          <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px]">
-            {task.priority}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="h-5 px-1.5 py-0 text-[10px]">
+              {task.priority}
+            </Badge>
+            {task.status === "DONE" && task.completed_at ? (
+              <div className="flex items-center gap-1 text-[10px] text-green-600 font-medium">
+                <CheckCircle2 className="h-3 w-3" />
+                <span>{format(new Date(task.completed_at), "MMM d")}</span>
+              </div>
+            ) : (
+              task.due_date && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-[10px]",
+                    isPast(new Date(task.due_date)) &&
+                      !isToday(new Date(task.due_date)) &&
+                      task.status !== "DONE"
+                      ? "font-medium text-red-600"
+                      : "text-gray-500"
+                  )}
+                >
+                  <Clock className="h-3 w-3" />
+                  <span>{format(new Date(task.due_date), "MMM d")}</span>
+                </div>
+              )
+            )}
+          </div>
           {task.assignee && (
             <Avatar
               className="h-5 w-5"

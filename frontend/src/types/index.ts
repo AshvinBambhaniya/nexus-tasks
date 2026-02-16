@@ -119,6 +119,7 @@ export interface Task {
     full_name?: string;
   };
   due_date?: string;
+  completed_at?: string;
   created_at: string;
   updated_at: string;
   comment_count?: number;

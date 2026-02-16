@@ -44,6 +44,7 @@ class Task(Base):
 
     # Dates
     due_date = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
