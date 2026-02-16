@@ -27,7 +27,7 @@ class Settings:
     # Mail
     MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
-    MAIL_FROM: str = os.getenv("MAIL_FROM", "noreply@nexustasks.test")
+    MAIL_FROM: str = os.getenv("MAIL_FROM", "noreply@example.com")
     MAIL_PORT: int = int(os.getenv("MAIL_PORT", 1025))
     MAIL_SERVER: str = os.getenv("MAIL_SERVER", "localhost")
     MAIL_FROM_NAME: str = os.getenv("MAIL_FROM_NAME", "Nexus Tasks")

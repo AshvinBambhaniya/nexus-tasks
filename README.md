@@ -23,6 +23,7 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 - **Kanban & Lists:** Toggle between visual boards and structured lists.
 - **Markdown Editor:** Write tasks and comments using standard Markdown.
 - **Role-Based Access:** Granular permissions (Admin/Member/Viewer) for projects and teams.
+- **Email Notifications:** Asynchronous invitations via background workers.
 
 ## Tech Stack
 
@@ -38,6 +39,7 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 - FastAPI (Python 3.12)
 - SQLAlchemy & Alembic
 - PostgreSQL
+- Redis & Celery (Background Tasks)
 - WebSockets
 
 ## Getting Started
@@ -73,6 +75,7 @@ The application will be available at:
 
 - Frontend: http://localhost:3000
 - API Documentation: http://localhost:8000/docs
+- Mailpit (Email Preview): http://localhost:8025
 
 ### Local Development Setup
 
