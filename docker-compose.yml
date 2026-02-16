@@ -12,16 +12,46 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: always
 
+  redis:
+    image: redis:7-alpine
+    container_name: nexus_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: nexus_mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    restart: always
+
   backend:
     build: ./backend
+    container_name: nexus_backend
     restart: always
     depends_on:
       - db
+      - redis
+      - mailpit
     env_file:
       - ./backend/.env.docker
     ports:
       - "8000:8000"
     command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build: ./backend
+    container_name: nexus_worker
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - mailpit
+    env_file:
+      - ./backend/.env.docker
+    command: celery -A core.celery_app worker --loglevel=info
 
   frontend:
     build:

@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+
 def test_create_workspace(client):
     # Register and login
     client.post(
@@ -69,10 +72,11 @@ def test_list_workspace_members(client):
     workspace_id = response.json()["id"]
 
     # Invite User Two
-    response = client.post(
-        f"/api/v1/workspaces/{workspace_id}/members",
-        json={"email": "user2@example.com"},
-    )
+    with patch("api.v1.workspaces.send_workspace_invitation_email.delay"):
+        response = client.post(
+            f"/api/v1/workspaces/{workspace_id}/members",
+            json={"email": "user2@example.com"},
+        )
     assert response.status_code == 200
 
     # List members
@@ -83,3 +87,47 @@ def test_list_workspace_members(client):
     emails = [m["user"]["email"] for m in members]
     assert "user1@example.com" in emails
     assert "user2@example.com" in emails
+
+
+def test_invite_member_triggers_email(client):
+    # Register users
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "owner@example.com",
+            "password": "password123",
+            "full_name": "Owner",
+        },
+    )
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "invitee@example.com",
+            "password": "password123",
+            "full_name": "Invitee",
+        },
+    )
+
+    # Login
+    client.post(
+        "/api/v1/auth/login",
+        data={"username": "owner@example.com", "password": "password123"},
+    )
+
+    # Create workspace
+    response = client.post(
+        "/api/v1/workspaces/",
+        json={"name": "Email Test WS"},
+    )
+    workspace_id = response.json()["id"]
+
+    # Invite user and verify task is called
+    with patch("api.v1.workspaces.send_workspace_invitation_email.delay") as mock_task:
+        response = client.post(
+            f"/api/v1/workspaces/{workspace_id}/members",
+            json={"email": "invitee@example.com"},
+        )
+        assert response.status_code == 200
+
+        # Verify the task was called with correct arguments
+        mock_task.assert_called_once_with("invitee@example.com", "Email Test WS")
