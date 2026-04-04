@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - nexus_pgdata:/var/lib/postgresql/data
     restart: always
 
   redis:
@@ -67,4 +67,4 @@ services:
       - "3000:3000"
 
 volumes:
-  pgdata:
+  nexus_pgdata:
