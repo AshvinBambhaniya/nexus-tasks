@@ -92,10 +92,6 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 	return createdUser, nil
 }
 
-func (s *UserService) GetUser(id int) (models.User, error) {
-	return s.userModel.GetByID(id)
-}
-
 func (s *UserService) Authenticate(email, password string) (models.User, error) {
 	user, err := s.userModel.GetByEmail(email)
 	if err != nil {

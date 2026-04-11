@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 )
 
 // UserTable represent table name
@@ -12,7 +13,7 @@ const UserTable = "users"
 
 // User model
 type User struct {
-	ID             int       `json:"id" db:"id"`
+	ID             uuid.UUID `json:"id" db:"id"`
 	Email          string    `json:"email" db:"email"`
 	FullName       string    `json:"full_name" db:"full_name"`
 	HashedPassword string    `json:"-" db:"hashed_password"`
@@ -52,7 +53,7 @@ func (model *UserModel) GetByEmail(email string) (User, error) {
 }
 
 // GetByID get user by id
-func (model *UserModel) GetByID(id int) (User, error) {
+func (model *UserModel) GetByID(id uuid.UUID) (User, error) {
 	user := User{}
 	found, err := model.db.From(UserTable).Where(goqu.Ex{
 		"id": id,
