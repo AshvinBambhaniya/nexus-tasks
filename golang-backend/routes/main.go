@@ -11,7 +11,6 @@ import (
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,12 +23,13 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	app.Use(middlewares.LogHandler(logger))
 	app.Use(middlewares.SentryMiddleware())
 
-	app.Use(swagger.New(swagger.Config{
-		BasePath: "/api/v1/",
-		FilePath: "./assets/swagger.json",
-		Path:     "docs",
-		Title:    "Swagger API Docs",
-	}))
+	// TODO: Setup swagger docs
+	// app.Use(swagger.New(swagger.Config{
+	// 	BasePath: "/api/v1/",
+	// 	FilePath: "./assets/swagger.json",
+	// 	Path:     "docs",
+	// 	Title:    "Swagger API Docs",
+	// }))
 
 	router := app.Group("/api")
 	v1 := router.Group("/v1")
