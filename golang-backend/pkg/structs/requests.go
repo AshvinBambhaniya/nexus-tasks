@@ -1,5 +1,10 @@
 package structs
 
+import (
+	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/google/uuid"
+)
+
 type ReqRegisterUser struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
@@ -32,4 +37,24 @@ type ReqUpdateTeam struct {
 type ReqAddTeamMember struct {
 	Email string `json:"email" validate:"required,email"`
 	Role  string `json:"role" validate:"required"` // Should be validated against ENUM
+}
+
+type ReqCreateProject struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
+}
+
+type ReqUpdateProject struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsArchived  *bool  `json:"is_archived"`
+}
+
+type ReqAddProjectMember struct {
+	Email string             `json:"email" validate:"required,email"`
+	Role  models.ProjectRole `json:"role"` // Optional, default MEMBER
+}
+
+type ReqAddProjectTeam struct {
+	TeamID uuid.UUID `json:"team_id" validate:"required"`
 }
