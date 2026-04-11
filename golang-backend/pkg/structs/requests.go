@@ -14,3 +14,22 @@ type ReqLoginUser struct {
 type ReqCreateWorkspace struct {
 	Name string `json:"name" validate:"required"`
 }
+
+type ReqCreateTeam struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
+}
+
+type ReqInviteWorkspaceMember struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ReqUpdateTeam struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type ReqAddTeamMember struct {
+	Email string `json:"email" validate:"required,email"`
+	Role  string `json:"role" validate:"required"` // Should be validated against ENUM
+}

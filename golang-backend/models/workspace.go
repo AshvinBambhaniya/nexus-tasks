@@ -146,3 +146,22 @@ func (model *WorkspaceModel) AddMember(transaction *goqu.TxDatabase, member Work
 
 	return err
 }
+
+// RemoveMember removes a user from a workspace
+func (model *WorkspaceModel) RemoveMember(transaction *goqu.TxDatabase, workspaceID, userID uuid.UUID) error {
+	if transaction != nil {
+		_, err := transaction.Delete(WorkspaceMemberTable).
+			Where(goqu.Ex{
+				"workspace_id": workspaceID,
+				"user_id":      userID,
+			}).Executor().Exec()
+		return err
+	}
+
+	_, err := model.db.Delete(WorkspaceMemberTable).
+		Where(goqu.Ex{
+			"workspace_id": workspaceID,
+			"user_id":      userID,
+		}).Executor().Exec()
+	return err
+}

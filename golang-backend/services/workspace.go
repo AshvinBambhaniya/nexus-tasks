@@ -1,6 +1,9 @@
 package services
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/doug-martin/goqu/v9"
@@ -10,12 +13,14 @@ import (
 
 type WorkspaceService struct {
 	workspaceModel *models.WorkspaceModel
+	userModel      *models.UserModel
 	db             *goqu.Database
 	logger         *zap.Logger
 }
 
-func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, workspaceModel *models.WorkspaceModel) *WorkspaceService {
+func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, userModel *models.UserModel, workspaceModel *models.WorkspaceModel) *WorkspaceService {
 	return &WorkspaceService{
+		userModel:      userModel,
 		workspaceModel: workspaceModel,
 		db:             db,
 		logger:         logger,
@@ -68,4 +73,63 @@ func (s *WorkspaceService) CreateWorkspace(ownerID uuid.UUID, req structs.ReqCre
 
 	isOk = true
 	return createdWs, nil
+}
+
+func (s *WorkspaceService) InviteMember(requestorID, workspaceID uuid.UUID, email string) error {
+	// 1. Validate Admin Access (Internal check required here as role check is specific)
+	member, err := s.ValidateAccess(requestorID, workspaceID)
+	if err != nil {
+		return err
+	}
+	if member.Role != models.WorkspaceRoleAdmin {
+		return errors.New("unauthorized: only admins can invite members")
+	}
+
+	// 2. Find User by Email
+	user, err := s.userModel.GetByEmail(email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("user not found")
+		}
+		return err
+	}
+
+	// 3. Check if already member
+	_, err = s.workspaceModel.GetMember(workspaceID, user.ID)
+	if err == nil {
+		return errors.New("user is already a member")
+	}
+
+	// 4. Add Member
+	return s.workspaceModel.AddMember(nil, models.WorkspaceMember{
+		WorkspaceID: workspaceID,
+		UserID:      user.ID,
+		Role:        models.WorkspaceRoleMember,
+	})
+}
+
+func (s *WorkspaceService) RemoveMember(requestorID, workspaceID, userID uuid.UUID) error {
+	// 1. Validate Admin Access
+	member, err := s.ValidateAccess(requestorID, workspaceID)
+	if err != nil {
+		return err
+	}
+	if member.Role != models.WorkspaceRoleAdmin {
+		return errors.New("unauthorized: only admins can remove members")
+	}
+
+	// 2. Remove
+	return s.workspaceModel.RemoveMember(nil, workspaceID, userID)
+}
+
+// ValidateAccess checks if a user is a member of the workspace (Internal Helper)
+func (s *WorkspaceService) ValidateAccess(userID, workspaceID uuid.UUID) (models.WorkspaceMember, error) {
+	member, err := s.workspaceModel.GetMember(workspaceID, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.WorkspaceMember{}, errors.New("unauthorized: not a member of this workspace")
+		}
+		return models.WorkspaceMember{}, err
+	}
+	return member, nil
 }
