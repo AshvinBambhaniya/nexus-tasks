@@ -64,6 +64,11 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 		return err
 	}
 
+	err = setupTaskController(v1, goqu, logger, config, middlewares)
+	if err != nil {
+		return err
+	}
+
 	mu.Unlock()
 	return nil
 }
@@ -164,6 +169,35 @@ func setupProjectController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Lo
 	projectTeams.Get("/", projectController.ListTeams)
 	projectTeams.Post("/", projectController.AddTeam)
 	projectTeams.Delete(fmt.Sprintf("/:%s", constants.ParamTeamID), projectController.RemoveTeam)
+
+	return nil
+}
+
+func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, authMiddleware middlewares.Middleware) error {
+	taskController, err := controller.NewTaskController(goqu, logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	// 1. Create & List Tasks (Project context)
+	// /api/v1/projects/:projectId/tasks
+	projectTasks := v1.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s/tasks", constants.ParamWorkspaceID, constants.ParamProjectID), authMiddleware.Authenticated)
+	projectTasks.Post("/", taskController.CreateTask)
+	projectTasks.Get("/", taskController.ListProjectTasks)
+
+	// 2. Task Management
+	tasks := projectTasks.Group(fmt.Sprintf("/:%s", constants.ParamTaskID))
+	tasks.Get("/", taskController.GetTask)
+	tasks.Patch("/", taskController.UpdateTask)
+	tasks.Delete("/", taskController.DeleteTask)
+
+	// Comments
+	tasks.Get("/comments", taskController.ListTaskComments)
+	tasks.Post("/comments", taskController.CreateComment)
+	tasks.Delete(fmt.Sprintf("/comments/:%s", constants.ParamCommentID), taskController.DeleteComment)
+
+	// 3. Global Task Routes
+	v1.Get("/tasks/me", authMiddleware.Authenticated, taskController.ListMyTasks)
 
 	return nil
 }

@@ -1,0 +1,348 @@
+package v1
+
+import (
+	"net/http"
+
+	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/services"
+	"github.com/AshvinBambhaniya/nexus-tasks/utils"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+	"gopkg.in/go-playground/validator.v9"
+)
+
+type TaskController struct {
+	taskService    *services.TaskService
+	commentService *services.CommentService
+	logger         *zap.Logger
+}
+
+func NewTaskController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*TaskController, error) {
+	// Models
+	taskModel, err := models.InitTaskModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+	commentModel, err := models.InitCommentModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+	projectModel, err := models.InitProjectModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+	wsModel, err := models.InitWorkspaceModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+	teamModel, err := models.InitTeamModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+	userModel, err := models.InitUserModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+
+	// Services
+	taskSvc := services.NewTaskService(goqu, logger, &taskModel, &projectModel, &wsModel, &teamModel, &userModel)
+	projectSvc := services.NewProjectService(goqu, logger, &projectModel, &wsModel, &teamModel, &userModel) // For auth logic injection
+	commentSvc := services.NewCommentService(goqu, logger, &commentModel, &taskModel, projectSvc)
+
+	return &TaskController{
+		taskService:    taskSvc,
+		commentService: commentSvc,
+		logger:         logger,
+	}, nil
+}
+
+func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	projectIDStr := c.Params(constants.ParamProjectID)
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+	}
+
+	var req structs.ReqCreateTask
+	if err := c.BodyParser(&req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, err.Error())
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, utils.ValidatorErrorString(err))
+	}
+
+	task, err := ctrl.taskService.CreateTask(uid, projectID, req)
+	if err != nil {
+		ctrl.logger.Error("failed to create task", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusCreated, ctrl.mapTaskToRes(task))
+}
+
+func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	projectIDStr := c.Params(constants.ParamProjectID)
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+	}
+
+	// Filter
+	statusStr := c.Query("status")
+	var status *models.TaskStatus
+	if statusStr != "" {
+		s := models.TaskStatus(statusStr)
+		status = &s
+	}
+
+	assigneeIDStr := c.Query("assignee_id")
+	var assigneeID *uuid.UUID
+	if assigneeIDStr != "" {
+		aid, err := uuid.Parse(assigneeIDStr)
+		if err == nil {
+			assigneeID = &aid
+		}
+	}
+
+	tasks, err := ctrl.taskService.ListProjectTasks(uid, projectID, status, assigneeID)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	var res []structs.ResTask
+	for _, t := range tasks {
+		res = append(res, ctrl.mapTaskToRes(t))
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, res)
+}
+
+func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	taskIDStr := c.Params(constants.ParamTaskID)
+	taskID, err := uuid.Parse(taskIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+	}
+
+	task, err := ctrl.taskService.GetTask(uid, taskID)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusNotFound, "Task not found")
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(task))
+}
+
+func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	taskIDStr := c.Params(constants.ParamTaskID)
+	taskID, err := uuid.Parse(taskIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+	}
+
+	var req structs.ReqUpdateTask
+	if err := c.BodyParser(&req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, err.Error())
+	}
+
+	task, err := ctrl.taskService.UpdateTask(uid, taskID, req)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(task))
+}
+
+func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	taskIDStr := c.Params(constants.ParamTaskID)
+	taskID, err := uuid.Parse(taskIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+	}
+
+	err = ctrl.taskService.DeleteTask(uid, taskID)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Task deleted"})
+}
+
+func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	tasks, err := ctrl.taskService.ListMyTasks(uid)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	// For "My Tasks", Python returns task + project info.
+	// Since I didn't add join in service yet, I'll return standard task list for now.
+	// Enhancement: Add project details to response.
+
+	var res []structs.ResTask
+	for _, t := range tasks {
+		res = append(res, ctrl.mapTaskToRes(t))
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, res)
+}
+
+// Comments
+
+func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	taskIDStr := c.Params(constants.ParamTaskID)
+	taskID, err := uuid.Parse(taskIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+	}
+
+	var req structs.ReqCreateComment
+	if err := c.BodyParser(&req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, err.Error())
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, utils.ValidatorErrorString(err))
+	}
+
+	comment, err := ctrl.commentService.CreateComment(uid, taskID, req)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	// Need author info for response, maybe fetch or just return basics
+	// Python returns CommentResponse which includes author: UserResponse
+	// For now returning basic
+	return utils.JSONSuccess(c, http.StatusCreated, structs.ResComment{
+		ID:        comment.ID,
+		Content:   comment.Content,
+		TaskID:    comment.TaskID,
+		AuthorID:  comment.AuthorID,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+	})
+}
+
+func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	taskIDStr := c.Params(constants.ParamTaskID)
+	taskID, err := uuid.Parse(taskIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+	}
+
+	comments, err := ctrl.commentService.ListTaskComments(uid, taskID)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	var res []structs.ResComment
+	for _, c := range comments {
+		res = append(res, structs.ResComment{
+			ID:        c.ID,
+			Content:   c.Content,
+			TaskID:    c.TaskID,
+			AuthorID:  c.AuthorID,
+			CreatedAt: c.CreatedAt,
+			UpdatedAt: c.UpdatedAt,
+			Author: structs.ResUser{
+				ID:       c.AuthorID,
+				Email:    c.AuthorEmail,
+				FullName: c.AuthorFullName,
+			},
+		})
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, res)
+}
+
+func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	commentIDStr := c.Params(constants.ParamCommentID)
+	commentID, err := uuid.Parse(commentIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid comment id")
+	}
+
+	err = ctrl.commentService.DeleteComment(uid, commentID)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Comment deleted"})
+}
+
+func (ctrl *TaskController) mapTaskToRes(t models.Task) structs.ResTask {
+	return structs.ResTask{
+		ID:          t.ID,
+		Title:       t.Title,
+		Description: t.Description,
+		Status:      t.Status,
+		Priority:    t.Priority,
+		ProjectID:   t.ProjectID,
+		AssigneeID:  t.AssigneeID,
+		AuthorID:    t.AuthorID,
+		DueDate:     t.DueDate,
+		CompletedAt: t.CompletedAt,
+		CreatedAt:   t.CreatedAt,
+		UpdatedAt:   t.UpdatedAt,
+	}
+}
