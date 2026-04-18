@@ -33,7 +33,7 @@ func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.
 		return nil, err
 	}
 
-	workspaceSvc := services.NewWorkspaceService(goqu, logger, &userModel, &workspaceModel)
+	workspaceSvc := services.NewWorkspaceService(goqu, logger, &workspaceModel, &userModel)
 
 	return &WorkspaceController{
 		workspaceModel:   &workspaceModel,
