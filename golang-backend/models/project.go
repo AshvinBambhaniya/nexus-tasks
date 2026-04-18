@@ -233,3 +233,19 @@ func (model *ProjectModel) GetTeams(projectID uuid.UUID) ([]ProjectTeamWithDetai
 	}
 	return teams, nil
 }
+
+func (model *ProjectModel) ListByTeamID(teamID uuid.UUID) ([]Project, error) {
+	var projects []Project
+	err := model.db.From(ProjectTable).
+		Join(goqu.T(ProjectTeamTable), goqu.On(goqu.Ex{ProjectTable + ".id": goqu.I(ProjectTeamTable + ".project_id")})).
+		Where(goqu.Ex{
+			ProjectTeamTable + ".team_id": teamID,
+			ProjectTable + ".is_archived": false,
+		}).
+		ScanStructs(&projects)
+
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
+}

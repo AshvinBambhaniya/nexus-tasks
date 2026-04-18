@@ -12,15 +12,17 @@ import (
 
 type TeamService struct {
 	teamModel      *models.TeamModel
+	projectModel   *models.ProjectModel
 	workspaceModel *models.WorkspaceModel
 	userModel      *models.UserModel
 	db             *goqu.Database
 	logger         *zap.Logger
 }
 
-func NewTeamService(db *goqu.Database, logger *zap.Logger, teamModel *models.TeamModel, workspaceModel *models.WorkspaceModel, userModel *models.UserModel) *TeamService {
+func NewTeamService(db *goqu.Database, logger *zap.Logger, teamModel *models.TeamModel, projectModel *models.ProjectModel, workspaceModel *models.WorkspaceModel, userModel *models.UserModel) *TeamService {
 	return &TeamService{
 		teamModel:      teamModel,
+		projectModel:   projectModel,
 		workspaceModel: workspaceModel,
 		userModel:      userModel,
 		db:             db,
@@ -67,7 +69,8 @@ func (s *TeamService) CreateTeam(userID uuid.UUID, workspaceID uuid.UUID, req st
 
 	createdTeam, err := s.teamModel.CreateTeam(transaction, team)
 	if err != nil {
-		return models.Team{}, err
+		s.logger.Error("failed to create team", zap.Error(err))
+		return createdTeam, err
 	}
 
 	// Add creator as Team Admin
@@ -77,11 +80,35 @@ func (s *TeamService) CreateTeam(userID uuid.UUID, workspaceID uuid.UUID, req st
 		Role:   models.TeamRoleAdmin,
 	})
 	if err != nil {
-		return models.Team{}, err
+		s.logger.Error("failed to add team member", zap.Error(err))
+		return createdTeam, err
 	}
 
 	isOk = true
 	return createdTeam, nil
+}
+
+func (s *TeamService) GetTeam(teamID uuid.UUID) (structs.ResTeamWithProjects, error) {
+
+	team, err := s.teamModel.GetByID(teamID)
+	if err != nil {
+		return structs.ResTeamWithProjects{}, err
+	}
+
+	projects, err := s.projectModel.ListByTeamID(teamID)
+	if err != nil {
+		return structs.ResTeamWithProjects{}, err
+	}
+
+	return structs.ResTeamWithProjects{
+		ResTeam: structs.ResTeam{
+			ID:          team.ID,
+			Name:        team.Name,
+			Description: team.Description,
+			WorkspaceID: team.WorkspaceID,
+		},
+		Projects: projects,
+	}, err
 }
 
 func (s *TeamService) UpdateTeam(requestorID, workspaceID, teamID uuid.UUID, req structs.ReqUpdateTeam) (models.Team, error) {
@@ -114,26 +141,12 @@ func (s *TeamService) UpdateTeam(requestorID, workspaceID, teamID uuid.UUID, req
 		team.Description = req.Description
 	}
 
-	// Transaction
-	isOk := false
-	transaction, err := s.db.Begin()
+	updatedTeam, err := s.teamModel.UpdateTeam(team)
 	if err != nil {
-		return models.Team{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	updatedTeam, err := s.teamModel.UpdateTeam(transaction, team)
-	if err != nil {
+		s.logger.Error("error while update the team", zap.Error(err))
 		return models.Team{}, err
 	}
 
-	isOk = true
 	return updatedTeam, nil
 }
 
@@ -158,25 +171,12 @@ func (s *TeamService) DeleteTeam(requestorID, workspaceID, teamID uuid.UUID) err
 		return errors.New("unauthorized")
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
+	err = s.teamModel.DeleteTeam(teamID)
 	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	err = s.teamModel.DeleteTeam(transaction, teamID)
-	if err != nil {
+		s.logger.Error("error while deleting the team", zap.Error(err))
 		return err
 	}
 
-	isOk = true
 	return nil
 }
 
@@ -257,24 +257,10 @@ func (s *TeamService) RemoveMember(requestorID, workspaceID, teamID, userID uuid
 		return errors.New("unauthorized")
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	err = s.teamModel.RemoveMember(transaction, teamID, userID)
+	err = s.teamModel.RemoveMember(teamID, userID)
 	if err != nil {
 		return err
 	}
 
-	isOk = true
 	return nil
 }

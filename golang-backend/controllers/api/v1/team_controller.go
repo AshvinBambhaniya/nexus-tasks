@@ -27,16 +27,23 @@ func NewTeamController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppCo
 	if err != nil {
 		return nil, err
 	}
+
+	projectModel, err := models.InitProjectModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+
 	workspaceModel, err := models.InitWorkspaceModel(goqu)
 	if err != nil {
 		return nil, err
 	}
+
 	userModel, err := models.InitUserModel(goqu)
 	if err != nil {
 		return nil, err
 	}
 
-	teamSvc := services.NewTeamService(goqu, logger, &teamModel, &workspaceModel, &userModel)
+	teamSvc := services.NewTeamService(goqu, logger, &teamModel, &projectModel, &workspaceModel, &userModel)
 
 	return &TeamController{
 		teamModel:   &teamModel,
@@ -118,17 +125,12 @@ func (ctrl *TeamController) Get(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
 	}
 
-	team, err := ctrl.teamModel.GetByID(teamID)
+	teamWithProjects, err := ctrl.teamService.GetTeam(teamID)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusNotFound, "Team not found")
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, structs.ResTeam{
-		ID:          team.ID,
-		Name:        team.Name,
-		Description: team.Description,
-		WorkspaceID: team.WorkspaceID,
-	})
+	return utils.JSONSuccess(c, http.StatusOK, teamWithProjects)
 }
 
 func (ctrl *TeamController) Update(c *fiber.Ctx) error {
