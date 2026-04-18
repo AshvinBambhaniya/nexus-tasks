@@ -43,7 +43,7 @@ func (model *CommentModel) Create(transaction *goqu.TxDatabase, comment Comment)
 			"task_id":   comment.TaskID,
 			"author_id": comment.AuthorID,
 		},
-	).Executor().ScanStruct(&createdComment)
+	).Returning("*").Executor().ScanStruct(&createdComment)
 
 	if err != nil {
 		return comment, err

@@ -27,12 +27,15 @@ type Project struct {
 	IsArchived  bool      `json:"is_archived" db:"is_archived"`
 	WorkspaceID uuid.UUID `json:"workspace_id" db:"workspace_id"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type ProjectMember struct {
 	ProjectID uuid.UUID   `json:"project_id" db:"project_id"`
 	UserID    uuid.UUID   `json:"user_id" db:"user_id"`
 	Role      ProjectRole `json:"role" db:"role"`
+	CreatedAt time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 type ProjectMemberWithUser struct {

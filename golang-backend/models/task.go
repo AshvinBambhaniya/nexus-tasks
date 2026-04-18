@@ -76,7 +76,7 @@ func (model *TaskModel) Create(transaction *goqu.TxDatabase, task Task) (Task, e
 			"author_id":   task.AuthorID,
 			"due_date":    task.DueDate,
 		},
-	).Executor().ScanStruct(&createdTask)
+	).Returning("*").Executor().ScanStruct(&createdTask)
 
 	if err != nil {
 		return task, err
