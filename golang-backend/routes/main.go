@@ -10,7 +10,9 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -30,6 +32,9 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	// 	Path:     "docs",
 	// 	Title:    "Swagger API Docs",
 	// }))
+
+	hub := realtime.NewHub(logger)
+	go hub.Run()
 
 	router := app.Group("/api")
 	v1 := router.Group("/v1")
@@ -64,7 +69,12 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 		return err
 	}
 
-	err = setupTaskController(v1, goqu, logger, config, middlewares)
+	err = setupTaskController(v1, goqu, logger, config, middlewares, hub)
+	if err != nil {
+		return err
+	}
+
+	err = setupWebsocketController(app, goqu, logger, config, hub)
 	if err != nil {
 		return err
 	}
@@ -173,8 +183,8 @@ func setupProjectController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Lo
 	return nil
 }
 
-func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, authMiddleware middlewares.Middleware) error {
-	taskController, err := controller.NewTaskController(goqu, logger, cfg)
+func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, authMiddleware middlewares.Middleware, hub *realtime.Hub) error {
+	taskController, err := controller.NewTaskController(goqu, logger, cfg, hub)
 	if err != nil {
 		return err
 	}
@@ -198,6 +208,18 @@ func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 
 	// 3. Global Task Routes
 	v1.Get("/tasks/me", authMiddleware.Authenticated, taskController.ListMyTasks)
+
+	return nil
+}
+
+func setupWebsocketController(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, hub *realtime.Hub) error {
+	wsController, err := controller.NewWebsocketController(hub, goqu, cfg, logger)
+	if err != nil {
+		return err
+	}
+
+	app.Use("/ws", wsController.UpgradeMiddleware)
+	app.Get("/ws/:id", websocket.New(wsController.HandleWorkspaceConnection))
 
 	return nil
 }
