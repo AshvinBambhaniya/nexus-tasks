@@ -75,7 +75,7 @@ func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspa
 }
 
 // GetMembers returns all members of a workspace with user details
-func (model *WorkspaceModel) ListMembers(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
+func (model *WorkspaceModel) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
 	var members []WorkspaceMemberWithUser
 	err := model.db.From(WorkspaceMemberTable).
 		Join(goqu.T(UserTable), goqu.On(goqu.Ex{WorkspaceMemberTable + ".user_id": goqu.I(UserTable + ".id")})).

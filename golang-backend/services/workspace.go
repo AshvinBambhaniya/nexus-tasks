@@ -58,7 +58,7 @@ func (s *WorkspaceService) CreateWorkspace(ownerID uuid.UUID, req structs.ReqCre
 	// 1. Create Workspace
 	createdWs, err := s.workspaceModel.CreateWorkspace(transaction, ws)
 	if err != nil {
-		return models.Workspace{}, err
+		return createdWs, err
 	}
 
 	// 2. Add Owner as Admin
@@ -68,7 +68,7 @@ func (s *WorkspaceService) CreateWorkspace(ownerID uuid.UUID, req structs.ReqCre
 		Role:        models.WorkspaceRoleAdmin,
 	})
 	if err != nil {
-		return models.Workspace{}, err
+		return createdWs, err
 	}
 
 	isOk = true
