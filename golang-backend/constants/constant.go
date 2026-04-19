@@ -51,3 +51,9 @@ const (
 const (
 	EventUserRegistered = "event:userRegistered"
 )
+
+// Topics
+const (
+	TopicWorkspaceInvites = "workspace_invites"
+	TopicWelcomeMail      = "welcome_mail"
+)

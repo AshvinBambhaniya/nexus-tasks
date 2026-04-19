@@ -12,6 +12,16 @@ services:
       - nexus_pgdata:/var/lib/postgresql/data
     restart: always
 
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=nexus_db
+    depends_on:
+      - db
+
   redis:
     image: redis:7-alpine
     container_name: nexus_redis
@@ -27,37 +37,61 @@ services:
       - "1025:1025"
     restart: always
 
-  backend:
-    build: ./backend
-    container_name: nexus_backend
-    restart: always
+  migration:
+    build: ./golang-backend
+    container_name: nexus_migration
+    restart: on-failure
     depends_on:
       - db
-      - redis
-      - mailpit
     env_file:
-      - ./backend/.env.docker
+      - ./golang-backend/.env.docker
+    command: ["./nexus-tasks", "migrate", "up"]
+
+  backend:
+    build: ./golang-backend
+    container_name: nexus_backend
+    restart: always
     ports:
       - "8000:8000"
-    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - ./golang-backend/.env.docker
+    depends_on:
+      - db
+      - migration
+      - redis
+      - mailpit
+    command: ["./nexus-tasks", "api"]
 
   worker:
-    build: ./backend
+    build: ./golang-backend
     container_name: nexus_worker
     restart: always
     depends_on:
       - db
+      - migration
       - redis
-      - mailpit
     env_file:
-      - ./backend/.env.docker
-    command: celery -A core.celery_app worker --loglevel=info
+      - ./golang-backend/.env.docker
+    command: ["./nexus-tasks", "worker"]
+
+  dlq_worker:
+    build: ./golang-backend
+    container_name: nexus_dlq_worker
+    restart: always
+    profiles: [dlq]
+    depends_on:
+      - db
+      - migration
+      - redis
+    env_file:
+      - ./golang-backend/.env.docker
+    command: ["./nexus-tasks", "dead-letter-queue"]
 
   frontend:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://nexus-tasks.test}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     restart: always
     depends_on:
       - backend

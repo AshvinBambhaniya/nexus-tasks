@@ -60,6 +60,22 @@ func InitWorkspaceModel(goqu *goqu.Database) (WorkspaceModel, error) {
 	}, nil
 }
 
+// GetByID gets a workspace by ID
+func (model *WorkspaceModel) GetByID(id uuid.UUID) (Workspace, error) {
+	ws := Workspace{}
+	found, err := model.db.From(WorkspaceTable).Where(goqu.Ex{
+		"id": id,
+	}).ScanStruct(&ws)
+
+	if err != nil {
+		return ws, err
+	}
+	if !found {
+		return ws, sql.ErrNoRows
+	}
+	return ws, nil
+}
+
 // GetWorkspacesByUserID returns all workspaces a user is a member of
 func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspace, error) {
 	var workspaces []Workspace

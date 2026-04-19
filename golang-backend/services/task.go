@@ -61,6 +61,11 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 		priority = models.TaskPriorityP2
 	}
 
+	var dueDate *time.Time
+	if req.DueDate != nil {
+		dueDate = &req.DueDate.Time
+	}
+
 	task := models.Task{
 		Title:       req.Title,
 		Description: req.Description,
@@ -69,7 +74,7 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 		ProjectID:   projectID,
 		AssigneeID:  req.AssigneeID,
 		AuthorID:    &userID,
-		DueDate:     req.DueDate,
+		DueDate:     dueDate,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -159,7 +164,7 @@ func (s *TaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 		task.Priority = req.Priority
 	}
 	if req.DueDate != nil {
-		task.DueDate = req.DueDate
+		task.DueDate = &req.DueDate.Time
 	}
 
 	// Status Logic
