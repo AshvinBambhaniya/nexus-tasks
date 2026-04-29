@@ -86,7 +86,7 @@ func (s *ProjectService) CreateProject(userID, workspaceID uuid.UUID, req struct
 }
 
 func (s *ProjectService) GetProject(userID, projectID uuid.UUID) (models.Project, error) {
-	err := s.validateProjectAccess(projectID, userID, false)
+	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return models.Project{}, err
 	}
@@ -94,7 +94,7 @@ func (s *ProjectService) GetProject(userID, projectID uuid.UUID) (models.Project
 }
 
 func (s *ProjectService) UpdateProject(userID, projectID uuid.UUID, req structs.ReqUpdateProject) (models.Project, error) {
-	err := s.validateProjectAccess(projectID, userID, true)
+	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return models.Project{}, err
 	}
@@ -137,7 +137,7 @@ func (s *ProjectService) UpdateProject(userID, projectID uuid.UUID, req structs.
 }
 
 func (s *ProjectService) AddMember(userID, projectID uuid.UUID, req structs.ReqAddProjectMember) (models.ProjectMember, error) {
-	err := s.validateProjectAccess(projectID, userID, true)
+	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return models.ProjectMember{}, err
 	}
@@ -200,7 +200,7 @@ func (s *ProjectService) AddMember(userID, projectID uuid.UUID, req structs.ReqA
 }
 
 func (s *ProjectService) RemoveMember(userID, projectID, targetUserID uuid.UUID) error {
-	err := s.validateProjectAccess(projectID, userID, true)
+	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (s *ProjectService) RemoveMember(userID, projectID, targetUserID uuid.UUID)
 }
 
 func (s *ProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.ResProjectMember, error) {
-	err := s.validateProjectAccess(projectID, userID, false)
+	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (s *ProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 // Teams
 
 func (s *ProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.ResProjectTeam, error) {
-	err := s.validateProjectAccess(projectID, userID, true)
+	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return structs.ResProjectTeam{}, err
 	}
@@ -342,7 +342,7 @@ func (s *ProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.R
 }
 
 func (s *ProjectService) RemoveTeam(userID, projectID, teamID uuid.UUID) error {
-	err := s.validateProjectAccess(projectID, userID, true)
+	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return err
 	}
@@ -370,7 +370,7 @@ func (s *ProjectService) RemoveTeam(userID, projectID, teamID uuid.UUID) error {
 }
 
 func (s *ProjectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResProjectTeam, error) {
-	err := s.validateProjectAccess(projectID, userID, false)
+	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (s *ProjectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResPr
 
 // Helpers
 
-func (s *ProjectService) validateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error {
+func (s *ProjectService) ValidateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error {
 	// 1. Direct Member
 	member, err := s.projectModel.GetMember(projectID, userID)
 	if err == nil {

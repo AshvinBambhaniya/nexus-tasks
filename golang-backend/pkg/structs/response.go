@@ -63,3 +63,36 @@ type ResProjectTeam struct {
 	TeamID    uuid.UUID `json:"team_id"`
 	TeamName  string    `json:"team_name"`
 }
+
+type ResComment struct {
+	ID        uuid.UUID `json:"id"`
+	Content   string    `json:"content"`
+	TaskID    uuid.UUID `json:"task_id"`
+	AuthorID  uuid.UUID `json:"author_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Author    ResUser   `json:"author"`
+}
+
+type ResTask struct {
+	ID           uuid.UUID           `json:"id"`
+	Title        string              `json:"title"`
+	Description  string              `json:"description"`
+	Status       models.TaskStatus   `json:"status"`
+	Priority     models.TaskPriority `json:"priority"`
+	ProjectID    uuid.UUID           `json:"project_id"`
+	AssigneeID   *uuid.UUID          `json:"assignee_id"`
+	AuthorID     *uuid.UUID          `json:"author_id"`
+	DueDate      *time.Time          `json:"due_date"`
+	CompletedAt  *time.Time          `json:"completed_at"`
+	CreatedAt    time.Time           `json:"created_at"`
+	UpdatedAt    time.Time           `json:"updated_at"`
+	CommentCount uuid.UUID           `json:"comment_count"` // Computed
+	Assignee     *ResUser            `json:"assignee"`      // Expanded if needed
+	Author       *ResUser            `json:"author"`        // Expanded if needed
+}
+
+type ResTaskWithProject struct {
+	ResTask
+	Project ResProject `json:"project"`
+}

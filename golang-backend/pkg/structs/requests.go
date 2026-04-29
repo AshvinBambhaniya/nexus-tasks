@@ -1,6 +1,8 @@
 package structs
 
 import (
+	"time"
+
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/google/uuid"
 )
@@ -57,4 +59,26 @@ type ReqAddProjectMember struct {
 
 type ReqAddProjectTeam struct {
 	TeamID uuid.UUID `json:"team_id" validate:"required"`
+}
+
+type ReqCreateComment struct {
+	Content string `json:"content" validate:"required"`
+}
+
+type ReqCreateTask struct {
+	Title       string              `json:"title" validate:"required"`
+	Description string              `json:"description"`
+	Status      models.TaskStatus   `json:"status"`   // Optional, default TODO
+	Priority    models.TaskPriority `json:"priority"` // Optional, default P2
+	DueDate     *time.Time          `json:"due_date"`
+	AssigneeID  *uuid.UUID          `json:"assignee_id"`
+}
+
+type ReqUpdateTask struct {
+	Title       string              `json:"title"`
+	Description string              `json:"description"`
+	Status      models.TaskStatus   `json:"status"`
+	Priority    models.TaskPriority `json:"priority"`
+	DueDate     *time.Time          `json:"due_date"`
+	AssigneeID  *uuid.UUID          `json:"assignee_id"`
 }
