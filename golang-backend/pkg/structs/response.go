@@ -25,3 +25,17 @@ type ResWorkspaceMember struct {
 	Role        models.WorkspaceRole `json:"role"`
 	User        ResUser              `json:"user"`
 }
+
+type ResTeam struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	WorkspaceID uuid.UUID `json:"workspace_id"`
+}
+
+type ResTeamMember struct {
+	TeamID uuid.UUID       `json:"team_id"`
+	UserID uuid.UUID       `json:"user_id"`
+	Role   models.TeamRole `json:"role"`
+	User   ResUser         `json:"user"`
+}

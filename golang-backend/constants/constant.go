@@ -16,6 +16,7 @@ const (
 const (
 	ParamUid         = "userId"
 	ParamWorkspaceID = "workspaceId"
+	ParamTeamID      = "teamId"
 )
 
 // Success messages

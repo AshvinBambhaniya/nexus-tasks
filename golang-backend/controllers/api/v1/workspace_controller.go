@@ -28,7 +28,12 @@ func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.
 		return nil, err
 	}
 
-	workspaceSvc := services.NewWorkspaceService(goqu, logger, &workspaceModel)
+	userModel, err := models.InitUserModel(goqu)
+	if err != nil {
+		return nil, err
+	}
+
+	workspaceSvc := services.NewWorkspaceService(goqu, logger, &userModel, &workspaceModel)
 
 	return &WorkspaceController{
 		workspaceModel:   &workspaceModel,
@@ -126,4 +131,57 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 	}
 
 	return utils.JSONSuccess(c, http.StatusOK, res)
+}
+
+func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	wsIDStr := c.Params(constants.ParamWorkspaceID)
+	wsID, err := uuid.Parse(wsIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+	}
+
+	var req structs.ReqInviteWorkspaceMember
+	if err := c.BodyParser(&req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, err.Error())
+	}
+
+	err = ctrl.workspaceService.InviteMember(uid, wsID, req.Email)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member invited"})
+}
+
+func (ctrl *WorkspaceController) RemoveMember(c *fiber.Ctx) error {
+	uidStr := c.Locals(constants.ContextUid).(string)
+	uid, err := uuid.Parse(uidStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+	}
+
+	wsIDStr := c.Params(constants.ParamWorkspaceID)
+	wsID, err := uuid.Parse(wsIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+	}
+
+	targetUserIDStr := c.Params(constants.ParamUid)
+	targetUserID, err := uuid.Parse(targetUserIDStr)
+	if err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, "invalid target user id")
+	}
+
+	err = ctrl.workspaceService.RemoveMember(uid, wsID, targetUserID)
+	if err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member removed"})
 }

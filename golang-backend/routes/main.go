@@ -54,6 +54,11 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 		return err
 	}
 
+	err = setupTeamController(v1, goqu, logger, config, middlewares)
+	if err != nil {
+		return err
+	}
+
 	mu.Unlock()
 	return nil
 }
@@ -94,7 +99,35 @@ func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.
 	ws := v1.Group("/workspaces", middlewares.Authenticated)
 	ws.Post("/", wsController.Create)
 	ws.Get("/", wsController.List)
-	ws.Get(fmt.Sprintf("/:%s/members", constants.ParamWorkspaceID), middlewares.CheckAccess, wsController.ListMembers)
+
+	// /api/v1/workspaces/:workspaceId/members
+	wsMember := ws.Group(fmt.Sprintf("/:%s/members", constants.ParamWorkspaceID), middlewares.CheckAccess)
+	wsMember.Get("/", wsController.ListMembers)
+	wsMember.Post("/", wsController.InviteMember)
+	wsMember.Delete("/", middlewares.CheckAccess, wsController.RemoveMember)
+
+	return nil
+}
+
+func setupTeamController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
+	teamController, err := controller.NewTeamController(goqu, logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	// /api/v1/workspaces/:workspaceId/teams
+	teams := v1.Group(fmt.Sprintf("/workspaces/:%s/teams", constants.ParamWorkspaceID), middlewares.Authenticated, middlewares.CheckAccess)
+	teams.Post("/", teamController.Create)
+	teams.Get("/", teamController.List)
+	teams.Get(fmt.Sprintf("/:%s", constants.ParamTeamID), teamController.Get)
+	teams.Patch(fmt.Sprintf("/:%s", constants.ParamTeamID), teamController.Update)
+	teams.Delete(fmt.Sprintf("/:%s", constants.ParamTeamID), teamController.Delete)
+
+	// Team Members
+	teamMember := teams.Group(fmt.Sprintf("/:%s/members", constants.ParamTeamID))
+	teamMember.Get("/", teamController.ListMembers)
+	teamMember.Post("/", teamController.AddMember)
+	teamMember.Delete(fmt.Sprintf("/:%s", constants.ParamUid), teamController.RemoveMember)
 
 	return nil
 }
