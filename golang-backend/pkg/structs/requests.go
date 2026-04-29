@@ -10,3 +10,7 @@ type ReqLoginUser struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
+
+type ReqCreateWorkspace struct {
+	Name string `json:"name" validate:"required"`
+}

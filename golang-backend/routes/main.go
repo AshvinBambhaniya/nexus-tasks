@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"fmt"
 	"sync"
 
 	"go.uber.org/zap"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
 	"github.com/doug-martin/goqu/v9"
@@ -32,14 +34,22 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	router := app.Group("/api")
 	v1 := router.Group("/v1")
 
-	middlewares := middlewares.NewMiddleware(config, logger)
+	middlewares, err := middlewares.NewMiddleware(goqu, config, logger)
+	if err != nil {
+		return err
+	}
 
-	err := healthCheckController(app, goqu, logger)
+	err = healthCheckController(app, goqu, logger)
 	if err != nil {
 		return err
 	}
 
 	err = setupAuthController(v1, goqu, logger, config, middlewares)
+	if err != nil {
+		return err
+	}
+
+	err = setupWorkspaceController(v1, goqu, logger, config, middlewares)
 	if err != nil {
 		return err
 	}
@@ -71,6 +81,20 @@ func setupAuthController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	auth.Post("/login", authController.Login)
 	auth.Post("/logout", authController.Logout)
 	auth.Get("/me", middlewares.Authenticated, authController.Me)
+
+	return nil
+}
+
+func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
+	wsController, err := controller.NewWorkspaceController(goqu, logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	ws := v1.Group("/workspaces", middlewares.Authenticated)
+	ws.Post("/", wsController.Create)
+	ws.Get("/", wsController.List)
+	ws.Get(fmt.Sprintf("/:%s/members", constants.ParamWorkspaceID), middlewares.CheckAccess, wsController.ListMembers)
 
 	return nil
 }

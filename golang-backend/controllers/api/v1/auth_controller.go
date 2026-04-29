@@ -2,7 +2,6 @@ package v1
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -94,8 +94,8 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	}
 
 	// Generate Token
-	// Using ID (int) as Subject.
-	token, err := jwt.CreateToken(ctrl.config, strconv.Itoa(user.ID), time.Now().Add(24*time.Hour))
+	// Using ID (UUID) as Subject.
+	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(24*time.Hour))
 	if err != nil {
 		ctrl.logger.Error("failed to generate token", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate token")
@@ -122,13 +122,13 @@ func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
 func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 	// Got from middleware
 	uidStr := c.Locals(constants.ContextUid).(string)
-	uid, err := strconv.Atoi(uidStr)
+	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		ctrl.logger.Error("invalid user id in context", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
 	}
 
-	user, err := ctrl.userService.GetUser(uid)
+	user, err := ctrl.userModel.GetByID(uid)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusNotFound, "User not found")
 	}

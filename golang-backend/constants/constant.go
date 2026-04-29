@@ -8,12 +8,14 @@ const (
 
 // fiber contexts
 const (
-	ContextUid = "userId"
+	ContextUid             = "userId"
+	ContextWorkspaceMember = "workspaceMember"
 )
 
 // params
 const (
-	ParamUid = "userId"
+	ParamUid         = "userId"
+	ParamWorkspaceID = "workspaceId"
 )
 
 // Success messages

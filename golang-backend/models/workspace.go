@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 )
 
 const WorkspaceTable = "workspaces"
@@ -25,16 +26,24 @@ const (
 )
 
 type Workspace struct {
-	ID      int           `json:"id" db:"id"`
+	ID      uuid.UUID     `json:"id" db:"id"`
 	Name    string        `json:"name" db:"name"`
 	Type    WorkspaceType `json:"type" db:"type"`
-	OwnerID int           `json:"owner_id" db:"owner_id"`
+	OwnerID uuid.UUID     `json:"owner_id" db:"owner_id"`
 }
 
 type WorkspaceMember struct {
-	WorkspaceID int           `json:"workspace_id" db:"workspace_id"`
-	UserID      int           `json:"user_id" db:"user_id"`
+	WorkspaceID uuid.UUID     `json:"workspace_id" db:"workspace_id"`
+	UserID      uuid.UUID     `json:"user_id" db:"user_id"`
 	Role        WorkspaceRole `json:"role" db:"role"`
+}
+
+type WorkspaceMemberWithUser struct {
+	WorkspaceID uuid.UUID     `db:"workspace_id"`
+	UserID      uuid.UUID     `db:"user_id"`
+	Role        WorkspaceRole `db:"role"`
+	Email       string        `db:"email"`
+	FullName    string        `db:"full_name"`
 }
 
 type WorkspaceModel struct {
@@ -45,6 +54,61 @@ func InitWorkspaceModel(goqu *goqu.Database) (WorkspaceModel, error) {
 	return WorkspaceModel{
 		db: goqu,
 	}, nil
+}
+
+// GetWorkspacesByUserID returns all workspaces a user is a member of
+func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspace, error) {
+	var workspaces []Workspace
+	// Join with workspace_members
+	err := model.db.From(WorkspaceTable).
+		Join(goqu.T(WorkspaceMemberTable), goqu.On(goqu.Ex{WorkspaceTable + ".id": goqu.I(WorkspaceMemberTable + ".workspace_id")})).
+		Where(goqu.Ex{WorkspaceMemberTable + ".user_id": userID}).
+		Select(WorkspaceTable + ".*").
+		ScanStructs(&workspaces)
+
+	if err != nil {
+		return nil, err
+	}
+	return workspaces, nil
+}
+
+// GetMembers returns all members of a workspace with user details
+func (model *WorkspaceModel) ListMembers(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
+	var members []WorkspaceMemberWithUser
+	err := model.db.From(WorkspaceMemberTable).
+		Join(goqu.T(UserTable), goqu.On(goqu.Ex{WorkspaceMemberTable + ".user_id": goqu.I(UserTable + ".id")})).
+		Where(goqu.Ex{WorkspaceMemberTable + ".workspace_id": workspaceID}).
+		Select(
+			WorkspaceMemberTable+".workspace_id",
+			WorkspaceMemberTable+".user_id",
+			WorkspaceMemberTable+".role",
+			UserTable+".email",
+			UserTable+".full_name",
+		).
+		ScanStructs(&members)
+
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
+// GetMember returns a specific member record (to check access/role)
+func (model *WorkspaceModel) GetMember(workspaceID, userID uuid.UUID) (WorkspaceMember, error) {
+	member := WorkspaceMember{}
+	found, err := model.db.From(WorkspaceMemberTable).
+		Where(goqu.Ex{
+			"workspace_id": workspaceID,
+			"user_id":      userID,
+		}).ScanStruct(&member)
+
+	if err != nil {
+		return member, err
+	}
+	if !found {
+		return member, sql.ErrNoRows
+	}
+	return member, nil
 }
 
 // CreateWorkspace inserts a workspace
