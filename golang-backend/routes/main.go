@@ -11,7 +11,6 @@ import (
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,12 +23,13 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	app.Use(middlewares.LogHandler(logger))
 	app.Use(middlewares.SentryMiddleware())
 
-	app.Use(swagger.New(swagger.Config{
-		BasePath: "/api/v1/",
-		FilePath: "./assets/swagger.json",
-		Path:     "docs",
-		Title:    "Swagger API Docs",
-	}))
+	// TODO: Setup swagger docs
+	// app.Use(swagger.New(swagger.Config{
+	// 	BasePath: "/api/v1/",
+	// 	FilePath: "./assets/swagger.json",
+	// 	Path:     "docs",
+	// 	Title:    "Swagger API Docs",
+	// }))
 
 	router := app.Group("/api")
 	v1 := router.Group("/v1")
@@ -55,6 +55,11 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	}
 
 	err = setupTeamController(v1, goqu, logger, config, middlewares)
+	if err != nil {
+		return err
+	}
+
+	err = setupProjectController(v1, goqu, logger, config, middlewares)
 	if err != nil {
 		return err
 	}
@@ -128,6 +133,37 @@ func setupTeamController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	teamMember.Get("/", teamController.ListMembers)
 	teamMember.Post("/", teamController.AddMember)
 	teamMember.Delete(fmt.Sprintf("/:%s", constants.ParamUid), teamController.RemoveMember)
+
+	return nil
+}
+
+func setupProjectController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middleware middlewares.Middleware) error {
+	projectController, err := controller.NewProjectController(goqu, logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	// 1. Workspace Projects
+	// /api/v1/workspaces/:workspaceId/projects
+	wsProjects := v1.Group(fmt.Sprintf("/workspaces/:%s/projects", constants.ParamWorkspaceID), middleware.Authenticated, middleware.CheckAccess)
+	wsProjects.Post("/", projectController.Create)
+	wsProjects.Get("/", projectController.List)
+	wsProjects.Get(fmt.Sprintf("/:%s", constants.ParamProjectID), projectController.Get)
+	wsProjects.Patch(fmt.Sprintf("/:%s", constants.ParamProjectID), projectController.Update)
+
+	// 2. Project Members
+	// /api/v1/projects/:projectId/members
+	projectMembers := wsProjects.Group(fmt.Sprintf("/:%s/members", constants.ParamProjectID))
+	projectMembers.Get("/", projectController.ListMembers)
+	projectMembers.Post("/", projectController.AddMember)
+	projectMembers.Delete(fmt.Sprintf("/:%s", constants.ParamUid), projectController.RemoveMember)
+
+	// 3. Project Teams
+	// /api/v1/projects/:projectId/teams
+	projectTeams := wsProjects.Group(fmt.Sprintf("/:%s/teams", constants.ParamProjectID))
+	projectTeams.Get("/", projectController.ListTeams)
+	projectTeams.Post("/", projectController.AddTeam)
+	projectTeams.Delete(fmt.Sprintf("/:%s", constants.ParamTeamID), projectController.RemoveTeam)
 
 	return nil
 }
