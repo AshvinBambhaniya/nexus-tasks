@@ -30,11 +30,16 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	}))
 
 	router := app.Group("/api")
-	_ = router.Group("/v1")
+	v1 := router.Group("/v1")
 
-	_ = middlewares.NewMiddleware(config, logger)
+	middlewares := middlewares.NewMiddleware(config, logger)
 
 	err := healthCheckController(app, goqu, logger)
+	if err != nil {
+		return err
+	}
+
+	err = setupAuthController(v1, goqu, logger, config, middlewares)
 	if err != nil {
 		return err
 	}
@@ -52,5 +57,20 @@ func healthCheckController(app *fiber.App, goqu *goqu.Database, logger *zap.Logg
 	healthz := app.Group("/healthz")
 	healthz.Get("/", healthController.Overall)
 	healthz.Get("/db", healthController.Db)
+	return nil
+}
+
+func setupAuthController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
+	authController, err := controller.NewAuthController(goqu, logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	auth := v1.Group("/auth")
+	auth.Post("/register", authController.Register)
+	auth.Post("/login", authController.Login)
+	auth.Post("/logout", authController.Logout)
+	auth.Get("/me", middlewares.Authenticated, authController.Me)
+
 	return nil
 }

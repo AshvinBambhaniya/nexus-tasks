@@ -2,8 +2,8 @@ package constants
 
 // variables
 const (
-	CookieUser = "user"
-	KratosCookie = "ory_kratos_session"
+	CookieUser            = "access_token"
+	WorkspaceTypePersonal = "Personal"
 )
 
 // fiber contexts
@@ -11,11 +11,6 @@ const (
 	ContextUid = "userId"
 )
 
-// kratos
-const (
-	KratosID = "kratosId"
-	KratosUserDetails = "kratosUserDetails"
-)
 // params
 const (
 	ParamUid = "userId"
@@ -43,7 +38,7 @@ const (
 	ErrKratosAuth          = "error while fetching user from kratos"
 	ErrKratosDataInsertion = "error while inserting user data came from kratos"
 	ErrKratosIDEmpty       = "error no session_id found in kratos cookie"
-	ErrKratosCookieTime   = "error while parsing the expiration time of the cookie"
+	ErrKratosCookieTime    = "error while parsing the expiration time of the cookie"
 )
 
 // Events
