@@ -27,12 +27,15 @@ type Project struct {
 	IsArchived  bool      `json:"is_archived" db:"is_archived"`
 	WorkspaceID uuid.UUID `json:"workspace_id" db:"workspace_id"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type ProjectMember struct {
 	ProjectID uuid.UUID   `json:"project_id" db:"project_id"`
 	UserID    uuid.UUID   `json:"user_id" db:"user_id"`
 	Role      ProjectRole `json:"role" db:"role"`
+	CreatedAt time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 type ProjectMemberWithUser struct {
@@ -232,4 +235,20 @@ func (model *ProjectModel) GetTeams(projectID uuid.UUID) ([]ProjectTeamWithDetai
 		return nil, err
 	}
 	return teams, nil
+}
+
+func (model *ProjectModel) ListByTeamID(teamID uuid.UUID) ([]Project, error) {
+	var projects []Project
+	err := model.db.From(ProjectTable).
+		Join(goqu.T(ProjectTeamTable), goqu.On(goqu.Ex{ProjectTable + ".id": goqu.I(ProjectTeamTable + ".project_id")})).
+		Where(goqu.Ex{
+			ProjectTeamTable + ".team_id": teamID,
+			ProjectTable + ".is_archived": false,
+		}).
+		ScanStructs(&projects)
+
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
 }

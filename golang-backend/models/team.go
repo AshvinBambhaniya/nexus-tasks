@@ -22,20 +22,24 @@ type Team struct {
 	Name        string    `json:"name" db:"name"`
 	Description string    `json:"description" db:"description"`
 	WorkspaceID uuid.UUID `json:"workspace_id" db:"workspace_id"`
+	CreatedAt   string    `json:"created_at" db:"created_at"`
+	UpdatedAt   string    `json:"updated_at" db:"updated_at"`
 }
 
 type TeamMember struct {
-	TeamID uuid.UUID `json:"team_id" db:"team_id"`
-	UserID uuid.UUID `json:"user_id" db:"user_id"`
-	Role   TeamRole  `json:"role" db:"role"`
+	TeamID    uuid.UUID `json:"team_id" db:"team_id"`
+	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	Role      TeamRole  `json:"role" db:"role"`
+	CreatedAt string    `json:"created_at" db:"created_at"`
+	UpdatedAt string    `json:"updated_at" db:"updated_at"`
 }
 
 type TeamMemberWithUser struct {
-	TeamID   uuid.UUID `db:"team_id"`
-	UserID   uuid.UUID `db:"user_id"`
-	Role     TeamRole  `db:"role"`
-	Email    string    `db:"email"`
-	FullName string    `db:"full_name"`
+	TeamID   uuid.UUID `json:"team_id" db:"team_id"`
+	UserID   uuid.UUID `json:"user_id" db:"user_id"`
+	Role     TeamRole  `json:"role" db:"role"`
+	Email    string    `json:"email" db:"email"`
+	FullName string    `json:"full_name" db:"full_name"`
 }
 
 type TeamModel struct {
@@ -79,7 +83,7 @@ func (model *TeamModel) CreateTeam(transaction *goqu.TxDatabase, team Team) (Tea
 			"description":  team.Description,
 			"workspace_id": team.WorkspaceID,
 		},
-	).Executor().ScanStruct(&createdTeam)
+	).Returning("*").Executor().ScanStruct(&createdTeam)
 
 	if err != nil {
 		return team, err
@@ -120,8 +124,8 @@ func (model *TeamModel) ListMembersByTeamId(teamID uuid.UUID) ([]TeamMemberWithU
 	return members, nil
 }
 
-func (model *TeamModel) UpdateTeam(transaction *goqu.TxDatabase, team Team) (Team, error) {
-	_, err := transaction.Update(TeamTable).
+func (model *TeamModel) UpdateTeam(team Team) (Team, error) {
+	_, err := model.db.Update(TeamTable).
 		Set(goqu.Record{
 			"name":        team.Name,
 			"description": team.Description,
@@ -135,15 +139,15 @@ func (model *TeamModel) UpdateTeam(transaction *goqu.TxDatabase, team Team) (Tea
 	return team, nil
 }
 
-func (model *TeamModel) DeleteTeam(transaction *goqu.TxDatabase, teamID uuid.UUID) error {
-	_, err := transaction.Delete(TeamTable).
+func (model *TeamModel) DeleteTeam(teamID uuid.UUID) error {
+	_, err := model.db.Delete(TeamTable).
 		Where(goqu.Ex{"id": teamID}).
 		Executor().Exec()
 	return err
 }
 
-func (model *TeamModel) RemoveMember(transaction *goqu.TxDatabase, teamID, userID uuid.UUID) error {
-	_, err := transaction.Delete(TeamMemberTable).
+func (model *TeamModel) RemoveMember(teamID, userID uuid.UUID) error {
+	_, err := model.db.Delete(TeamMemberTable).
 		Where(goqu.Ex{
 			"team_id": teamID,
 			"user_id": userID,

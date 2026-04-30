@@ -35,6 +35,11 @@ type ResTeam struct {
 	WorkspaceID uuid.UUID `json:"workspace_id"`
 }
 
+type ResTeamWithProjects struct {
+	ResTeam
+	Projects []models.Project `json:"projects"`
+}
+
 type ResTeamMember struct {
 	TeamID uuid.UUID       `json:"team_id"`
 	UserID uuid.UUID       `json:"user_id"`
