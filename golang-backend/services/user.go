@@ -81,7 +81,7 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 	}
 
 	// C. Add Member (Admin)
-	err = s.workspaceModel.AddMember(transaction, models.WorkspaceMember{
+	err = s.workspaceModel.AddMemberTx(transaction, models.WorkspaceMember{
 		WorkspaceID: createdWs.ID,
 		UserID:      createdUser.ID,
 		Role:        models.WorkspaceRoleAdmin,
@@ -99,11 +99,11 @@ func (s *UserService) Authenticate(email, password string) (models.User, error) 
 	user, err := s.userModel.GetByEmail(email)
 	if err != nil {
 		s.logger.Debug("failed to get user by email", zap.String("email", email), zap.Error(err))
-		return models.User{}, err
+		return user, err
 	}
 
 	if !utils.CheckPasswordHash(password, user.HashedPassword) {
-		return models.User{}, sql.ErrNoRows // Treat as not found/invalid
+		return user, sql.ErrNoRows // Treat as not found/invalid
 	}
 
 	return user, nil

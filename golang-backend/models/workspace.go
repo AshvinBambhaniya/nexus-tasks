@@ -38,6 +38,8 @@ type WorkspaceMember struct {
 	WorkspaceID uuid.UUID     `json:"workspace_id" db:"workspace_id"`
 	UserID      uuid.UUID     `json:"user_id" db:"user_id"`
 	Role        WorkspaceRole `json:"role" db:"role"`
+	CreatedAt   string        `json:"created_at" db:"created_at"`
+	UpdatedAt   string        `json:"updated_at" db:"updated_at"`
 }
 
 type WorkspaceMemberWithUser struct {

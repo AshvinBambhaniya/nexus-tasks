@@ -68,6 +68,23 @@ func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to register user")
 	}
 
+	// Generate Token
+	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(time.Duration(ctrl.config.JwtExpirationHours)*time.Hour))
+	if err != nil {
+		ctrl.logger.Error("failed to generate token", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate token")
+	}
+
+	// Set Cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     constants.CookieUser,
+		Value:    token,
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Lax",
+		MaxAge:   ctrl.config.JwtExpirationHours * 60 * 60,
+	})
+
 	return utils.JSONSuccess(c, http.StatusCreated, structs.ResUser{
 		ID:       user.ID,
 		Email:    user.Email,
