@@ -11,7 +11,7 @@ import (
 const VALIDATE_MESSAGE = "fields are invalid."
 
 func ValidateEmail(email string) (bool, error) {
-	return regexp.MatchString("[a-zA-z]+@[a-zA-Z].com", email)
+	return regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, email)
 }
 
 func ValidatorErrorString(err error) string {
