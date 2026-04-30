@@ -75,7 +75,7 @@ func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspa
 }
 
 // GetMembers returns all members of a workspace with user details
-func (model *WorkspaceModel) ListMembers(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
+func (model *WorkspaceModel) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
 	var members []WorkspaceMemberWithUser
 	err := model.db.From(WorkspaceMemberTable).
 		Join(goqu.T(UserTable), goqu.On(goqu.Ex{WorkspaceMemberTable + ".user_id": goqu.I(UserTable + ".id")})).
@@ -136,9 +136,18 @@ func (model *WorkspaceModel) CreateWorkspace(transaction *goqu.TxDatabase, ws Wo
 }
 
 // AddMember adds a user to a workspace
-func (model *WorkspaceModel) AddMember(transaction *goqu.TxDatabase, member WorkspaceMember) error {
+func (model *WorkspaceModel) AddMemberTx(transaction *goqu.TxDatabase, member WorkspaceMember) error {
+	dataset := transaction.Insert(WorkspaceMemberTable)
+	return model.executeAddMember(dataset, member)
+}
 
-	_, err := transaction.Insert(WorkspaceMemberTable).Rows(
+func (model *WorkspaceModel) AddMember(member WorkspaceMember) error {
+	dataset := model.db.Insert(WorkspaceMemberTable)
+	return model.executeAddMember(dataset, member)
+}
+
+func (model *WorkspaceModel) executeAddMember(dataset *goqu.InsertDataset, member WorkspaceMember) error {
+	_, err := dataset.Rows(
 		goqu.Record{
 			"workspace_id": member.WorkspaceID,
 			"user_id":      member.UserID,

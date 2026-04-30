@@ -110,7 +110,7 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
 	}
 
-	members, err := ctrl.workspaceModel.ListMembers(wsID)
+	members, err := ctrl.workspaceModel.ListMembersByWorkspaceId(wsID)
 	if err != nil {
 		ctrl.logger.Error("failed to list members", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to list members")

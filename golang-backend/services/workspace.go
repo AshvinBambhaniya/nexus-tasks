@@ -18,10 +18,10 @@ type WorkspaceService struct {
 	logger         *zap.Logger
 }
 
-func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, userModel *models.UserModel, workspaceModel *models.WorkspaceModel) *WorkspaceService {
+func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, workspaceModel *models.WorkspaceModel, userModel *models.UserModel) *WorkspaceService {
 	return &WorkspaceService{
-		userModel:      userModel,
 		workspaceModel: workspaceModel,
+		userModel:      userModel,
 		db:             db,
 		logger:         logger,
 	}
@@ -58,17 +58,17 @@ func (s *WorkspaceService) CreateWorkspace(ownerID uuid.UUID, req structs.ReqCre
 	// 1. Create Workspace
 	createdWs, err := s.workspaceModel.CreateWorkspace(transaction, ws)
 	if err != nil {
-		return models.Workspace{}, err
+		return createdWs, err
 	}
 
 	// 2. Add Owner as Admin
-	err = s.workspaceModel.AddMember(transaction, models.WorkspaceMember{
+	err = s.workspaceModel.AddMemberTx(transaction, models.WorkspaceMember{
 		WorkspaceID: createdWs.ID,
 		UserID:      ownerID,
 		Role:        models.WorkspaceRoleAdmin,
 	})
 	if err != nil {
-		return models.Workspace{}, err
+		return createdWs, err
 	}
 
 	isOk = true
@@ -82,12 +82,14 @@ func (s *WorkspaceService) InviteMember(requestorID, workspaceID uuid.UUID, emai
 		return err
 	}
 	if member.Role != models.WorkspaceRoleAdmin {
+		s.logger.Error("unauthorized invite attempt", zap.Any("requestorID", requestorID), zap.Any("workspaceID", workspaceID))
 		return errors.New("unauthorized: only admins can invite members")
 	}
 
 	// 2. Find User by Email
 	user, err := s.userModel.GetByEmail(email)
 	if err != nil {
+		s.logger.Error("user not found for email", zap.String("email", email), zap.Error(err))
 		if err == sql.ErrNoRows {
 			return errors.New("user not found")
 		}
@@ -97,15 +99,18 @@ func (s *WorkspaceService) InviteMember(requestorID, workspaceID uuid.UUID, emai
 	// 3. Check if already member
 	_, err = s.workspaceModel.GetMember(workspaceID, user.ID)
 	if err == nil {
+		s.logger.Error("user is already a member of the workspace", zap.Any("workspaceID", workspaceID), zap.Any("userID", user.ID))
 		return errors.New("user is already a member")
 	}
 
 	// 4. Add Member
-	return s.workspaceModel.AddMember(nil, models.WorkspaceMember{
+	err = s.workspaceModel.AddMember(models.WorkspaceMember{
 		WorkspaceID: workspaceID,
 		UserID:      user.ID,
 		Role:        models.WorkspaceRoleMember,
 	})
+
+	return nil
 }
 
 func (s *WorkspaceService) RemoveMember(requestorID, workspaceID, userID uuid.UUID) error {
