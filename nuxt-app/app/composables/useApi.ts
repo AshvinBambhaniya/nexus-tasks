@@ -9,16 +9,13 @@ export const useApi = <T>(
 
   return useFetch(url, {
     baseURL: config.public.apiUrl,
-    // Include credentials for session cookies
-    onResponse() {
-      // Common JSend unwrapping could also happen here,
-      // but 'transform' is more specific to the returned 'data' property
-    },
+    credentials: "include",
     transform: (response) => {
-      if (response && response.status === "success") {
-        return response.data as T;
+      const res = response as JSendResponse<T>;
+      if (res && res.status === "success") {
+        return res.data as T;
       }
-      return response as unknown as T;
+      return res as unknown as T;
     },
     ...options,
   });
@@ -27,7 +24,7 @@ export const useApi = <T>(
 /**
  * Custom $fetch wrapper for mutations (POST, PATCH, DELETE)
  */
-export const api$fetch = <T>(
+export const useMutation = <T>(
   url: string,
   options: Record<string, unknown> = {}
 ) => {
@@ -35,10 +32,13 @@ export const api$fetch = <T>(
 
   return $fetch<JSendResponse<T>>(url, {
     baseURL: config.public.apiUrl,
+    credentials: "include",
     ...options,
     onResponse({ response }) {
-      if (response._data && response._data.status === "success") {
-        response._data = response._data.data;
+      const data = response._data as JSendResponse<T>;
+      if (data && data.status === "success") {
+        // We cast to T here to unwrap the data for the consumer.
+        response._data = data.data as T;
       }
     },
   });

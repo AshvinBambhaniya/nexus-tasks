@@ -8,12 +8,10 @@ export const useAuth = () => {
     isLoading.value = true;
     error.value = null;
     try {
-      await api$fetch("/api/v1/auth/login", {
+      await useMutation("/api/v1/auth/login", {
         method: "POST",
         body: { email, password },
       });
-      // Clear user data cache if necessary
-      refreshCookie("current-user");
       router.push("/dashboard");
     } catch (err: unknown) {
       error.value = getApiErrorMessage(err, "Failed to login");
@@ -30,7 +28,7 @@ export const useAuth = () => {
     isLoading.value = true;
     error.value = null;
     try {
-      await api$fetch("/api/v1/auth/register", {
+      await useMutation("/api/v1/auth/register", {
         method: "POST",
         body: { email, password, full_name: fullName },
       });
@@ -44,7 +42,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      await api$fetch("/api/v1/auth/logout", { method: "POST" });
+      await useMutation("/api/v1/auth/logout", { method: "POST" });
     } catch (err) {
       console.error("Logout failed", err);
     }

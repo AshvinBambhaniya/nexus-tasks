@@ -19,27 +19,26 @@ export const useWorkspaces = () => {
   );
 
   // Auto-select first workspace if none selected and data loaded
-  watch(
-    [isLoading, workspaces],
-    ([newIsLoading, newWorkspaces]) => {
-      if (
-        !newIsLoading &&
-        newWorkspaces.length > 0 &&
-        !workspaceStore.activeWorkspaceId
-      ) {
-        workspaceStore.setActiveWorkspaceId(newWorkspaces[0].id);
+  watchEffect(() => {
+    if (
+      !isLoading.value &&
+      workspaces.value.length > 0 &&
+      !workspaceStore.activeWorkspaceId
+    ) {
+      const firstWorkspace = workspaces.value[0];
+      if (firstWorkspace) {
+        workspaceStore.setActiveWorkspaceId(firstWorkspace.id);
       }
-    },
-    { immediate: true }
-  );
+    }
+  });
 
   const createWorkspace = async (name: string) => {
     try {
-      const response = await api$fetch<Workspace>("/api/v1/workspaces/", {
+      const response = await useMutation<Workspace>("/api/v1/workspaces/", {
         method: "POST",
         body: { name },
       });
-      // api$fetch already unwraps JSend
+      // useMutation already unwraps JSend
       const newWorkspace = response as unknown as Workspace;
       await refresh();
       if (newWorkspace && newWorkspace.id) {
