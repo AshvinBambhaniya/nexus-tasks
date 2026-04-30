@@ -1,8 +1,6 @@
 package structs
 
 import (
-	"time"
-
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/google/uuid"
 )
@@ -70,7 +68,7 @@ type ReqCreateTask struct {
 	Description string              `json:"description"`
 	Status      models.TaskStatus   `json:"status"`   // Optional, default TODO
 	Priority    models.TaskPriority `json:"priority"` // Optional, default P2
-	DueDate     *time.Time          `json:"due_date"`
+	DueDate     *CustomTime         `json:"due_date"`
 	AssigneeID  *uuid.UUID          `json:"assignee_id"`
 }
 
@@ -79,6 +77,6 @@ type ReqUpdateTask struct {
 	Description string              `json:"description"`
 	Status      models.TaskStatus   `json:"status"`
 	Priority    models.TaskPriority `json:"priority"`
-	DueDate     *time.Time          `json:"due_date"`
+	DueDate     *CustomTime         `json:"due_date"`
 	AssigneeID  *uuid.UUID          `json:"assignee_id"`
 }

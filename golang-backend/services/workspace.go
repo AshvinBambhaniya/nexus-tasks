@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/AshvinBambhaniya/nexus-tasks/cli/workers"
+	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -14,14 +17,16 @@ import (
 type WorkspaceService struct {
 	workspaceModel *models.WorkspaceModel
 	userModel      *models.UserModel
+	publisher      *watermill.WatermillPublisher
 	db             *goqu.Database
 	logger         *zap.Logger
 }
 
-func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, workspaceModel *models.WorkspaceModel, userModel *models.UserModel) *WorkspaceService {
+func NewWorkspaceService(db *goqu.Database, logger *zap.Logger, workspaceModel *models.WorkspaceModel, userModel *models.UserModel, publisher *watermill.WatermillPublisher) *WorkspaceService {
 	return &WorkspaceService{
 		workspaceModel: workspaceModel,
 		userModel:      userModel,
+		publisher:      publisher,
 		db:             db,
 		logger:         logger,
 	}
@@ -109,6 +114,24 @@ func (s *WorkspaceService) InviteMember(requestorID, workspaceID uuid.UUID, emai
 		UserID:      user.ID,
 		Role:        models.WorkspaceRoleMember,
 	})
+
+	if err != nil {
+		s.logger.Error("failed to add member to workspace", zap.Any("workspaceID", workspaceID), zap.Any("userID", user.ID), zap.Error(err))
+		return err
+	}
+
+	// 5. Send Notification (Async)
+	workspace, err := s.workspaceModel.GetByID(workspaceID)
+	if err == nil && s.publisher != nil {
+		err = s.publisher.Publish(constants.TopicWorkspaceInvites, workers.WorkspaceInvitationMail{
+			Email:         email,
+			WorkspaceName: workspace.Name,
+		})
+		if err != nil {
+			s.logger.Error("failed to publish workspace invitation", zap.Error(err))
+			// We don't return error here because the DB operation was successful
+		}
+	}
 
 	return nil
 }

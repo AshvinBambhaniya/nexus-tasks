@@ -7,6 +7,7 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
 	"github.com/doug-martin/goqu/v9"
@@ -22,7 +23,7 @@ type WorkspaceController struct {
 	logger           *zap.Logger
 }
 
-func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*WorkspaceController, error) {
+func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, publisher *watermill.WatermillPublisher) (*WorkspaceController, error) {
 	workspaceModel, err := models.InitWorkspaceModel(goqu)
 	if err != nil {
 		return nil, err
@@ -33,7 +34,7 @@ func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.
 		return nil, err
 	}
 
-	workspaceSvc := services.NewWorkspaceService(goqu, logger, &workspaceModel, &userModel)
+	workspaceSvc := services.NewWorkspaceService(goqu, logger, &workspaceModel, &userModel, publisher)
 
 	return &WorkspaceController{
 		workspaceModel:   &workspaceModel,

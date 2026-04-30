@@ -11,6 +11,7 @@ import (
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +20,7 @@ import (
 var mu sync.Mutex
 
 // Setup func
-func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config config.AppConfig) error {
+func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config config.AppConfig, pub *watermill.WatermillPublisher) error {
 	mu.Lock()
 
 	app.Use(middlewares.LogHandler(logger))
@@ -54,7 +55,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 		return err
 	}
 
-	err = setupWorkspaceController(v1, goqu, logger, config, middlewares)
+	err = setupWorkspaceController(v1, goqu, logger, config, middlewares, pub)
 	if err != nil {
 		return err
 	}
@@ -110,8 +111,8 @@ func setupAuthController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	return nil
 }
 
-func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
-	wsController, err := controller.NewWorkspaceController(goqu, logger, cfg)
+func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware, publisher *watermill.WatermillPublisher) error {
+	wsController, err := controller.NewWorkspaceController(goqu, logger, cfg, publisher)
 	if err != nil {
 		return err
 	}

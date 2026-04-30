@@ -1,46 +1,25 @@
-# syntax = docker/dockerfile:latest
-FROM golang:1.19.1-alpine3.16 AS build
+# Stage 1: Build the application binary
+FROM golang:1.26.0-alpine3.23 as build
 
-ARG GOPATH="/go"
-ARG GOMODCACHE=${GOPATH}/pkg/mod
-ARG GOCACHE="/root/.cache/go-build"
-
-ENV GOMODCACHE=${GOMODCACHE}
-ENV GOCACHE=${GOCACHE}
-
-WORKDIR /go/src/app
-
-RUN apk update && \
-    apk add build-base
-
-COPY go.* ./
-
-RUN --mount=type=cache,mode=0777,target=${GOCACHE} \
-    --mount=type=cache,mode=0777,target=${GOMODCACHE} \
-    go mod download
-
-COPY . ./
-
-RUN --mount=type=cache,mode=0777,target=${GOCACHE} \
-    --mount=type=cache,mode=0777,target=${GOMODCACHE} \
-    go build -o /tmp/app
-
-FROM alpine
 WORKDIR /app
 
-ENV MODE="docker"
-ENV DOCKERIZE_VERSION=v0.6.1
+# Install build dependencies for CGO-dependent packages
+RUN apk update && apk add build-base
 
-RUN set -ex; \
-    apk update && \
-    apk add --no-cache wget build-base && \
-    wget https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz && \
-    tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz && \
-    rm dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+# Leverage Docker layer caching by downloading dependencies separately
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY assets database .env.docker ./
-COPY --from=build /tmp/app ./
+# Build the production-ready binary
+COPY . .
+RUN go build -o nexus-tasks
 
-ENTRYPOINT [ "dockerize", "-template", ".env.example:.env", "./app"]
+# Stage 2: Create a lightweight runtime image
+FROM alpine:3.23
 
-CMD ["-h"]
+WORKDIR /app
+
+# Copy the compiled binary and static assets from the build stage
+COPY --from=build /app/nexus-tasks .
+COPY --from=build /app/database ./database
+COPY --from=build /app/assets ./assets

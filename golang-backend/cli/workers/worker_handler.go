@@ -16,7 +16,8 @@ func init() {
 // Register all worker struct here befour run worker for proper unmarshalling
 func RegisterWorkerStruct() []interface{} {
 	return []interface{}{
-		// ...
+		WelcomeMail{},
+		WorkspaceInvitationMail{},
 	}
 }
 
