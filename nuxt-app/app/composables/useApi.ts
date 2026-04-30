@@ -8,8 +8,11 @@ export const useApi = <T>(
   const config = useRuntimeConfig();
   const headers = useRequestHeaders(["cookie"]);
 
+  // Use the internal API URL for SSR and the public API URL for the browser
+  const baseURL = import.meta.server ? config.apiUrl : config.public.apiUrl;
+
   return useFetch(url, {
-    baseURL: config.public.apiUrl,
+    baseURL: baseURL,
     credentials: "include",
     headers: headers,
     transform: (response) => {
@@ -32,8 +35,11 @@ export const useMutation = <T>(
 ) => {
   const config = useRuntimeConfig();
 
+  // Use the internal API URL for SSR and the public API URL for the browser
+  const baseURL = import.meta.server ? config.apiUrl : config.public.apiUrl;
+
   return $fetch<JSendResponse<T>>(url, {
-    baseURL: config.public.apiUrl,
+    baseURL: baseURL,
     credentials: "include",
     ...options,
     onResponse({ response }) {
