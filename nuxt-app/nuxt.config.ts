@@ -14,6 +14,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    apiUrl: process.env.NUXT_API_URL || "http://backend:8000",
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL || "http://localhost:8000",
     },
@@ -21,6 +22,9 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: {
+        lang: "en",
+      },
       title: "Nexus Tasks",
       meta: [
         { name: "description", content: "Unified Task Management System" },
