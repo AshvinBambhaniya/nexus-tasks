@@ -41,7 +41,7 @@ const handleRemoveMember = async (userId: number) => {
       <h3 class="text-lg font-semibold text-gray-900">Team Members</h3>
       <p class="text-sm text-gray-500">Manage the roster for this team.</p>
     </div>
-    <div class="p-6 space-y-6">
+    <div class="space-y-6 p-6">
       <form class="flex gap-3" @submit.prevent="handleInvite">
         <div class="relative flex-1">
           <Mail class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />

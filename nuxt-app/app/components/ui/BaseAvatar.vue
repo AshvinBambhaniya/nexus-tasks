@@ -6,12 +6,7 @@ interface Props {
   className?: string;
 }
 
-const {
-  src = "",
-  alt = "",
-  fallback,
-  className = "",
-} = defineProps<Props>();
+const { src = "", alt = "", fallback, className = "" } = defineProps<Props>();
 </script>
 
 <template>
