@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -18,8 +17,8 @@ type User struct {
 	FullName       string    `json:"full_name" db:"full_name"`
 	HashedPassword string    `json:"-" db:"hashed_password"`
 	IsActive       bool      `json:"is_active" db:"is_active"`
-	CreatedAt      time.Time `json:"created_at,omitempty" db:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at,omitempty" db:"updated_at"`
+	CreatedAt      string    `json:"created_at,omitempty" db:"created_at"`
+	UpdatedAt      string    `json:"updated_at,omitempty" db:"updated_at"`
 }
 
 // UserModel implements user related database operations
@@ -72,7 +71,6 @@ func (model *UserModel) GetByID(id uuid.UUID) (User, error) {
 
 // CreateUser inserts a new user
 func (model *UserModel) CreateUser(transaction *goqu.TxDatabase, user User) (User, error) {
-
 	var createdUser User
 
 	found, err := transaction.Insert(UserTable).Rows(
@@ -82,7 +80,7 @@ func (model *UserModel) CreateUser(transaction *goqu.TxDatabase, user User) (Use
 			"hashed_password": user.HashedPassword,
 			"is_active":       user.IsActive,
 		},
-	).Executor().ScanStruct(&createdUser)
+	).Returning("*").Executor().ScanStruct(&createdUser)
 
 	if err != nil {
 		return user, err

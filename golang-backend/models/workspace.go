@@ -26,10 +26,12 @@ const (
 )
 
 type Workspace struct {
-	ID      uuid.UUID     `json:"id" db:"id"`
-	Name    string        `json:"name" db:"name"`
-	Type    WorkspaceType `json:"type" db:"type"`
-	OwnerID uuid.UUID     `json:"owner_id" db:"owner_id"`
+	ID        uuid.UUID     `json:"id" db:"id"`
+	Name      string        `json:"name" db:"name"`
+	Type      WorkspaceType `json:"type" db:"type"`
+	OwnerID   uuid.UUID     `json:"owner_id" db:"owner_id"`
+	CreatedAt string        `json:"created_at,omitempty" db:"created_at"`
+	UpdatedAt string        `json:"updated_at,omitempty" db:"updated_at"`
 }
 
 type WorkspaceMember struct {
@@ -113,15 +115,15 @@ func (model *WorkspaceModel) GetMember(workspaceID, userID uuid.UUID) (Workspace
 
 // CreateWorkspace inserts a workspace
 func (model *WorkspaceModel) CreateWorkspace(transaction *goqu.TxDatabase, ws Workspace) (Workspace, error) {
-
 	var createdWs Workspace
+
 	found, err := transaction.Insert(WorkspaceTable).Rows(
 		goqu.Record{
 			"name":     ws.Name,
 			"type":     ws.Type,
 			"owner_id": ws.OwnerID,
 		},
-	).Executor().ScanStruct(&createdWs)
+	).Returning("*").Executor().ScanStruct(&createdWs)
 
 	if err != nil {
 		return ws, err

@@ -64,6 +64,7 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 	// A. Create User
 	createdUser, err := s.userModel.CreateUser(transaction, user)
 	if err != nil {
+		s.logger.Error("failed to create user", zap.Error(err))
 		return user, err
 	}
 
@@ -75,6 +76,7 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 	}
 	createdWs, err := s.workspaceModel.CreateWorkspace(transaction, personalWs)
 	if err != nil {
+		s.logger.Error("failed to create personal workspace", zap.Error(err))
 		return user, err
 	}
 
@@ -85,6 +87,7 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 		Role:        models.WorkspaceRoleAdmin,
 	})
 	if err != nil {
+		s.logger.Error("failed to add user to personal workspace", zap.Error(err))
 		return user, err
 	}
 
@@ -95,6 +98,7 @@ func (s *UserService) Register(email, password, fullName string) (models.User, e
 func (s *UserService) Authenticate(email, password string) (models.User, error) {
 	user, err := s.userModel.GetByEmail(email)
 	if err != nil {
+		s.logger.Debug("failed to get user by email", zap.String("email", email), zap.Error(err))
 		return models.User{}, err
 	}
 

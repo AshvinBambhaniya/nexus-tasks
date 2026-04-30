@@ -95,7 +95,7 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 
 	// Generate Token
 	// Using ID (UUID) as Subject.
-	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(24*time.Hour))
+	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(time.Duration(ctrl.config.JwtExpirationHours)*time.Hour))
 	if err != nil {
 		ctrl.logger.Error("failed to generate token", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate token")
@@ -106,16 +106,24 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 		Name:     constants.CookieUser,
 		Value:    token,
 		HTTPOnly: true,
-		Secure:   false, // Set to true in prod (handled by fiber/config typically)
+		Secure:   false,
 		SameSite: "Lax",
-		MaxAge:   24 * 60 * 60,
+		MaxAge:   ctrl.config.JwtExpirationHours * 60 * 60,
 	})
 
 	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Login successful"})
 }
 
 func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
-	c.ClearCookie(constants.CookieUser)
+	c.Cookie(&fiber.Cookie{
+		Name:     constants.CookieUser,
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-24 * time.Hour),
+		MaxAge:   -1,
+	})
 	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Logout successful"})
 }
 
