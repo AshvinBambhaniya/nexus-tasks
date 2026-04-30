@@ -9,10 +9,16 @@ import {
   Kanban,
   Folder,
 } from "lucide-vue-next";
+import { useUsersStore } from "~/stores/user";
 
 const route = useRoute();
 const { logout } = useAuth();
-const { user, isLoading } = useUser();
+const userStore = useUsersStore();
+
+const user = computed(() => userStore.userData);
+// We can track global loading in the store if needed, 
+// for now we'll assume false after initial layout fetch
+const isLoading = ref(false);
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -47,7 +53,7 @@ const isRouteActive = (href: string) => {
 <template>
   <div class="flex h-full w-64 flex-col border-r border-gray-200 bg-gray-50/50">
     <div class="p-4">
-      <WorkspaceWorkspaceSwitcher />
+      <WorkspaceSwitcher />
     </div>
 
     <div class="flex-1 space-y-6 overflow-y-auto px-3 py-2">

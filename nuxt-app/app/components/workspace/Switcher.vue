@@ -102,7 +102,7 @@ const handleSelect = (id: number) => {
       </div>
     </template>
 
-    <WorkspaceWorkspaceDialog
+    <WorkspaceDialog
       :is-open="isDialogOpen"
       @close="isDialogOpen = false"
     />

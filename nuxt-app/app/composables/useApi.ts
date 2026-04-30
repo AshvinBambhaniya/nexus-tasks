@@ -6,10 +6,12 @@ export const useApi = <T>(
   options: UseFetchOptions<JSendResponse<T>, T> = {}
 ) => {
   const config = useRuntimeConfig();
+  const headers = useRequestHeaders(["cookie"]);
 
   return useFetch(url, {
     baseURL: config.public.apiUrl,
     credentials: "include",
+    headers: headers,
     transform: (response) => {
       const res = response as JSendResponse<T>;
       if (res && res.status === "success") {
