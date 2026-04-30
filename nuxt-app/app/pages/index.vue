@@ -12,6 +12,7 @@ import {
   Cpu,
   GitBranch,
 } from "lucide-vue-next";
+import { GITHUB_REPO_URL, APP_NAME } from "~/constants";
 
 const { user, isLoading } = useUser();
 
@@ -34,7 +35,7 @@ const year = new Date().getFullYear();
             <CheckSquare class="h-5 w-5" />
           </div>
           <span class="text-xl font-bold tracking-tight text-gray-900">
-            Nexus Tasks
+            {{ APP_NAME }}
           </span>
         </div>
 
@@ -54,7 +55,7 @@ const year = new Date().getFullYear();
             Tech Stack
           </NuxtLink>
           <NuxtLink
-            to="https://github.com/AshvinBambhaniya/nexus-tasks"
+            :to="GITHUB_REPO_URL"
             target="_blank"
             class="transition-colors hover:text-blue-600"
           >
@@ -146,10 +147,7 @@ const year = new Date().getFullYear();
                   </UiBaseButton>
                 </NuxtLink>
               </template>
-              <NuxtLink
-                to="https://github.com/AshvinBambhaniya/nexus-tasks"
-                target="_blank"
-              >
+              <NuxtLink :to="GITHUB_REPO_URL" target="_blank">
                 <UiBaseButton
                   variant="outline"
                   size="lg"
@@ -173,7 +171,7 @@ const year = new Date().getFullYear();
               <div
                 class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
               >
-                <Terminal class="h-4 w-4 text-gray-400" /> Golang Fiber
+                <Terminal class="h-4 w-4 text-gray-400" /> Golang
               </div>
               <div
                 class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
@@ -393,18 +391,18 @@ const year = new Date().getFullYear();
             <CheckSquare class="h-4 w-4" />
           </div>
           <div>
-            <span class="block text-sm font-bold text-gray-900">
-              Nexus Tasks
-            </span>
+            <span class="block text-sm font-bold text-gray-900">{{
+              APP_NAME
+            }}</span>
             <span class="text-xs text-gray-500">Built for Builders</span>
           </div>
         </div>
         <p class="text-sm text-gray-500">
-          © {{ year }} Nexus Tasks. Distributed under MIT License.
+          © {{ year }} {{ APP_NAME }}. Distributed under MIT License.
         </p>
         <div class="flex gap-6">
           <NuxtLink
-            to="https://github.com/AshvinBambhaniya/nexus-tasks"
+            :to="GITHUB_REPO_URL"
             target="_blank"
             class="flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-gray-900"
           >
