@@ -36,9 +36,7 @@ const filteredProjects = computed(() => {
     >
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
-        <p class="mt-1 text-gray-500">
-          Manage and organize your team's work.
-        </p>
+        <p class="mt-1 text-gray-500">Manage and organize your team's work.</p>
       </div>
       <UiBaseButton @click="isDialogOpen = true">
         <Plus class="mr-2 h-4 w-4" /> New Project
@@ -61,7 +59,7 @@ const filteredProjects = computed(() => {
       <!-- Filter Tabs -->
       <div class="flex self-start rounded-lg bg-gray-100 p-1 sm:self-auto">
         <button
-          v-for="status in (['active', 'archived', 'all'] as const)"
+          v-for="status in ['active', 'archived', 'all'] as const"
           :key="status"
           class="rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-all"
           :class="
@@ -154,7 +152,8 @@ const filteredProjects = computed(() => {
             >
               <div class="flex items-center gap-1">
                 <span>
-                  Created {{ format(new Date(project.created_at), "MMM d, yyyy") }}
+                  Created
+                  {{ format(new Date(project.created_at), "MMM d, yyyy") }}
                 </span>
               </div>
               <div

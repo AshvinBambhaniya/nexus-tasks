@@ -21,7 +21,7 @@ const handleToggleArchive = async () => {
     });
     await refreshProjects();
     // In a real app we'd refresh the current project data too
-    window.location.reload(); 
+    window.location.reload();
   } catch (err) {
     console.error(err);
   } finally {
@@ -30,8 +30,13 @@ const handleToggleArchive = async () => {
 };
 
 const handleDelete = async () => {
-  if (!confirm("Are you sure you want to delete this project? This cannot be undone.")) return;
-  
+  if (
+    !confirm(
+      "Are you sure you want to delete this project? This cannot be undone."
+    )
+  )
+    return;
+
   isUpdating.value = true;
   try {
     await useMutation(`/api/v1/projects/${project.id}`, {
@@ -53,7 +58,8 @@ const handleDelete = async () => {
       <div class="border-b border-gray-100 p-6">
         <h3 class="text-lg font-semibold text-gray-900">Archive Project</h3>
         <p class="text-sm text-gray-500">
-          Archived projects are hidden from the active list but can still be accessed.
+          Archived projects are hidden from the active list but can still be
+          accessed.
         </p>
       </div>
       <div class="p-6">
@@ -71,7 +77,8 @@ const handleDelete = async () => {
     <div class="rounded-lg border border-red-100 bg-red-50/50 p-6">
       <h3 class="text-lg font-medium text-red-900">Danger Zone</h3>
       <p class="mt-1 text-sm text-red-600">
-        Deleting this project will permanently remove all associated tasks and data.
+        Deleting this project will permanently remove all associated tasks and
+        data.
       </p>
       <div class="mt-4">
         <UiBaseButton

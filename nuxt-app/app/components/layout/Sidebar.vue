@@ -16,7 +16,7 @@ const { logout } = useAuth();
 const userStore = useUsersStore();
 
 const user = computed(() => userStore.userData);
-// We can track global loading in the store if needed, 
+// We can track global loading in the store if needed,
 // for now we'll assume false after initial layout fetch
 const isLoading = ref(false);
 

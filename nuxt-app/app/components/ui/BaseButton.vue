@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { cn } from "~/utils/cn";
+
 // Define specific types for better autocomplete and strict checking
 type ButtonVariant = "primary" | "ghost" | "outline" | "white" | "destructive";
 type ButtonSize = "sm" | "md" | "lg";
@@ -7,6 +9,7 @@ interface Props {
   variant?: ButtonVariant;
   size?: ButtonSize;
   disabled?: boolean;
+  class?: string;
 }
 
 /**
@@ -18,6 +21,7 @@ const {
   variant = "primary",
   size = "md",
   disabled = false,
+  class: className = "",
 } = defineProps<Props>();
 
 const variants: Record<ButtonVariant, string> = {
@@ -40,8 +44,7 @@ const sizes: Record<ButtonSize, string> = {
 <template>
   <button
     :disabled="disabled"
-    class="inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-    :class="[variants[variant], sizes[size]]"
+    :class="cn('inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50', variants[variant], sizes[size], className)"
   >
     <slot />
   </button>
