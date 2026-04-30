@@ -6,6 +6,7 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
@@ -22,7 +23,7 @@ type TaskController struct {
 	logger         *zap.Logger
 }
 
-func NewTaskController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*TaskController, error) {
+func NewTaskController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, hub *realtime.Hub) (*TaskController, error) {
 	// Models
 	taskModel, err := models.InitTaskModel(goqu)
 	if err != nil {
@@ -50,7 +51,7 @@ func NewTaskController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppCo
 	}
 
 	// Services
-	taskSvc := services.NewTaskService(goqu, logger, &taskModel, &projectModel, &wsModel, &teamModel, &userModel)
+	taskSvc := services.NewTaskService(goqu, logger, &taskModel, &projectModel, &wsModel, &teamModel, &userModel, hub)
 	projectSvc := services.NewProjectService(goqu, logger, &projectModel, &wsModel, &teamModel, &userModel) // For auth logic injection
 	commentSvc := services.NewCommentService(goqu, logger, &commentModel, &taskModel, projectSvc)
 

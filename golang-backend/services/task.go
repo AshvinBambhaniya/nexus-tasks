@@ -2,9 +2,11 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -17,17 +19,19 @@ type TaskService struct {
 	workspaceModel *models.WorkspaceModel
 	teamModel      *models.TeamModel
 	userModel      *models.UserModel
+	hub            *realtime.Hub
 	db             *goqu.Database
 	logger         *zap.Logger
 }
 
-func NewTaskService(db *goqu.Database, logger *zap.Logger, taskModel *models.TaskModel, projectModel *models.ProjectModel, workspaceModel *models.WorkspaceModel, teamModel *models.TeamModel, userModel *models.UserModel) *TaskService {
+func NewTaskService(db *goqu.Database, logger *zap.Logger, taskModel *models.TaskModel, projectModel *models.ProjectModel, workspaceModel *models.WorkspaceModel, teamModel *models.TeamModel, userModel *models.UserModel, hub *realtime.Hub) *TaskService {
 	return &TaskService{
 		taskModel:      taskModel,
 		projectModel:   projectModel,
 		workspaceModel: workspaceModel,
 		teamModel:      teamModel,
 		userModel:      userModel,
+		hub:            hub,
 		db:             db,
 		logger:         logger,
 	}
@@ -89,6 +93,18 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 	}
 
 	isOk = true
+
+	// Broadcast Event
+	if s.hub != nil {
+		// Project Channel
+		// Payload should match frontend expectation (TaskResponse)
+		// Assuming we can serialize struct or map
+		s.hub.Broadcast(fmt.Sprintf("project:%d", projectID), map[string]interface{}{
+			"type": "TASK_CREATED",
+			"task": createdTask,
+		})
+	}
+
 	return createdTask, nil
 }
 
@@ -176,6 +192,15 @@ func (s *TaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 	}
 
 	isOk = true
+
+	// Broadcast Event
+	if s.hub != nil {
+		s.hub.Broadcast(fmt.Sprintf("project:%d", task.ProjectID), map[string]interface{}{
+			"type": "TASK_UPDATED",
+			"task": updatedTask,
+		})
+	}
+
 	return updatedTask, nil
 }
 
@@ -209,6 +234,15 @@ func (s *TaskService) DeleteTask(userID, taskID uuid.UUID) error {
 	}
 
 	isOk = true
+
+	// Broadcast Event
+	if s.hub != nil {
+		s.hub.Broadcast(fmt.Sprintf("project:%d", task.ProjectID), map[string]interface{}{
+			"type":    "TASK_DELETED",
+			"task_id": taskID,
+		})
+	}
+
 	return nil
 }
 
