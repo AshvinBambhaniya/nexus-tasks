@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Define public/auth routes
   const isAuthRoute = path === "/login" || path === "/register";
 
-  // If we don't have user data yet, try to fetch it 
+  // If we don't have user data yet, try to fetch it
   // (this helps during direct entry into a dashboard route)
   if (!userStore.userData && import.meta.client) {
     await setUserDataStore();

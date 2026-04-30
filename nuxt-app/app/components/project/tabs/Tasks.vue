@@ -7,7 +7,7 @@ import {
   Circle,
   Loader2,
 } from "lucide-vue-next";
-import { TaskStatus } from "~/types";
+import { TaskStatus, type Task } from "~/types";
 
 interface Props {
   projectId: number;
@@ -15,6 +15,7 @@ interface Props {
 
 const { projectId } = defineProps<Props>();
 
+const router = useRouter();
 const { tasks, isLoading } = useTasks(projectId);
 const statusFilter = ref<"open" | "done">("open");
 const searchQuery = ref("");
@@ -27,11 +28,16 @@ const doneTasks = computed(() =>
 );
 
 const displayedTasks = computed(() => {
-  const filtered = statusFilter.value === "open" ? openTasks.value : doneTasks.value;
+  const filtered =
+    statusFilter.value === "open" ? openTasks.value : doneTasks.value;
   return filtered.filter((t) =>
     t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
+
+const handleTaskClick = (task: Task) => {
+  router.push(`/projects/${projectId}/tasks/${task.id}`);
+};
 </script>
 
 <template>
@@ -46,9 +52,11 @@ const displayedTasks = computed(() => {
           class-name="pl-9 border-gray-200 bg-gray-50"
         />
       </div>
-      <UiBaseButton @click="navigateTo(`/projects/${projectId}/tasks/new`)">
-        <Plus class="mr-2 h-4 w-4" /> New Task
-      </UiBaseButton>
+      <NuxtLink :to="`/projects/${projectId}/tasks/new`">
+        <UiBaseButton>
+          <Plus class="mr-2 h-4 w-4" /> New Task
+        </UiBaseButton>
+      </NuxtLink>
     </div>
 
     <!-- GitHub Style List Container -->
@@ -103,6 +111,7 @@ const displayedTasks = computed(() => {
           :key="task.id"
           :task="task"
           :project-id="projectId"
+          @click="handleTaskClick(task)"
         />
 
         <div v-if="displayedTasks.length === 0" class="p-12 text-center">

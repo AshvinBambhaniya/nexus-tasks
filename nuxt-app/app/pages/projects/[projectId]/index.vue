@@ -71,8 +71,7 @@ const tabs: { id: TabType; label: string }[] = [
         <ProjectTabsTasks :project-id="projectId" />
       </div>
       <div v-else-if="activeTab === 'board'">
-        <!-- <ProjectTabsBoard :project-id="projectId" /> -->
-        <p class="text-gray-500">Board view coming soon...</p>
+        <ProjectTabsBoard :project-id="projectId" />
       </div>
       <div v-else-if="activeTab === 'members'">
         <ProjectTabsMembers :project-id="projectId" />

@@ -16,11 +16,7 @@ const { projectId } = defineProps<Props>();
 
 const { members, isLoading, addMember, removeMember } =
   useProjectMembers(projectId);
-const {
-  teams: projectTeams,
-  addTeam,
-  removeTeam,
-} = useProjectTeams(projectId);
+const { teams: projectTeams, addTeam, removeTeam } = useProjectTeams(projectId);
 const { teams: workspaceTeams } = useTeams();
 
 const inviteEmail = ref("");
@@ -88,7 +84,7 @@ const availableTeams = computed(() =>
           All users with access to this project, including team members.
         </p>
       </div>
-      <div class="p-6 space-y-6">
+      <div class="space-y-6 p-6">
         <form class="flex gap-3" @submit.prevent="handleInvite">
           <div class="relative flex-1">
             <Mail class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
@@ -172,13 +168,13 @@ const availableTeams = computed(() =>
           Workspace teams with access to this project.
         </p>
       </div>
-      <div class="p-6 space-y-6">
+      <div class="space-y-6 p-6">
         <form class="flex gap-3" @submit.prevent="handleLinkTeam">
           <div class="relative flex-1">
             <Users class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
             <select
               v-model="selectedTeamId"
-              class="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 pl-9 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              class="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 pl-9 text-sm ring-offset-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               required
             >
               <option value="" disabled>Select a team to link...</option>

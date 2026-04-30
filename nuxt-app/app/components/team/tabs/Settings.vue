@@ -90,7 +90,9 @@ const handleDelete = async () => {
               <template v-else-if="isSuccess">
                 <Check class="mr-2 h-4 w-4" />
               </template>
-              {{ isSaving ? "Saving..." : isSuccess ? "Saved!" : "Save Changes" }}
+              {{
+                isSaving ? "Saving..." : isSuccess ? "Saved!" : "Save Changes"
+              }}
             </UiBaseButton>
           </div>
         </form>

@@ -1,1 +1,16 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@layer base {
+  .prose {
+    @apply max-w-none;
+  }
+  
+  /* Remove top margin from the first element and bottom from the last in prose */
+  .prose > :first-child {
+    margin-top: 0 !important;
+  }
+  .prose > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
