@@ -1,0 +1,8 @@
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS project_teams (
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (project_id, team_id)
+);
