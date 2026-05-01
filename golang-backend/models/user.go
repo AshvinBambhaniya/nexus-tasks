@@ -21,16 +21,22 @@ type User struct {
 	UpdatedAt      string    `json:"updated_at,omitempty" db:"updated_at"`
 }
 
+type UserRepository interface {
+	GetByEmail(email string) (User, error)
+	GetByID(id uuid.UUID) (User, error)
+	CreateUser(user User) (User, error)
+}
+
 // UserModel implements user related database operations
 type UserModel struct {
-	db *goqu.Database
+	db DbExecutor
 }
 
 // InitUserModel Init model
-func InitUserModel(goqu *goqu.Database) (UserModel, error) {
-	return UserModel{
-		db: goqu,
-	}, nil
+func InitUserModel(db DbExecutor) UserRepository {
+	return &UserModel{
+		db: db,
+	}
 }
 
 // GetUserByEmail get user by email
@@ -70,10 +76,10 @@ func (model *UserModel) GetByID(id uuid.UUID) (User, error) {
 }
 
 // CreateUser inserts a new user
-func (model *UserModel) CreateUser(transaction *goqu.TxDatabase, user User) (User, error) {
+func (model *UserModel) CreateUser(user User) (User, error) {
 	var createdUser User
 
-	found, err := transaction.Insert(UserTable).Rows(
+	found, err := model.db.Insert(UserTable).Rows(
 		goqu.Record{
 			"email":           user.Email,
 			"full_name":       user.FullName,

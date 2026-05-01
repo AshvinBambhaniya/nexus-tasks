@@ -55,18 +55,27 @@ type TaskWithAssignee struct {
 }
 
 type TaskModel struct {
-	db *goqu.Database
+	db DbExecutor
 }
 
-func InitTaskModel(goqu *goqu.Database) (TaskModel, error) {
-	return TaskModel{
-		db: goqu,
-	}, nil
+type TaskRepository interface {
+	Create(task Task) (Task, error)
+	GetByID(id uuid.UUID) (Task, error)
+	Update(task Task) (Task, error)
+	Delete(id uuid.UUID) error
+	ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]Task, error)
+	ListByAssigneeID(assigneeID uuid.UUID) ([]Task, error)
 }
 
-func (model *TaskModel) Create(transaction *goqu.TxDatabase, task Task) (Task, error) {
+func InitTaskModel(db DbExecutor) TaskRepository {
+	return &TaskModel{
+		db: db,
+	}
+}
+
+func (model *TaskModel) Create(task Task) (Task, error) {
 	var createdTask Task
-	found, err := transaction.Insert(TaskTable).Rows(
+	found, err := model.db.Insert(TaskTable).Rows(
 		goqu.Record{
 			"number":      task.Number,
 			"title":       task.Title,
@@ -119,7 +128,7 @@ func (model *TaskModel) GetByID(id uuid.UUID) (Task, error) {
 	return task, nil
 }
 
-func (model *TaskModel) Update(transaction *goqu.TxDatabase, task Task) (Task, error) {
+func (model *TaskModel) Update(task Task) (Task, error) {
 	// Only update fields that are usually mutable via this method
 	// Or pass the full struct.
 	// For partial updates, the Service layer usually merges changes.
@@ -136,7 +145,7 @@ func (model *TaskModel) Update(transaction *goqu.TxDatabase, task Task) (Task, e
 		"updated_at":   time.Now(),
 	}
 
-	_, err := transaction.Update(TaskTable).
+	_, err := model.db.Update(TaskTable).
 		Set(record).
 		Where(goqu.Ex{"id": task.ID}).
 		Executor().Exec()
@@ -147,8 +156,8 @@ func (model *TaskModel) Update(transaction *goqu.TxDatabase, task Task) (Task, e
 	return task, nil
 }
 
-func (model *TaskModel) Delete(transaction *goqu.TxDatabase, id uuid.UUID) error {
-	_, err := transaction.Delete(TaskTable).
+func (model *TaskModel) Delete(id uuid.UUID) error {
+	_, err := model.db.Delete(TaskTable).
 		Where(goqu.Ex{"id": id}).
 		Executor().Exec()
 	return err
