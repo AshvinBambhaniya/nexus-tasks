@@ -1,25 +1,24 @@
 package v1
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
 type HealthController struct {
-	db     *goqu.Database
-	logger *zap.Logger
+	healthService services.HealthService
+	logger        *zap.Logger
 }
 
-func NewHealthController(db *goqu.Database, logger *zap.Logger) (*HealthController, error) {
+func NewHealthController(healthService services.HealthService, logger *zap.Logger) (*HealthController, error) {
 	return &HealthController{
-		db:     db,
-		logger: logger,
+		healthService: healthService,
+		logger:        logger,
 	}, nil
 }
 
@@ -38,7 +37,7 @@ func NewHealthController(db *goqu.Database, logger *zap.Logger) (*HealthControll
 //	200: GenericResOk
 //	500: GenericResError
 func (hc *HealthController) Overall(ctx *fiber.Ctx) error {
-	err := healthDb(hc.db)
+	err := hc.healthService.CheckDatabaseHealth(ctx.Context())
 	if err != nil {
 		hc.logger.Error("error while health checking of db", zap.Error(err))
 		return utils.JSONError(ctx, http.StatusInternalServerError, constants.ErrHealthCheckDb)
@@ -66,22 +65,10 @@ func (hc *HealthController) Self(ctx *fiber.Ctx) error {
 //	200: GenericResOk
 //	500: GenericResError
 func (hc *HealthController) Db(ctx *fiber.Ctx) error {
-	err := healthDb(hc.db)
+	err := hc.healthService.CheckDatabaseHealth(ctx.Context())
 	if err != nil {
 		hc.logger.Error("error while health checking of db", zap.Error(err))
 		return utils.JSONError(ctx, http.StatusInternalServerError, constants.ErrHealthCheckDb)
 	}
 	return utils.JSONSuccess(ctx, http.StatusOK, "ok")
-}
-
-///////////////////////
-// HealthCheck CORE
-//////////////////////
-
-func healthDb(db *goqu.Database) error {
-	_, err := db.ExecContext(context.TODO(), "SELECT 1")
-	if err != nil {
-		return err
-	}
-	return nil
 }

@@ -8,20 +8,17 @@ import (
 )
 
 type Middleware struct {
-	workspaceModel *models.WorkspaceModel
-	config         config.AppConfig
+	workspaceModel models.WorkspaceRepository
+	config         *config.AppConfig
 	logger         *zap.Logger
 }
 
-func NewMiddleware(goqu *goqu.Database, cfg config.AppConfig, logger *zap.Logger) (Middleware, error) {
-	workspaceModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return Middleware{}, err
-	}
+func NewMiddleware(goqu *goqu.Database, cfg *config.AppConfig, logger *zap.Logger) Middleware {
+	workspaceModel := models.InitWorkspaceModel(goqu)
 
 	return Middleware{
-		workspaceModel: &workspaceModel,
+		workspaceModel: workspaceModel,
 		config:         cfg,
 		logger:         logger,
-	}, nil
+	}
 }

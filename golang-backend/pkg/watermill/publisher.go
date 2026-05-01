@@ -20,6 +20,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type Publisher interface {
+	Publish(topic string, handle workers.Handler) error
+}
+
 type WatermillPublisher struct {
 	publisher message.Publisher
 }

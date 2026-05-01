@@ -18,7 +18,7 @@ func (m *Middleware) Authenticated(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusUnauthorized, constants.Unauthenticated)
 	}
 
-	claims, err := jwt.ParseToken(m.config, token)
+	claims, err := jwt.ParseToken(m.config.Secret, token)
 	if err != nil {
 		if errors.Is(err, j.ErrInvalidJWT()) || errors.Is(err, j.ErrTokenExpired()) {
 			return utils.JSONFail(c, http.StatusUnauthorized, constants.Unauthenticated)
