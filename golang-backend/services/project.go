@@ -1,167 +1,165 @@
 package services
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type ProjectService struct {
-	projectModel   *models.ProjectModel
-	workspaceModel *models.WorkspaceModel
-	teamModel      *models.TeamModel
-	userModel      *models.UserModel
-	db             *goqu.Database
-	logger         *zap.Logger
+type ProjectService interface {
+	// Project Management
+	CreateProject(userID, workspaceID uuid.UUID, req structs.ReqCreateProject) (models.Project, error)
+	GetProject(userID, projectID uuid.UUID) (models.Project, error)
+	UpdateProject(userID, projectID uuid.UUID, req structs.ReqUpdateProject) (models.Project, error)
+	AddMember(userID, projectID uuid.UUID, req structs.ReqAddProjectMember) (models.ProjectMember, error)
+	RemoveMember(userID, projectID, targetUserID uuid.UUID) error
+	ListMembers(userID, projectID uuid.UUID) ([]structs.ResProjectMember, error)
+	ListByWorkspaceID(workspaceID uuid.UUID) ([]models.Project, error)
+
+	// Team Management
+	AddTeam(userID, projectID, teamID uuid.UUID) (structs.ResProjectTeam, error)
+	RemoveTeam(userID, projectID, teamID uuid.UUID) error
+	ListTeams(userID, projectID uuid.UUID) ([]structs.ResProjectTeam, error)
+
+	// Helpers
+	ValidateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error
 }
 
-func NewProjectService(db *goqu.Database, logger *zap.Logger, projectModel *models.ProjectModel, workspaceModel *models.WorkspaceModel, teamModel *models.TeamModel, userModel *models.UserModel) *ProjectService {
-	return &ProjectService{
-		projectModel:   projectModel,
-		workspaceModel: workspaceModel,
-		teamModel:      teamModel,
-		userModel:      userModel,
-		db:             db,
-		logger:         logger,
+type projectService struct {
+	storage models.Storage
+	logger  *zap.Logger
+}
+
+func NewProjectService(storage models.Storage, logger *zap.Logger) ProjectService {
+	return &projectService{
+		storage: storage,
+		logger:  logger,
 	}
 }
 
-func (s *ProjectService) CreateProject(userID, workspaceID uuid.UUID, req structs.ReqCreateProject) (models.Project, error) {
+func (s *projectService) CreateProject(userID, workspaceID uuid.UUID, req structs.ReqCreateProject) (models.Project, error) {
 	// 1. Verify Workspace Admin
-	wsMember, err := s.workspaceModel.GetMember(workspaceID, userID)
+	wsMember, err := s.storage.Workspaces().GetMember(workspaceID, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return models.Project{}, errors.New("unauthorized: not a member of this workspace")
 		}
-		return models.Project{}, err
+		return models.Project{}, errors.New("failed to get workspace member")
 	}
 	if wsMember.Role != models.WorkspaceRoleAdmin {
 		return models.Project{}, errors.New("unauthorized: only workspace admins can create projects")
 	}
 
-	project := models.Project{
-		Name:        req.Name,
-		Description: req.Description,
-		WorkspaceID: workspaceID,
-		IsArchived:  false,
-		CreatedAt:   time.Now(),
-	}
-
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return models.Project{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
+	var createdProject models.Project
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		project := models.Project{
+			Name:        req.Name,
+			Description: req.Description,
+			WorkspaceID: workspaceID,
+			IsArchived:  false,
+			CreatedAt:   time.Now(),
 		}
-	}()
 
-	createdProject, err := s.projectModel.Create(transaction, project)
-	if err != nil {
-		return models.Project{}, err
-	}
+		var err error
+		createdProject, err = txStorage.Projects().Create(project)
+		if err != nil {
+			return err
+		}
 
-	// Add Creator as Admin
-	err = s.projectModel.AddMember(transaction, models.ProjectMember{
-		ProjectID: createdProject.ID,
-		UserID:    userID,
-		Role:      models.ProjectRoleAdmin,
+		// Add Creator as Admin
+		err = txStorage.Projects().AddMember(models.ProjectMember{
+			ProjectID: createdProject.ID,
+			UserID:    userID,
+			Role:      models.ProjectRoleAdmin,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
+
 	if err != nil {
 		return models.Project{}, err
 	}
 
-	isOk = true
 	return createdProject, nil
 }
 
-func (s *ProjectService) GetProject(userID, projectID uuid.UUID) (models.Project, error) {
+func (s *projectService) GetProject(userID, projectID uuid.UUID) (models.Project, error) {
 	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return models.Project{}, err
 	}
-	return s.projectModel.GetByID(projectID)
+	return s.storage.Projects().GetByID(projectID)
 }
 
-func (s *ProjectService) UpdateProject(userID, projectID uuid.UUID, req structs.ReqUpdateProject) (models.Project, error) {
+func (s *projectService) UpdateProject(userID, projectID uuid.UUID, req structs.ReqUpdateProject) (models.Project, error) {
 	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return models.Project{}, err
 	}
 
-	project, err := s.projectModel.GetByID(projectID)
-	if err != nil {
-		return models.Project{}, err
-	}
-
-	if req.Name != "" {
-		project.Name = req.Name
-	}
-	if req.Description != "" {
-		project.Description = req.Description
-	}
-	if req.IsArchived != nil {
-		project.IsArchived = *req.IsArchived
-	}
-
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return models.Project{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
+	var updatedProject models.Project
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		project, err := txStorage.Projects().GetByID(projectID)
+		if err != nil {
+			return err
 		}
-	}()
 
-	updatedProject, err := s.projectModel.Update(transaction, project)
+		if req.Name != "" {
+			project.Name = req.Name
+		}
+		if req.Description != "" {
+			project.Description = req.Description
+		}
+		if req.IsArchived != nil {
+			project.IsArchived = *req.IsArchived
+		}
+
+		updatedProject, err = txStorage.Projects().Update(project)
+		return err
+	})
+
 	if err != nil {
 		return models.Project{}, err
 	}
 
-	isOk = true
 	return updatedProject, nil
 }
 
-func (s *ProjectService) AddMember(userID, projectID uuid.UUID, req structs.ReqAddProjectMember) (models.ProjectMember, error) {
+func (s *projectService) AddMember(userID, projectID uuid.UUID, req structs.ReqAddProjectMember) (models.ProjectMember, error) {
 	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return models.ProjectMember{}, err
 	}
 
 	// Find User
-	userToAdd, err := s.userModel.GetByEmail(req.Email)
+	userToAdd, err := s.storage.Users().GetByEmail(req.Email)
 	if err != nil {
 		return models.ProjectMember{}, errors.New("user not found")
 	}
 
 	// Get Project to check workspace
-	project, err := s.projectModel.GetByID(projectID)
+	project, err := s.storage.Projects().GetByID(projectID)
 	if err != nil {
 		return models.ProjectMember{}, err
 	}
 
 	// Check if user in workspace
-	_, err = s.workspaceModel.GetMember(project.WorkspaceID, userToAdd.ID)
+	_, err = s.storage.Workspaces().GetMember(project.WorkspaceID, userToAdd.ID)
 	if err != nil {
 		return models.ProjectMember{}, errors.New("user must be a member of the workspace first")
 	}
 
 	// Check if already in project
-	_, err = s.projectModel.GetMember(projectID, userToAdd.ID)
+	_, err = s.storage.Projects().GetMember(projectID, userToAdd.ID)
 	if err == nil {
 		return models.ProjectMember{}, errors.New("user already in project")
 	}
@@ -177,70 +175,42 @@ func (s *ProjectService) AddMember(userID, projectID uuid.UUID, req structs.ReqA
 		Role:      role,
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return models.ProjectMember{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		return txStorage.Projects().AddMember(member)
+	})
 
-	err = s.projectModel.AddMember(transaction, member)
 	if err != nil {
 		return models.ProjectMember{}, err
 	}
 
-	isOk = true
 	return member, nil
 }
 
-func (s *ProjectService) RemoveMember(userID, projectID, targetUserID uuid.UUID) error {
+func (s *projectService) RemoveMember(userID, projectID, targetUserID uuid.UUID) error {
 	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return err
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	err = s.projectModel.RemoveMember(transaction, projectID, targetUserID)
-	if err != nil {
-		return err
-	}
-
-	isOk = true
-	return nil
+	return s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		return txStorage.Projects().RemoveMember(projectID, targetUserID)
+	})
 }
 
-func (s *ProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.ResProjectMember, error) {
+func (s *projectService) ListMembers(userID, projectID uuid.UUID) ([]structs.ResProjectMember, error) {
 	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// 1. Direct Members
-	directMembers, err := s.projectModel.GetMembers(projectID)
+	directMembers, err := s.storage.Projects().GetMembers(projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Team Members
-	projectTeams, err := s.projectModel.GetTeams(projectID)
+	projectTeams, err := s.storage.Projects().GetTeams(projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +227,7 @@ func (s *ProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 	}
 
 	for _, pt := range projectTeams {
-		teamMembers, err := s.teamModel.ListMembersByTeamId(pt.TeamID)
+		teamMembers, err := s.storage.Teams().ListMembersByTeamId(pt.TeamID)
 		if err != nil {
 			continue
 		}
@@ -282,22 +252,26 @@ func (s *ProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 	return res, nil
 }
 
+func (s *projectService) ListByWorkspaceID(workspaceID uuid.UUID) ([]models.Project, error) {
+	return s.storage.Projects().ListByWorkspaceID(workspaceID)
+}
+
 // Teams
 
-func (s *ProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.ResProjectTeam, error) {
+func (s *projectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.ResProjectTeam, error) {
 	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return structs.ResProjectTeam{}, err
 	}
 
 	// Verify Team exists
-	team, err := s.teamModel.GetByID(teamID)
+	team, err := s.storage.Teams().GetByID(teamID)
 	if err != nil {
 		return structs.ResProjectTeam{}, errors.New("team not found")
 	}
 
 	// Verify Project
-	project, err := s.projectModel.GetByID(projectID)
+	project, err := s.storage.Projects().GetByID(projectID)
 	if err != nil {
 		return structs.ResProjectTeam{}, errors.New("project not found")
 	}
@@ -307,33 +281,22 @@ func (s *ProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.R
 	}
 
 	// Check if already assigned
-	_, err = s.projectModel.GetTeam(projectID, teamID)
+	_, err = s.storage.Projects().GetTeam(projectID, teamID)
 	if err == nil {
 		return structs.ResProjectTeam{}, errors.New("team already assigned to project")
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return structs.ResProjectTeam{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	err = s.projectModel.AddTeam(transaction, models.ProjectTeam{
-		ProjectID: projectID,
-		TeamID:    teamID,
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		return txStorage.Projects().AddTeam(models.ProjectTeam{
+			ProjectID: projectID,
+			TeamID:    teamID,
+		})
 	})
+
 	if err != nil {
 		return structs.ResProjectTeam{}, err
 	}
 
-	isOk = true
 	return structs.ResProjectTeam{
 		ProjectID: projectID,
 		TeamID:    teamID,
@@ -341,41 +304,24 @@ func (s *ProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.R
 	}, nil
 }
 
-func (s *ProjectService) RemoveTeam(userID, projectID, teamID uuid.UUID) error {
+func (s *projectService) RemoveTeam(userID, projectID, teamID uuid.UUID) error {
 	err := s.ValidateProjectAccess(projectID, userID, true)
 	if err != nil {
 		return err
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	err = s.projectModel.RemoveTeam(transaction, projectID, teamID)
-	if err != nil {
-		return err
-	}
-
-	isOk = true
-	return nil
+	return s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		return txStorage.Projects().RemoveTeam(projectID, teamID)
+	})
 }
 
-func (s *ProjectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResProjectTeam, error) {
+func (s *projectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResProjectTeam, error) {
 	err := s.ValidateProjectAccess(projectID, userID, false)
 	if err != nil {
 		return nil, err
 	}
 
-	teams, err := s.projectModel.GetTeams(projectID)
+	teams, err := s.storage.Projects().GetTeams(projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -394,9 +340,9 @@ func (s *ProjectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResPr
 
 // Helpers
 
-func (s *ProjectService) ValidateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error {
+func (s *projectService) ValidateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error {
 	// 1. Direct Member
-	member, err := s.projectModel.GetMember(projectID, userID)
+	member, err := s.storage.Projects().GetMember(projectID, userID)
 	if err == nil {
 		if requireAdmin && member.Role != models.ProjectRoleAdmin {
 			// Check Workspace Admin below
@@ -406,22 +352,22 @@ func (s *ProjectService) ValidateProjectAccess(projectID, userID uuid.UUID, requ
 	}
 
 	// 2. Workspace Admin
-	project, err := s.projectModel.GetByID(projectID)
+	project, err := s.storage.Projects().GetByID(projectID)
 	if err != nil {
 		return errors.New("project not found")
 	}
 
-	wsMember, err := s.workspaceModel.GetMember(project.WorkspaceID, userID)
+	wsMember, err := s.storage.Workspaces().GetMember(project.WorkspaceID, userID)
 	if err == nil && wsMember.Role == models.WorkspaceRoleAdmin {
 		return nil // Authorized
 	}
 
 	// 3. Team Member (Implicit) - Only if not requiring admin
 	if !requireAdmin {
-		projectTeams, err := s.projectModel.GetTeams(projectID)
+		projectTeams, err := s.storage.Projects().GetTeams(projectID)
 		if err == nil {
 			for _, pt := range projectTeams {
-				_, err := s.teamModel.GetMember(pt.TeamID, userID)
+				_, err := s.storage.Teams().GetMember(pt.TeamID, userID)
 				if err == nil {
 					return nil // Authorized as Member
 				}

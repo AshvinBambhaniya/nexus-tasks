@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -8,36 +9,34 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type TaskService struct {
-	taskModel      *models.TaskModel
-	projectModel   *models.ProjectModel
-	workspaceModel *models.WorkspaceModel
-	teamModel      *models.TeamModel
-	userModel      *models.UserModel
-	hub            *realtime.Hub
-	db             *goqu.Database
-	logger         *zap.Logger
+type TaskService interface {
+	CreateTask(userID, projectID uuid.UUID, req structs.ReqCreateTask) (models.Task, error)
+	ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error)
+	GetTask(userID, taskID uuid.UUID) (models.Task, error)
+	UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdateTask) (models.Task, error)
+	DeleteTask(userID, taskID uuid.UUID) error
+	ListMyTasks(userID uuid.UUID) ([]models.Task, error)
 }
 
-func NewTaskService(db *goqu.Database, logger *zap.Logger, taskModel *models.TaskModel, projectModel *models.ProjectModel, workspaceModel *models.WorkspaceModel, teamModel *models.TeamModel, userModel *models.UserModel, hub *realtime.Hub) *TaskService {
-	return &TaskService{
-		taskModel:      taskModel,
-		projectModel:   projectModel,
-		workspaceModel: workspaceModel,
-		teamModel:      teamModel,
-		userModel:      userModel,
-		hub:            hub,
-		db:             db,
-		logger:         logger,
+type taskService struct {
+	storage models.Storage
+	hub     realtime.IHub
+	logger  *zap.Logger
+}
+
+func NewTaskService(storage models.Storage, logger *zap.Logger, hub realtime.IHub) TaskService {
+	return &taskService{
+		storage: storage,
+		logger:  logger,
+		hub:     hub,
 	}
 }
 
-func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCreateTask) (models.Task, error) {
+func (s *taskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCreateTask) (models.Task, error) {
 	// 1. Verify Project Access
 	err := s.validateProjectAccess(projectID, userID)
 	if err != nil {
@@ -52,66 +51,47 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 		}
 	}
 
-	status := req.Status
-	if status == "" {
-		status = models.TaskStatusTodo
-	}
-	priority := req.Priority
-	if priority == "" {
-		priority = models.TaskPriorityP2
-	}
-
-	var dueDate *time.Time
-	if req.DueDate != nil {
-		dueDate = &req.DueDate.Time
-	}
-
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return models.Task{}, err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
+	var createdTask models.Task
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		status := req.Status
+		if status == "" {
+			status = models.TaskStatusTodo
 		}
-	}()
+		priority := req.Priority
+		if priority == "" {
+			priority = models.TaskPriorityP2
+		}
 
-	// 3. Get Next Task Number
-	nextNumber, err := s.taskModel.GetNextTaskNumber(transaction, projectID)
+		var dueDate *time.Time
+		if req.DueDate != nil {
+			dueDate = &req.DueDate.Time
+		}
+
+		task := models.Task{
+			Title:       req.Title,
+			Description: req.Description,
+			Status:      status,
+			Priority:    priority,
+			ProjectID:   projectID,
+			AssigneeID:  req.AssigneeID,
+			AuthorID:    &userID,
+			DueDate:     dueDate,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+
+		var err error
+		createdTask, err = txStorage.Tasks().Create(task)
+		return err
+	})
+
 	if err != nil {
 		return models.Task{}, err
 	}
 
-	task := models.Task{
-		Number:      nextNumber,
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      status,
-		Priority:    priority,
-		ProjectID:   projectID,
-		AssigneeID:  req.AssigneeID,
-		AuthorID:    &userID,
-		DueDate:     dueDate,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-
-	createdTask, err := s.taskModel.Create(transaction, task)
-	if err != nil {
-		return models.Task{}, err
-	}
-
-	isOk = true
-
-	// Broadcast Event
+	// Broadcast Event (After commit)
 	if s.hub != nil {
-		// Project Channel
-		// Payload should match frontend expectation (TaskResponse)
-		// Assuming we can serialize struct or map
-		s.hub.Broadcast(fmt.Sprintf("project:%d", projectID), map[string]interface{}{
+		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), map[string]interface{}{
 			"type": "TASK_CREATED",
 			"task": createdTask,
 		})
@@ -120,17 +100,17 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 	return createdTask, nil
 }
 
-func (s *TaskService) ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error) {
+func (s *taskService) ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error) {
 	err := s.validateProjectAccess(projectID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.taskModel.ListByProjectID(projectID, status, assigneeID)
+	return s.storage.Tasks().ListByProjectID(projectID, status, assigneeID)
 }
 
-func (s *TaskService) GetTask(userID, taskID uuid.UUID) (models.Task, error) {
-	task, err := s.taskModel.GetByID(taskID)
+func (s *taskService) GetTask(userID, taskID uuid.UUID) (models.Task, error) {
+	task, err := s.storage.Tasks().GetByID(taskID)
 	if err != nil {
 		return models.Task{}, err
 	}
@@ -143,71 +123,61 @@ func (s *TaskService) GetTask(userID, taskID uuid.UUID) (models.Task, error) {
 	return task, nil
 }
 
-func (s *TaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdateTask) (models.Task, error) {
-	task, err := s.taskModel.GetByID(taskID)
-	if err != nil {
-		return models.Task{}, err
-	}
-
-	err = s.validateProjectAccess(task.ProjectID, userID)
-	if err != nil {
-		return models.Task{}, err
-	}
-
-	if req.Title != "" {
-		task.Title = req.Title
-	}
-	if req.Description != "" {
-		task.Description = req.Description
-	}
-	if req.AssigneeID != nil {
-		err := s.validateAssignee(task.ProjectID, *req.AssigneeID)
+func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdateTask) (models.Task, error) {
+	var updatedTask models.Task
+	err := s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		task, err := txStorage.Tasks().GetByID(taskID)
 		if err != nil {
-			return models.Task{}, err
+			return err
 		}
-		task.AssigneeID = req.AssigneeID
-	}
-	if req.Priority != "" {
-		task.Priority = req.Priority
-	}
-	if req.DueDate != nil {
-		task.DueDate = &req.DueDate.Time
-	}
 
-	// Status Logic
-	if req.Status != "" {
-		if req.Status == models.TaskStatusDone && task.Status != models.TaskStatusDone {
-			now := time.Now()
-			task.CompletedAt = &now
-		} else if req.Status != models.TaskStatusDone && task.Status == models.TaskStatusDone {
-			task.CompletedAt = nil
+		err = s.internalValidateProjectAccess(txStorage, task.ProjectID, userID)
+		if err != nil {
+			return err
 		}
-		task.Status = req.Status
-	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
+		if req.Title != "" {
+			task.Title = req.Title
+		}
+		if req.Description != "" {
+			task.Description = req.Description
+		}
+		if req.AssigneeID != nil {
+			err := s.internalValidateAssignee(txStorage, task.ProjectID, *req.AssigneeID)
+			if err != nil {
+				return err
+			}
+			task.AssigneeID = req.AssigneeID
+		}
+		if req.Priority != "" {
+			task.Priority = req.Priority
+		}
+		if req.DueDate != nil {
+			task.DueDate = &req.DueDate.Time
+		}
+
+		// Status Logic
+		if req.Status != "" {
+			if req.Status == models.TaskStatusDone && task.Status != models.TaskStatusDone {
+				now := time.Now()
+				task.CompletedAt = &now
+			} else if req.Status != models.TaskStatusDone && task.Status == models.TaskStatusDone {
+				task.CompletedAt = nil
+			}
+			task.Status = req.Status
+		}
+
+		updatedTask, err = txStorage.Tasks().Update(task)
+		return err
+	})
+
 	if err != nil {
 		return models.Task{}, err
 	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
-		}
-	}()
-
-	updatedTask, err := s.taskModel.Update(transaction, task)
-	if err != nil {
-		return models.Task{}, err
-	}
-
-	isOk = true
 
 	// Broadcast Event
 	if s.hub != nil {
-		s.hub.Broadcast(fmt.Sprintf("project:%d", task.ProjectID), map[string]interface{}{
+		s.hub.Broadcast(fmt.Sprintf("project:%s", updatedTask.ProjectID.String()), map[string]interface{}{
 			"type": "TASK_UPDATED",
 			"task": updatedTask,
 		})
@@ -216,40 +186,30 @@ func (s *TaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 	return updatedTask, nil
 }
 
-func (s *TaskService) DeleteTask(userID, taskID uuid.UUID) error {
-	task, err := s.taskModel.GetByID(taskID)
-	if err != nil {
-		return err
-	}
-
-	err = s.validateProjectAccess(task.ProjectID, userID)
-	if err != nil {
-		return err
-	}
-
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			transaction.Commit()
-		} else {
-			transaction.Rollback()
+func (s *taskService) DeleteTask(userID, taskID uuid.UUID) error {
+	var projectID uuid.UUID
+	err := s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		task, err := txStorage.Tasks().GetByID(taskID)
+		if err != nil {
+			return err
 		}
-	}()
+		projectID = task.ProjectID
 
-	err = s.taskModel.Delete(transaction, taskID)
+		err = s.internalValidateProjectAccess(txStorage, task.ProjectID, userID)
+		if err != nil {
+			return err
+		}
+
+		return txStorage.Tasks().Delete(taskID)
+	})
+
 	if err != nil {
 		return err
 	}
-
-	isOk = true
 
 	// Broadcast Event
 	if s.hub != nil {
-		s.hub.Broadcast(fmt.Sprintf("project:%d", task.ProjectID), map[string]interface{}{
+		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), map[string]interface{}{
 			"type":    "TASK_DELETED",
 			"task_id": taskID,
 		})
@@ -258,40 +218,38 @@ func (s *TaskService) DeleteTask(userID, taskID uuid.UUID) error {
 	return nil
 }
 
-func (s *TaskService) ListMyTasks(userID uuid.UUID) ([]models.Task, error) {
-	// Requirement: Get all tasks assigned to current user across all projects
-	// In Python: filters by assignee_id
-	return s.taskModel.ListByAssigneeID(userID)
+func (s *taskService) ListMyTasks(userID uuid.UUID) ([]models.Task, error) {
+	return s.storage.Tasks().ListByAssigneeID(userID)
 }
 
 // Helpers
 
-func (s *TaskService) validateProjectAccess(projectID, userID uuid.UUID) error {
-	// Reusing logic similar to ProjectService but simplified or imported
-	// Ideally ProjectService exposes `ValidateAccess` public method.
-	// Duplicating for now to keep services decoupled or refactor later.
+func (s *taskService) validateProjectAccess(projectID, userID uuid.UUID) error {
+	return s.internalValidateProjectAccess(s.storage, projectID, userID)
+}
 
+func (s *taskService) internalValidateProjectAccess(st models.Storage, projectID, userID uuid.UUID) error {
 	// 1. Direct Member
-	_, err := s.projectModel.GetMember(projectID, userID)
+	_, err := st.Projects().GetMember(projectID, userID)
 	if err == nil {
 		return nil
 	}
 	// 2. Workspace Admin
-	project, err := s.projectModel.GetByID(projectID)
+	project, err := st.Projects().GetByID(projectID)
 	if err != nil {
 		return errors.New("project not found")
 	}
 
-	wsMember, err := s.workspaceModel.GetMember(project.WorkspaceID, userID)
+	wsMember, err := st.Workspaces().GetMember(project.WorkspaceID, userID)
 	if err == nil && wsMember.Role == models.WorkspaceRoleAdmin {
 		return nil
 	}
 
 	// 3. Team Member
-	projectTeams, err := s.projectModel.GetTeams(projectID)
+	projectTeams, err := st.Projects().GetTeams(projectID)
 	if err == nil {
 		for _, pt := range projectTeams {
-			_, err := s.teamModel.GetMember(pt.TeamID, userID)
+			_, err := st.Teams().GetMember(pt.TeamID, userID)
 			if err == nil {
 				return nil
 			}
@@ -301,18 +259,22 @@ func (s *TaskService) validateProjectAccess(projectID, userID uuid.UUID) error {
 	return errors.New("unauthorized: access denied to project")
 }
 
-func (s *TaskService) validateAssignee(projectID, assigneeID uuid.UUID) error {
+func (s *taskService) validateAssignee(projectID, assigneeID uuid.UUID) error {
+	return s.internalValidateAssignee(s.storage, projectID, assigneeID)
+}
+
+func (s *taskService) internalValidateAssignee(st models.Storage, projectID, assigneeID uuid.UUID) error {
 	// Check Direct Membership
-	_, err := s.projectModel.GetMember(projectID, assigneeID)
+	_, err := st.Projects().GetMember(projectID, assigneeID)
 	if err == nil {
 		return nil
 	}
 
 	// Check Team Membership
-	projectTeams, err := s.projectModel.GetTeams(projectID)
+	projectTeams, err := st.Projects().GetTeams(projectID)
 	if err == nil {
 		for _, pt := range projectTeams {
-			_, err := s.teamModel.GetMember(pt.TeamID, assigneeID)
+			_, err := st.Teams().GetMember(pt.TeamID, assigneeID)
 			if err == nil {
 				return nil
 			}
