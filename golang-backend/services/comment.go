@@ -1,37 +1,39 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type CommentService struct {
-	commentModel   *models.CommentModel
-	taskModel      *models.TaskModel
-	projectService *ProjectService
-	db             *goqu.Database
+type CommentService interface {
+	CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error)
+	ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error)
+	DeleteComment(userID, commentID uuid.UUID) error
+}
+
+type commentService struct {
+	storage        models.Storage
+	projectService ProjectService
 	logger         *zap.Logger
 }
 
-func NewCommentService(db *goqu.Database, logger *zap.Logger, commentModel *models.CommentModel, taskModel *models.TaskModel, projectService *ProjectService) *CommentService {
-	return &CommentService{
-		commentModel:   commentModel,
-		taskModel:      taskModel,
+func NewCommentService(storage models.Storage, projectService ProjectService, logger *zap.Logger) CommentService {
+	return &commentService{
+		storage:        storage,
 		projectService: projectService,
-		db:             db,
 		logger:         logger,
 	}
 }
 
-func (s *CommentService) CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error) {
+func (s *commentService) CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error) {
 	// 1. Verify Task Access
-	task, err := s.taskModel.GetByID(taskID)
+	task, err := s.storage.Tasks().GetByID(taskID)
 	if err != nil {
 		return models.Comment{}, errors.New("task not found")
 	}
@@ -42,44 +44,30 @@ func (s *CommentService) CreateComment(userID, taskID uuid.UUID, req structs.Req
 		return models.Comment{}, err
 	}
 
-	comment := models.Comment{
-		Content:   req.Content,
-		TaskID:    taskID,
-		AuthorID:  userID,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return models.Comment{}, err
-	}
-	defer func() {
-		if isOk {
-			err := transaction.Commit()
-			if err != nil {
-				s.logger.Error("error during commit in create comment", zap.Error(err))
-			}
-		} else {
-			err := transaction.Rollback()
-			if err != nil {
-				s.logger.Error("error during rollback in create comment", zap.Error(err))
-			}
+	var createdComment models.Comment
+	err = s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		comment := models.Comment{
+			Content:   req.Content,
+			TaskID:    taskID,
+			AuthorID:  userID,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
-	}()
 
-	createdComment, err := s.commentModel.Create(transaction, comment)
+		var err error
+		createdComment, err = txStorage.Comments().Create(comment)
+		return err
+	})
+
 	if err != nil {
 		return models.Comment{}, err
 	}
 
-	isOk = true
 	return createdComment, nil
 }
 
-func (s *CommentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error) {
-	task, err := s.taskModel.GetByID(taskID)
+func (s *commentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error) {
+	task, err := s.storage.Tasks().GetByID(taskID)
 	if err != nil {
 		return nil, errors.New("task not found")
 	}
@@ -89,11 +77,11 @@ func (s *CommentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.Co
 		return nil, err
 	}
 
-	return s.commentModel.ListByTaskID(taskID)
+	return s.storage.Comments().ListByTaskID(taskID)
 }
 
-func (s *CommentService) DeleteComment(userID, commentID uuid.UUID) error {
-	comment, err := s.commentModel.GetByID(commentID)
+func (s *commentService) DeleteComment(userID, commentID uuid.UUID) error {
+	comment, err := s.storage.Comments().GetByID(commentID)
 	if err != nil {
 		return errors.New("comment not found")
 	}
@@ -103,30 +91,7 @@ func (s *CommentService) DeleteComment(userID, commentID uuid.UUID) error {
 		return errors.New("unauthorized: only author can delete comment")
 	}
 
-	isOk := false
-	transaction, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if isOk {
-			err := transaction.Commit()
-			if err != nil {
-				s.logger.Error("error during commit in delete comment", zap.Error(err))
-			}
-		} else {
-			err := transaction.Rollback()
-			if err != nil {
-				s.logger.Error("error during rollback in delete comment", zap.Error(err))
-			}
-		}
-	}()
-
-	err = s.commentModel.Delete(transaction, commentID)
-	if err != nil {
-		return err
-	}
-
-	isOk = true
-	return nil
+	return s.storage.Atomic(context.Background(), func(txStorage models.Storage) error {
+		return txStorage.Comments().Delete(commentID)
+	})
 }
