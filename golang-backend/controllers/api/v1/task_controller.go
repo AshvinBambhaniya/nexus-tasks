@@ -3,14 +3,11 @@ package v1
 import (
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -18,46 +15,16 @@ import (
 )
 
 type TaskController struct {
-	taskService    *services.TaskService
-	commentService *services.CommentService
+	taskService    services.TaskService
+	commentService services.CommentService
 	logger         *zap.Logger
 }
 
-func NewTaskController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, hub *realtime.Hub) (*TaskController, error) {
-	// Models
-	taskModel, err := models.InitTaskModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	commentModel, err := models.InitCommentModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	projectModel, err := models.InitProjectModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	wsModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	teamModel, err := models.InitTeamModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	userModel, err := models.InitUserModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	// Services
-	taskSvc := services.NewTaskService(goqu, logger, &taskModel, &projectModel, &wsModel, &teamModel, &userModel, hub)
-	projectSvc := services.NewProjectService(goqu, logger, &projectModel, &wsModel, &teamModel, &userModel) // For auth logic injection
-	commentSvc := services.NewCommentService(goqu, logger, &commentModel, &taskModel, projectSvc)
+func NewTaskController(taskService services.TaskService, commentService services.CommentService, logger *zap.Logger) (*TaskController, error) {
 
 	return &TaskController{
-		taskService:    taskSvc,
-		commentService: commentSvc,
+		taskService:    taskService,
+		commentService: commentService,
 		logger:         logger,
 	}, nil
 }
@@ -108,14 +75,14 @@ func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
 	}
 
 	// Filter
-	statusStr := c.Query("status")
+	statusStr := c.Query(constants.QueryStatus)
 	var status *models.TaskStatus
 	if statusStr != "" {
 		s := models.TaskStatus(statusStr)
 		status = &s
 	}
 
-	assigneeIDStr := c.Query("assignee_id")
+	assigneeIDStr := c.Query(constants.QueryAssigneeID)
 	var assigneeID *uuid.UUID
 	if assigneeIDStr != "" {
 		aid, err := uuid.Parse(assigneeIDStr)

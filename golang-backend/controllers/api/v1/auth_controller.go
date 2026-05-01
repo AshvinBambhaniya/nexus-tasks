@@ -6,12 +6,9 @@ import (
 
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/jwt"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -19,27 +16,14 @@ import (
 )
 
 type AuthController struct {
-	userService *services.UserService
-	userModel   *models.UserModel
+	userService services.UserService
 	logger      *zap.Logger
-	config      config.AppConfig
+	config      *config.AppConfig
 }
 
-func NewAuthController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*AuthController, error) {
-	userModel, err := models.InitUserModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	workspaceModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	userSvc := services.NewUserService(goqu, logger, &userModel, &workspaceModel)
-
+func NewAuthController(userSvc services.UserService, logger *zap.Logger, cfg *config.AppConfig) (*AuthController, error) {
 	return &AuthController{
 		userService: userSvc,
-		userModel:   &userModel,
 		logger:      logger,
 		config:      cfg,
 	}, nil
@@ -56,23 +40,10 @@ func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, utils.ValidatorErrorString(err))
 	}
 
-	// Check if user exists
-	_, err := ctrl.userModel.GetByEmail(req.Email)
-	if err == nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "Email already registered")
-	}
-
-	user, err := ctrl.userService.Register(req.Email, req.Password, req.FullName)
+	user, token, err := ctrl.userService.Register(req.Email, req.Password, req.FullName)
 	if err != nil {
 		ctrl.logger.Error("failed to register user", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to register user")
-	}
-
-	// Generate Token
-	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(time.Duration(ctrl.config.JwtExpirationHours)*time.Hour))
-	if err != nil {
-		ctrl.logger.Error("failed to generate token", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate token")
 	}
 
 	// Set Cookie
@@ -105,17 +76,9 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, utils.ValidatorErrorString(err))
 	}
 
-	user, err := ctrl.userService.Authenticate(req.Email, req.Password)
+	token, err := ctrl.userService.Authenticate(req.Email, req.Password)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusUnauthorized, "Incorrect email or password")
-	}
-
-	// Generate Token
-	// Using ID (UUID) as Subject.
-	token, err := jwt.CreateToken(ctrl.config, user.ID.String(), time.Now().Add(time.Duration(ctrl.config.JwtExpirationHours)*time.Hour))
-	if err != nil {
-		ctrl.logger.Error("failed to generate token", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate token")
 	}
 
 	// Set Cookie
@@ -153,7 +116,7 @@ func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
 	}
 
-	user, err := ctrl.userModel.GetByID(uid)
+	user, err := ctrl.userService.GetByID(uid)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusNotFound, "User not found")
 	}

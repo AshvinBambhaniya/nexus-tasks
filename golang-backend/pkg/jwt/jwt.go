@@ -3,7 +3,6 @@ package jwt
 import (
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -28,8 +27,8 @@ We are using symmetric key methodology for sign token
 
 // ParseToken parse, validate the jwt token
 // On valid token it returns the decoded token
-func ParseToken(config config.AppConfig, token string) (jwt.Token, error) {
-	key, err := jwk.FromRaw([]byte(config.Secret))
+func ParseToken(Secret string, token string) (jwt.Token, error) {
+	key, err := jwk.FromRaw([]byte(Secret))
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +37,13 @@ func ParseToken(config config.AppConfig, token string) (jwt.Token, error) {
 	return claims, err
 }
 
-func CreateToken(config config.AppConfig, sub string, exp time.Time) (string, error) {
+func CreateToken(secret, sub string, exp time.Time) (string, error) {
 	stringToken := ""
 	token, err := jwt.NewBuilder().Subject(sub).Expiration(exp).Issuer(issuer).Build()
 	if err != nil {
 		return stringToken, err
 	}
-	key, err := jwk.FromRaw([]byte(config.Secret))
+	key, err := jwk.FromRaw([]byte(secret))
 	if err != nil {
 		return stringToken, err
 	}

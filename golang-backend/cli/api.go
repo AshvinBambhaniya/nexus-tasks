@@ -17,7 +17,7 @@ import (
 )
 
 // GetAPICommandDef runs app
-func GetAPICommandDef(cfg config.AppConfig, logger *zap.Logger) cobra.Command {
+func GetAPICommandDef(cfg *config.AppConfig, logger *zap.Logger) cobra.Command {
 	apiCommand := cobra.Command{
 		Use:   "api",
 		Short: "To start api",
@@ -39,7 +39,7 @@ func GetAPICommandDef(cfg config.AppConfig, logger *zap.Logger) cobra.Command {
 				return err
 			}
 
-			pub, err := watermill.InitPublisher(cfg, false)
+			pub, err := watermill.InitPublisher(*cfg, false)
 			if err != nil {
 				return err
 			}

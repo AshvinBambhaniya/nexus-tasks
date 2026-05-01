@@ -10,8 +10,10 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
 	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
+	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
+	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -20,7 +22,7 @@ import (
 var mu sync.Mutex
 
 // Setup func
-func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config config.AppConfig, pub *watermill.WatermillPublisher) error {
+func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *config.AppConfig, pub *watermill.WatermillPublisher) error {
 	mu.Lock()
 
 	app.Use(middlewares.LogHandler(logger))
@@ -37,45 +39,55 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	hub := realtime.NewHub(logger)
 	go hub.Run()
 
+	// Initialize the Storage (Unit of Work)
+	storage := models.NewStorage(goqu)
+
+	// Initialize the Services
+	userService := services.NewUserService(storage, logger, config)
+	workspaceService := services.NewWorkspaceService(storage, logger, pub)
+	teamService := services.NewTeamService(storage, logger)
+	projectService := services.NewProjectService(storage, logger)
+	taskService := services.NewTaskService(storage, logger, hub)
+	websocketService := services.NewWebsocketService(workspaceService, projectService, logger)
+	commentService := services.NewCommentService(storage, projectService, logger)
+	healthService := services.NewHealthService(storage, logger)
+
 	router := app.Group("/api")
 	v1 := router.Group("/v1")
 
-	middlewares, err := middlewares.NewMiddleware(goqu, config, logger)
+	middlewares := middlewares.NewMiddleware(goqu, config, logger)
+
+	err := healthCheckController(app, healthService, logger)
 	if err != nil {
 		return err
 	}
 
-	err = healthCheckController(app, goqu, logger)
+	err = setupAuthController(v1, userService, logger, config, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupAuthController(v1, goqu, logger, config, middlewares)
+	err = setupWorkspaceController(v1, workspaceService, logger, pub, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupWorkspaceController(v1, goqu, logger, config, middlewares, pub)
+	err = setupTeamController(v1, teamService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupTeamController(v1, goqu, logger, config, middlewares)
+	err = setupProjectController(v1, projectService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupProjectController(v1, goqu, logger, config, middlewares)
+	err = setupTaskController(v1, taskService, commentService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupTaskController(v1, goqu, logger, config, middlewares, hub)
-	if err != nil {
-		return err
-	}
-
-	err = setupWebsocketController(app, goqu, logger, config, hub)
+	err = setupWebsocketController(app, logger, config, hub, websocketService)
 	if err != nil {
 		return err
 	}
@@ -84,20 +96,21 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config confi
 	return nil
 }
 
-func healthCheckController(app *fiber.App, goqu *goqu.Database, logger *zap.Logger) error {
-	healthController, err := controller.NewHealthController(goqu, logger)
+func healthCheckController(app *fiber.App, healthService services.HealthService, logger *zap.Logger) error {
+	healthController, err := controller.NewHealthController(healthService, logger)
 	if err != nil {
 		return err
 	}
 
 	healthz := app.Group("/healthz")
 	healthz.Get("/", healthController.Overall)
+	healthz.Get("/self", healthController.Self)
 	healthz.Get("/db", healthController.Db)
 	return nil
 }
 
-func setupAuthController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
-	authController, err := controller.NewAuthController(goqu, logger, cfg)
+func setupAuthController(v1 fiber.Router, userSvc services.UserService, logger *zap.Logger, cfg *config.AppConfig, middlewares middlewares.Middleware) error {
+	authController, err := controller.NewAuthController(userSvc, logger, cfg)
 	if err != nil {
 		return err
 	}
@@ -111,8 +124,8 @@ func setupAuthController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	return nil
 }
 
-func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware, publisher *watermill.WatermillPublisher) error {
-	wsController, err := controller.NewWorkspaceController(goqu, logger, cfg, publisher)
+func setupWorkspaceController(v1 fiber.Router, workspaceService services.WorkspaceService, logger *zap.Logger, publisher *watermill.WatermillPublisher, middlewares middlewares.Middleware) error {
+	wsController, err := controller.NewWorkspaceController(workspaceService, logger, publisher)
 	if err != nil {
 		return err
 	}
@@ -130,8 +143,8 @@ func setupWorkspaceController(v1 fiber.Router, goqu *goqu.Database, logger *zap.
 	return nil
 }
 
-func setupTeamController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middlewares middlewares.Middleware) error {
-	teamController, err := controller.NewTeamController(goqu, logger, cfg)
+func setupTeamController(v1 fiber.Router, teamService services.TeamService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+	teamController, err := controller.NewTeamController(teamService, logger)
 	if err != nil {
 		return err
 	}
@@ -153,8 +166,8 @@ func setupTeamController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	return nil
 }
 
-func setupProjectController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, middleware middlewares.Middleware) error {
-	projectController, err := controller.NewProjectController(goqu, logger, cfg)
+func setupProjectController(v1 fiber.Router, projectService services.ProjectService, logger *zap.Logger, middleware middlewares.Middleware) error {
+	projectController, err := controller.NewProjectController(projectService, logger)
 	if err != nil {
 		return err
 	}
@@ -184,8 +197,8 @@ func setupProjectController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Lo
 	return nil
 }
 
-func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, authMiddleware middlewares.Middleware, hub *realtime.Hub) error {
-	taskController, err := controller.NewTaskController(goqu, logger, cfg, hub)
+func setupTaskController(v1 fiber.Router, taskService services.TaskService, commentService services.CommentService, logger *zap.Logger, authMiddleware middlewares.Middleware) error {
+	taskController, err := controller.NewTaskController(taskService, commentService, logger)
 	if err != nil {
 		return err
 	}
@@ -213,8 +226,8 @@ func setupTaskController(v1 fiber.Router, goqu *goqu.Database, logger *zap.Logge
 	return nil
 }
 
-func setupWebsocketController(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, hub *realtime.Hub) error {
-	wsController, err := controller.NewWebsocketController(hub, goqu, cfg, logger)
+func setupWebsocketController(app *fiber.App, logger *zap.Logger, cfg *config.AppConfig, hub realtime.IHub, wsSvc services.WebsocketService) error {
+	wsController, err := controller.NewWebsocketController(hub, wsSvc, cfg, logger)
 	if err != nil {
 		return err
 	}
