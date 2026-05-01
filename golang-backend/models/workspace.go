@@ -50,14 +50,24 @@ type WorkspaceMemberWithUser struct {
 	FullName    string        `db:"full_name"`
 }
 
-type WorkspaceModel struct {
-	db *goqu.Database
+type WorkspaceRepository interface {
+	GetByID(id uuid.UUID) (Workspace, error)
+	ListWorkspacesByUserID(userID uuid.UUID) ([]Workspace, error)
+	ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error)
+	GetMember(workspaceID, userID uuid.UUID) (WorkspaceMember, error)
+	CreateWorkspace(ws Workspace) (Workspace, error)
+	AddMember(member WorkspaceMember) error
+	RemoveMember(workspaceID, userID uuid.UUID) error
 }
 
-func InitWorkspaceModel(goqu *goqu.Database) (WorkspaceModel, error) {
-	return WorkspaceModel{
-		db: goqu,
-	}, nil
+type WorkspaceModel struct {
+	db DbExecutor
+}
+
+func InitWorkspaceModel(db DbExecutor) WorkspaceRepository {
+	return &WorkspaceModel{
+		db: db,
+	}
 }
 
 // GetByID gets a workspace by ID
@@ -132,10 +142,10 @@ func (model *WorkspaceModel) GetMember(workspaceID, userID uuid.UUID) (Workspace
 }
 
 // CreateWorkspace inserts a workspace
-func (model *WorkspaceModel) CreateWorkspace(transaction *goqu.TxDatabase, ws Workspace) (Workspace, error) {
+func (model *WorkspaceModel) CreateWorkspace(ws Workspace) (Workspace, error) {
 	var createdWs Workspace
 
-	found, err := transaction.Insert(WorkspaceTable).Rows(
+	found, err := model.db.Insert(WorkspaceTable).Rows(
 		goqu.Record{
 			"name":     ws.Name,
 			"type":     ws.Type,
@@ -153,19 +163,8 @@ func (model *WorkspaceModel) CreateWorkspace(transaction *goqu.TxDatabase, ws Wo
 	return createdWs, nil
 }
 
-// AddMember adds a user to a workspace
-func (model *WorkspaceModel) AddMemberTx(transaction *goqu.TxDatabase, member WorkspaceMember) error {
-	dataset := transaction.Insert(WorkspaceMemberTable)
-	return model.executeAddMember(dataset, member)
-}
-
 func (model *WorkspaceModel) AddMember(member WorkspaceMember) error {
-	dataset := model.db.Insert(WorkspaceMemberTable)
-	return model.executeAddMember(dataset, member)
-}
-
-func (model *WorkspaceModel) executeAddMember(dataset *goqu.InsertDataset, member WorkspaceMember) error {
-	_, err := dataset.Rows(
+	_, err := model.db.Insert(WorkspaceMemberTable).Rows(
 		goqu.Record{
 			"workspace_id": member.WorkspaceID,
 			"user_id":      member.UserID,
@@ -177,16 +176,7 @@ func (model *WorkspaceModel) executeAddMember(dataset *goqu.InsertDataset, membe
 }
 
 // RemoveMember removes a user from a workspace
-func (model *WorkspaceModel) RemoveMember(transaction *goqu.TxDatabase, workspaceID, userID uuid.UUID) error {
-	if transaction != nil {
-		_, err := transaction.Delete(WorkspaceMemberTable).
-			Where(goqu.Ex{
-				"workspace_id": workspaceID,
-				"user_id":      userID,
-			}).Executor().Exec()
-		return err
-	}
-
+func (model *WorkspaceModel) RemoveMember(workspaceID, userID uuid.UUID) error {
 	_, err := model.db.Delete(WorkspaceMemberTable).
 		Where(goqu.Ex{
 			"workspace_id": workspaceID,

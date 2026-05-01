@@ -57,19 +57,39 @@ type ProjectTeamWithDetails struct {
 	TeamName  string    `db:"name"`
 }
 
+type ProjectRepository interface {
+	Create(project Project) (Project, error)
+	GetByID(id uuid.UUID) (Project, error)
+	ListByWorkspaceID(workspaceID uuid.UUID) ([]Project, error)
+	Update(project Project) (Project, error)
+
+	// Members
+	AddMember(member ProjectMember) error
+	RemoveMember(projectID, userID uuid.UUID) error
+	GetMember(projectID, userID uuid.UUID) (ProjectMember, error)
+	GetMembers(projectID uuid.UUID) ([]ProjectMemberWithUser, error)
+
+	// Teams
+	AddTeam(team ProjectTeam) error
+	RemoveTeam(projectID, teamID uuid.UUID) error
+	GetTeam(projectID, teamID uuid.UUID) (ProjectTeam, error)
+	GetTeams(projectID uuid.UUID) ([]ProjectTeamWithDetails, error)
+	ListByTeamID(teamID uuid.UUID) ([]Project, error)
+}
+
 type ProjectModel struct {
-	db *goqu.Database
+	db DbExecutor
 }
 
-func InitProjectModel(goqu *goqu.Database) (ProjectModel, error) {
-	return ProjectModel{
-		db: goqu,
-	}, nil
+func InitProjectModel(db DbExecutor) ProjectRepository {
+	return &ProjectModel{
+		db: db,
+	}
 }
 
-func (model *ProjectModel) Create(transaction *goqu.TxDatabase, project Project) (Project, error) {
+func (model *ProjectModel) Create(project Project) (Project, error) {
 	var createdProject Project
-	found, err := transaction.Insert(ProjectTable).Rows(
+	found, err := model.db.Insert(ProjectTable).Rows(
 		goqu.Record{
 			"name":         project.Name,
 			"description":  project.Description,
@@ -110,8 +130,8 @@ func (model *ProjectModel) ListByWorkspaceID(workspaceID uuid.UUID) ([]Project, 
 	return projects, nil
 }
 
-func (model *ProjectModel) Update(transaction *goqu.TxDatabase, project Project) (Project, error) {
-	_, err := transaction.Update(ProjectTable).
+func (model *ProjectModel) Update(project Project) (Project, error) {
+	_, err := model.db.Update(ProjectTable).
 		Set(goqu.Record{
 			"name":        project.Name,
 			"description": project.Description,
@@ -127,8 +147,8 @@ func (model *ProjectModel) Update(transaction *goqu.TxDatabase, project Project)
 }
 
 // Members
-func (model *ProjectModel) AddMember(transaction *goqu.TxDatabase, member ProjectMember) error {
-	_, err := transaction.Insert(ProjectMemberTable).Rows(
+func (model *ProjectModel) AddMember(member ProjectMember) error {
+	_, err := model.db.Insert(ProjectMemberTable).Rows(
 		goqu.Record{
 			"project_id": member.ProjectID,
 			"user_id":    member.UserID,
@@ -138,8 +158,8 @@ func (model *ProjectModel) AddMember(transaction *goqu.TxDatabase, member Projec
 	return err
 }
 
-func (model *ProjectModel) RemoveMember(transaction *goqu.TxDatabase, projectID, userID uuid.UUID) error {
-	_, err := transaction.Delete(ProjectMemberTable).
+func (model *ProjectModel) RemoveMember(projectID, userID uuid.UUID) error {
+	_, err := model.db.Delete(ProjectMemberTable).
 		Where(goqu.Ex{
 			"project_id": projectID,
 			"user_id":    userID,
@@ -184,8 +204,8 @@ func (model *ProjectModel) GetMembers(projectID uuid.UUID) ([]ProjectMemberWithU
 }
 
 // Teams
-func (model *ProjectModel) AddTeam(transaction *goqu.TxDatabase, team ProjectTeam) error {
-	_, err := transaction.Insert(ProjectTeamTable).Rows(
+func (model *ProjectModel) AddTeam(team ProjectTeam) error {
+	_, err := model.db.Insert(ProjectTeamTable).Rows(
 		goqu.Record{
 			"project_id": team.ProjectID,
 			"team_id":    team.TeamID,
@@ -194,8 +214,8 @@ func (model *ProjectModel) AddTeam(transaction *goqu.TxDatabase, team ProjectTea
 	return err
 }
 
-func (model *ProjectModel) RemoveTeam(transaction *goqu.TxDatabase, projectID, teamID uuid.UUID) error {
-	_, err := transaction.Delete(ProjectTeamTable).
+func (model *ProjectModel) RemoveTeam(projectID, teamID uuid.UUID) error {
+	_, err := model.db.Delete(ProjectTeamTable).
 		Where(goqu.Ex{
 			"project_id": projectID,
 			"team_id":    teamID,
