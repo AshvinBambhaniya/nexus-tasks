@@ -66,19 +66,6 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 		dueDate = &req.DueDate.Time
 	}
 
-	task := models.Task{
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      status,
-		Priority:    priority,
-		ProjectID:   projectID,
-		AssigneeID:  req.AssigneeID,
-		AuthorID:    &userID,
-		DueDate:     dueDate,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-
 	isOk := false
 	transaction, err := s.db.Begin()
 	if err != nil {
@@ -91,6 +78,26 @@ func (s *TaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 			transaction.Rollback()
 		}
 	}()
+
+	// 3. Get Next Task Number
+	nextNumber, err := s.taskModel.GetNextTaskNumber(transaction, projectID)
+	if err != nil {
+		return models.Task{}, err
+	}
+
+	task := models.Task{
+		Number:      nextNumber,
+		Title:       req.Title,
+		Description: req.Description,
+		Status:      status,
+		Priority:    priority,
+		ProjectID:   projectID,
+		AssigneeID:  req.AssigneeID,
+		AuthorID:    &userID,
+		DueDate:     dueDate,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
 
 	createdTask, err := s.taskModel.Create(transaction, task)
 	if err != nil {

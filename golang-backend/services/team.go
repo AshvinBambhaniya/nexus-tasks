@@ -92,11 +92,13 @@ func (s *TeamService) GetTeam(teamID uuid.UUID) (structs.ResTeamWithProjects, er
 
 	team, err := s.teamModel.GetByID(teamID)
 	if err != nil {
+		s.logger.Error("error while get team by teamID", zap.Error(err))
 		return structs.ResTeamWithProjects{}, err
 	}
 
 	projects, err := s.projectModel.ListByTeamID(teamID)
 	if err != nil {
+		s.logger.Error("error while list project by teamID", zap.Error(err))
 		return structs.ResTeamWithProjects{}, err
 	}
 

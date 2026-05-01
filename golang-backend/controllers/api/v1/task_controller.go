@@ -334,6 +334,7 @@ func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
 func (ctrl *TaskController) mapTaskToRes(t models.Task) structs.ResTask {
 	return structs.ResTask{
 		ID:          t.ID,
+		Number:      t.Number,
 		Title:       t.Title,
 		Description: t.Description,
 		Status:      t.Status,

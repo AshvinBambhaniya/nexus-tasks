@@ -30,6 +30,7 @@ const (
 
 type Task struct {
 	ID          uuid.UUID    `json:"id" db:"id"`
+	Number      int          `json:"number" db:"number"`
 	Title       string       `json:"title" db:"title"`
 	Description string       `json:"description" db:"description"`
 	Status      TaskStatus   `json:"status" db:"status"`
@@ -67,6 +68,7 @@ func (model *TaskModel) Create(transaction *goqu.TxDatabase, task Task) (Task, e
 	var createdTask Task
 	found, err := transaction.Insert(TaskTable).Rows(
 		goqu.Record{
+			"number":      task.Number,
 			"title":       task.Title,
 			"description": task.Description,
 			"status":      task.Status,
@@ -85,6 +87,24 @@ func (model *TaskModel) Create(transaction *goqu.TxDatabase, task Task) (Task, e
 		return task, sql.ErrNoRows
 	}
 	return createdTask, nil
+}
+
+func (model *TaskModel) GetNextTaskNumber(transaction *goqu.TxDatabase, projectID uuid.UUID) (int, error) {
+	var maxNum struct {
+		Max int `db:"max"`
+	}
+	found, err := transaction.From(TaskTable).
+		Select(goqu.MAX("number").As("max")).
+		Where(goqu.Ex{"project_id": projectID}).
+		ScanStruct(&maxNum)
+
+	if err != nil {
+		return 0, err
+	}
+	if !found {
+		return 1, nil
+	}
+	return maxNum.Max + 1, nil
 }
 
 func (model *TaskModel) GetByID(id uuid.UUID) (Task, error) {

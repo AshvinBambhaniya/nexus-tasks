@@ -164,7 +164,7 @@ const authorName = computed(() => {
           </div>
           <h1 v-else class="group flex items-center gap-2 text-3xl font-bold text-gray-900">
             {{ task.title }}
-            <span class="font-normal text-gray-400">#{{ task.id }}</span>
+            <span class="font-normal text-gray-400">#{{ task.number }}</span>
             <button
               @click="isEditingTitle = true"
               class="rounded p-1 opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-100"
