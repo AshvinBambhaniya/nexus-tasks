@@ -1,16 +1,21 @@
 import type { Task, Comment, TaskPriority, TaskStatus } from "~/types";
 
 export const useTasks = (projectId?: string) => {
+  const workspaceStore = useWorkspaceStore();
+
   const {
     data: tasks,
     pending: isLoading,
     error,
     refresh,
   } = useApi<Task[]>(
-    () => (projectId ? `/api/v1/projects/${projectId}/tasks` : null),
+    () =>
+      projectId && workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`
+        : null,
     {
       key: `tasks-list-${projectId}`,
-      watch: [() => projectId],
+      watch: [() => projectId, () => workspaceStore.activeWorkspaceId],
     }
   );
 
@@ -22,12 +27,15 @@ export const useTasks = (projectId?: string) => {
     assignee_id?: string;
     due_date?: string;
   }) => {
-    if (!projectId) return;
+    if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/projects/${projectId}/tasks`, {
-        method: "POST",
-        body: task,
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`,
+        {
+          method: "POST",
+          body: task,
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to create task", err);
@@ -36,11 +44,15 @@ export const useTasks = (projectId?: string) => {
   };
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/tasks/${taskId}`, {
-        method: "PATCH",
-        body: updates,
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
+        {
+          method: "PATCH",
+          body: updates,
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to update task", err);
@@ -49,10 +61,14 @@ export const useTasks = (projectId?: string) => {
   };
 
   const deleteTask = async (taskId: string) => {
+    if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/tasks/${taskId}`, {
-        method: "DELETE",
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
+        {
+          method: "DELETE",
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to delete task", err);
@@ -71,31 +87,49 @@ export const useTasks = (projectId?: string) => {
   };
 };
 
-export const useTask = (taskId: string) => {
+export const useTask = (projectId: string, taskId: string) => {
+  const workspaceStore = useWorkspaceStore();
+
   const {
     data: task,
     pending: taskLoading,
     error: taskError,
     refresh: refreshTask,
-  } = useApi<Task>(`/api/v1/tasks/${taskId}`, {
-    key: `task-${taskId}`,
-  });
+  } = useApi<Task>(
+    () =>
+      workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`
+        : `/api/v1/workspaces/0/projects/${projectId}/tasks/${taskId}`,
+    {
+      key: `task-${taskId}`,
+    }
+  );
 
   const {
     data: comments,
     pending: commentsLoading,
     error: commentsError,
     refresh: refreshComments,
-  } = useApi<Comment[]>(`/api/v1/tasks/${taskId}/comments`, {
-    key: `task-comments-${taskId}`,
-  });
+  } = useApi<Comment[]>(
+    () =>
+      workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/api/v1/workspaces/0/projects/${projectId}/tasks/${taskId}/comments`,
+    {
+      key: `task-comments-${taskId}`,
+    }
+  );
 
   const createComment = async (content: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/tasks/${taskId}/comments`, {
-        method: "POST",
-        body: { content },
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`,
+        {
+          method: "POST",
+          body: { content },
+        }
+      );
       await refreshComments();
     } catch (err) {
       console.error("Failed to create comment", err);
@@ -104,10 +138,14 @@ export const useTask = (taskId: string) => {
   };
 
   const deleteComment = async (commentId: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/comments/${commentId}`, {
-        method: "DELETE",
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments/${commentId}`,
+        {
+          method: "DELETE",
+        }
+      );
       await refreshComments();
     } catch (err) {
       console.error("Failed to delete comment", err);

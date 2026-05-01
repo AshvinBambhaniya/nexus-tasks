@@ -38,7 +38,7 @@ const {
   refreshComments,
   createComment,
   deleteComment,
-} = useTask(taskId.value);
+} = useTask(projectId.value, taskId.value);
 
 const { updateTask, deleteTask } = useTasks(projectId.value);
 const { members } = useProjectMembers(projectId.value);
