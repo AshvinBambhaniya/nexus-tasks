@@ -25,19 +25,26 @@ type CommentWithAuthor struct {
 	AuthorFullName string `db:"author_full_name"`
 }
 
+type CommentRepository interface {
+	Create(comment Comment) (Comment, error)
+	GetByID(id uuid.UUID) (Comment, error)
+	ListByTaskID(taskID uuid.UUID) ([]CommentWithAuthor, error)
+	Delete(id uuid.UUID) error
+}
+
 type CommentModel struct {
-	db *goqu.Database
+	db DbExecutor
 }
 
-func InitCommentModel(goqu *goqu.Database) (CommentModel, error) {
-	return CommentModel{
-		db: goqu,
-	}, nil
+func InitCommentModel(db DbExecutor) CommentRepository {
+	return &CommentModel{
+		db: db,
+	}
 }
 
-func (model *CommentModel) Create(transaction *goqu.TxDatabase, comment Comment) (Comment, error) {
+func (model *CommentModel) Create(comment Comment) (Comment, error) {
 	var createdComment Comment
-	found, err := transaction.Insert(CommentTable).Rows(
+	found, err := model.db.Insert(CommentTable).Rows(
 		goqu.Record{
 			"content":   comment.Content,
 			"task_id":   comment.TaskID,
@@ -82,8 +89,8 @@ func (model *CommentModel) ListByTaskID(taskID uuid.UUID) ([]CommentWithAuthor, 
 	return comments, err
 }
 
-func (model *CommentModel) Delete(transaction *goqu.TxDatabase, id uuid.UUID) error {
-	_, err := transaction.Delete(CommentTable).
+func (model *CommentModel) Delete(id uuid.UUID) error {
+	_, err := model.db.Delete(CommentTable).
 		Where(goqu.Ex{"id": id}).
 		Executor().Exec()
 	return err

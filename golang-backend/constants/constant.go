@@ -57,3 +57,8 @@ const (
 	TopicWorkspaceInvites = "workspace_invites"
 	TopicWelcomeMail      = "welcome_mail"
 )
+
+const (
+	QueryStatus     = "status"
+	QueryAssigneeID = "assignee_id"
+)

@@ -3,14 +3,11 @@ package v1
 import (
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -18,27 +15,13 @@ import (
 )
 
 type WorkspaceController struct {
-	workspaceModel   *models.WorkspaceModel
-	workspaceService *services.WorkspaceService
+	workspaceService services.WorkspaceService
 	logger           *zap.Logger
 }
 
-func NewWorkspaceController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig, publisher *watermill.WatermillPublisher) (*WorkspaceController, error) {
-	workspaceModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	userModel, err := models.InitUserModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	workspaceSvc := services.NewWorkspaceService(goqu, logger, &workspaceModel, &userModel, publisher)
-
+func NewWorkspaceController(workspaceService services.WorkspaceService, logger *zap.Logger, publisher *watermill.WatermillPublisher) (*WorkspaceController, error) {
 	return &WorkspaceController{
-		workspaceModel:   &workspaceModel,
-		workspaceService: workspaceSvc,
+		workspaceService: workspaceService,
 		logger:           logger,
 	}, nil
 }
@@ -83,7 +66,7 @@ func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
 	}
 
-	workspaces, err := ctrl.workspaceModel.ListWorkspacesByUserID(uid)
+	workspaces, err := ctrl.workspaceService.ListWorkspacesByUserID(uid)
 	if err != nil {
 		ctrl.logger.Error("failed to list workspaces", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to list workspaces")
@@ -111,7 +94,7 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
 	}
 
-	members, err := ctrl.workspaceModel.ListMembersByWorkspaceId(wsID)
+	members, err := ctrl.workspaceService.ListMembersByWorkspaceId(wsID)
 	if err != nil {
 		ctrl.logger.Error("failed to list members", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to list members")
@@ -150,6 +133,11 @@ func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
 	var req structs.ReqInviteWorkspaceMember
 	if err := c.BodyParser(&req); err != nil {
 		return utils.JSONFail(c, http.StatusBadRequest, err.Error())
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(req); err != nil {
+		return utils.JSONFail(c, http.StatusBadRequest, utils.ValidatorErrorString(err))
 	}
 
 	err = ctrl.workspaceService.InviteMember(uid, wsID, req.Email)

@@ -3,13 +3,10 @@ package v1
 import (
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -17,37 +14,13 @@ import (
 )
 
 type TeamController struct {
-	teamModel   *models.TeamModel
-	teamService *services.TeamService
+	teamService services.TeamService
 	logger      *zap.Logger
 }
 
-func NewTeamController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*TeamController, error) {
-	teamModel, err := models.InitTeamModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	projectModel, err := models.InitProjectModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	workspaceModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	userModel, err := models.InitUserModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	teamSvc := services.NewTeamService(goqu, logger, &teamModel, &projectModel, &workspaceModel, &userModel)
-
+func NewTeamController(teamService services.TeamService, logger *zap.Logger) (*TeamController, error) {
 	return &TeamController{
-		teamModel:   &teamModel,
-		teamService: teamSvc,
+		teamService: teamService,
 		logger:      logger,
 	}, nil
 }
@@ -99,7 +72,7 @@ func (ctrl *TeamController) List(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
 	}
 
-	teams, err := ctrl.teamModel.ListTeamsByWorkspaceID(wsID)
+	teams, err := ctrl.teamService.ListTeamsByWorkspaceID(wsID)
 	if err != nil {
 		ctrl.logger.Error("failed to list teams", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to list teams")
@@ -269,7 +242,7 @@ func (ctrl *TeamController) ListMembers(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
 	}
 
-	members, err := ctrl.teamModel.ListMembersByTeamId(teamID)
+	members, err := ctrl.teamService.ListMembersByTeamId(teamID)
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}

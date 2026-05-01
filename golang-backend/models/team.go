@@ -42,14 +42,26 @@ type TeamMemberWithUser struct {
 	FullName string    `json:"full_name" db:"full_name"`
 }
 
-type TeamModel struct {
-	db *goqu.Database
+type TeamRepository interface {
+	GetByID(id uuid.UUID) (Team, error)
+	ListTeamsByWorkspaceID(workspaceID uuid.UUID) ([]Team, error)
+	CreateTeam(team Team) (Team, error)
+	AddMember(member TeamMember) error
+	ListMembersByTeamId(teamID uuid.UUID) ([]TeamMemberWithUser, error)
+	UpdateTeam(team Team) (Team, error)
+	DeleteTeam(teamID uuid.UUID) error
+	RemoveMember(teamID, userID uuid.UUID) error
+	GetMember(teamID, userID uuid.UUID) (TeamMember, error)
 }
 
-func InitTeamModel(goqu *goqu.Database) (TeamModel, error) {
-	return TeamModel{
-		db: goqu,
-	}, nil
+type TeamModel struct {
+	db DbExecutor
+}
+
+func InitTeamModel(db DbExecutor) TeamRepository {
+	return &TeamModel{
+		db: db,
+	}
 }
 
 func (model *TeamModel) GetByID(id uuid.UUID) (Team, error) {
@@ -75,9 +87,9 @@ func (model *TeamModel) ListTeamsByWorkspaceID(workspaceID uuid.UUID) ([]Team, e
 	return teams, nil
 }
 
-func (model *TeamModel) CreateTeam(transaction *goqu.TxDatabase, team Team) (Team, error) {
+func (model *TeamModel) CreateTeam(team Team) (Team, error) {
 	var createdTeam Team
-	found, err := transaction.Insert(TeamTable).Rows(
+	found, err := model.db.Insert(TeamTable).Rows(
 		goqu.Record{
 			"name":         team.Name,
 			"description":  team.Description,
@@ -94,8 +106,8 @@ func (model *TeamModel) CreateTeam(transaction *goqu.TxDatabase, team Team) (Tea
 	return createdTeam, nil
 }
 
-func (model *TeamModel) AddMember(transaction *goqu.TxDatabase, member TeamMember) error {
-	_, err := transaction.Insert(TeamMemberTable).Rows(
+func (model *TeamModel) AddMember(member TeamMember) error {
+	_, err := model.db.Insert(TeamMemberTable).Rows(
 		goqu.Record{
 			"team_id": member.TeamID,
 			"user_id": member.UserID,

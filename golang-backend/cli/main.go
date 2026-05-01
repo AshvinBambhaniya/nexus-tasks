@@ -10,7 +10,7 @@ import (
 // Init app initialization
 func Init(cfg config.AppConfig, logger *zap.Logger) error {
 	migrationCmd := GetMigrationCommandDef(cfg)
-	apiCmd := GetAPICommandDef(cfg, logger)
+	apiCmd := GetAPICommandDef(&cfg, logger)
 	workerCmd := GetWorkerCommandDef(cfg, logger)
 	workerCmd.PersistentFlags().Int("retry-delay", 100, "time intertval for two retry in ms")
 	workerCmd.PersistentFlags().Int("retry-count", 3, "number of retry")

@@ -3,13 +3,10 @@ package v1
 import (
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -17,34 +14,14 @@ import (
 )
 
 type ProjectController struct {
-	projectModel   *models.ProjectModel
-	projectService *services.ProjectService
+	projectService services.ProjectService
 	logger         *zap.Logger
 }
 
-func NewProjectController(goqu *goqu.Database, logger *zap.Logger, cfg config.AppConfig) (*ProjectController, error) {
-	projectModel, err := models.InitProjectModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	workspaceModel, err := models.InitWorkspaceModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	teamModel, err := models.InitTeamModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-	userModel, err := models.InitUserModel(goqu)
-	if err != nil {
-		return nil, err
-	}
-
-	projectSvc := services.NewProjectService(goqu, logger, &projectModel, &workspaceModel, &teamModel, &userModel)
+func NewProjectController(projectService services.ProjectService, logger *zap.Logger) (*ProjectController, error) {
 
 	return &ProjectController{
-		projectModel:   &projectModel,
-		projectService: projectSvc,
+		projectService: projectService,
 		logger:         logger,
 	}, nil
 }
@@ -98,7 +75,7 @@ func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
 	}
 
-	projects, err := ctrl.projectModel.ListByWorkspaceID(wsID)
+	projects, err := ctrl.projectService.ListByWorkspaceID(wsID)
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
@@ -125,7 +102,7 @@ func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
 	}
 
-	projectIDStr := c.Params("projectId")
+	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
