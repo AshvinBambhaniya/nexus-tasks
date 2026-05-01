@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-vue-next";
 definePageMeta({ layout: "dashboard" });
 
 const route = useRoute();
-const projectId = computed(() => parseInt(route.params.projectId as string));
+const projectId = computed(() => route.params.projectId as string);
 
 const { project, isLoading } = useProject(projectId.value);
 

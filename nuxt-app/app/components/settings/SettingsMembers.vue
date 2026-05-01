@@ -68,7 +68,7 @@ const handleInvite = async () => {
   }
 };
 
-const handleRemove = async (userId: number) => {
+const handleRemove = async (userId: string) => {
   if (
     !activeWorkspace.value ||
     !confirm("Are you sure you want to remove this member?")

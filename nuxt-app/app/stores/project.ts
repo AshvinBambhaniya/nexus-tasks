@@ -3,9 +3,9 @@ import { defineStore } from "pinia";
 export const useProjectStore = defineStore(
   "project",
   () => {
-    const activeProjectId = ref<number | null>(null);
+    const activeProjectId = ref<string | null>(null);
 
-    const setActiveProjectId = (id: number | null) => {
+    const setActiveProjectId = (id: string | null) => {
       activeProjectId.value = id;
     };
 

@@ -7,7 +7,7 @@ definePageMeta({ layout: "dashboard" });
 const { tasks, isLoading, updateTask, refresh } = useMyTasks();
 const isDialogOpen = ref(false);
 
-const handleTaskMove = async (taskId: number, newStatus: TaskStatus) => {
+const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
   try {
     await updateTask(taskId, { status: newStatus });
   } catch (err) {

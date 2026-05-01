@@ -5,17 +5,17 @@ import type { Comment } from "~/types";
 
 interface Props {
   comment: Comment;
-  currentUserId?: number;
+  currentUserId?: string;
 }
 
-const { comment, currentUserId = 0 } = defineProps<Props>();
+const { comment, currentUserId = "" } = defineProps<Props>();
 
 const emit = defineEmits(["delete"]);
 
 const author = computed(
   () =>
     comment.author || {
-      id: 0,
+      id: "",
       email: "unknown@user.com",
       full_name: "Unknown User",
     }

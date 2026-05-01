@@ -13,7 +13,7 @@ import { TaskStatus, TaskPriority, type Task } from "~/types";
 
 interface Props {
   task: Task;
-  projectId: number;
+  projectId: string;
 }
 
 const { task, projectId } = defineProps<Props>();

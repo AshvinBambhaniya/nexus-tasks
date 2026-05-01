@@ -13,7 +13,7 @@ useClickOutside(dropdownRef, () => {
   isOpen.value = false;
 });
 
-const handleSelect = (id: number) => {
+const handleSelect = (id: string) => {
   workspaceStore.setActiveWorkspaceId(id);
   isOpen.value = false;
 };

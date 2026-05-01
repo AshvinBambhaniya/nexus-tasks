@@ -6,23 +6,23 @@ import { useUsersStore } from "~/stores/user";
 interface Props {
   isOpen?: boolean;
   task?: Task | null;
-  projectId?: number;
+  projectId?: string;
 }
 
-const { isOpen = false, task = null, projectId = 0 } = defineProps<Props>();
+const { isOpen = false, task = null, projectId = "" } = defineProps<Props>();
 
 const emit = defineEmits(["close"]);
 
 const userStore = useUsersStore();
 const currentUserId = computed(() => userStore.userData?.id);
 
-const activeProjectId = computed(() => projectId || task?.project_id || 0);
+const activeProjectId = computed(() => projectId || task?.project_id || "");
 
 const { createTask, updateTask, deleteTask } = useTasks(activeProjectId.value);
 const { members } = useProjectMembers(activeProjectId.value);
 
 // For existing tasks, use useTask hook for comments
-const taskId = computed(() => task?.id || 0);
+const taskId = computed(() => task?.id || "");
 const {
   comments,
   isLoading: detailsLoading,
@@ -39,7 +39,7 @@ const formData = ref({
   description: "",
   status: TaskStatus.TODO,
   priority: TaskPriority.P2,
-  assignee_id: null as number | null,
+  assignee_id: null as string | null,
   due_date: "" as string | undefined,
 });
 

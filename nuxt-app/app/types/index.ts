@@ -10,25 +10,25 @@ export enum WorkspaceRole {
 }
 
 export interface Workspace {
-  id: number;
+  id: string;
   name: string;
   type: WorkspaceType;
-  owner_id: number;
+  owner_id: string;
 }
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   is_active: boolean;
   full_name?: string;
 }
 
 export interface WorkspaceMember {
-  workspace_id: number;
-  user_id: number;
+  workspace_id: string;
+  user_id: string;
   role: WorkspaceRole;
   user: {
-    id: number;
+    id: string;
     email: string;
     full_name?: string;
   };
@@ -41,17 +41,17 @@ export enum TeamRole {
 }
 
 export interface Team {
-  id: number;
+  id: string;
   name: string;
   description?: string;
-  workspace_id: number;
+  workspace_id: string;
   created_at: string;
   projects?: Project[];
 }
 
 export interface TeamMember {
-  team_id: number;
-  user_id: number;
+  team_id: string;
+  user_id: string;
   role: TeamRole;
   email: string; // Flattened for display
 }
@@ -64,25 +64,25 @@ export enum ProjectRole {
 }
 
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description?: string;
-  workspace_id: number;
+  workspace_id: string;
   created_at: string;
   is_archived: boolean;
 }
 
 export interface ProjectMember {
-  project_id: number;
-  user_id: number;
+  project_id: string;
+  user_id: string;
   role: ProjectRole;
   email: string; // Flattened for display
   is_direct: boolean;
 }
 
 export interface ProjectTeam {
-  project_id: number;
-  team_id: number;
+  project_id: string;
+  team_id: string;
   team_name: string;
 }
 
@@ -102,20 +102,20 @@ export enum TaskPriority {
 }
 
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  project_id: number; // Updated from workspace_id
-  assignee_id?: number;
+  project_id: string; // Updated from workspace_id
+  assignee_id?: string;
   assignee?: {
-    id: number;
+    id: string;
     email: string;
     full_name?: string;
   };
   author?: {
-    id: number;
+    id: string;
     email: string;
     full_name?: string;
   };
@@ -127,7 +127,7 @@ export interface Task {
 }
 
 export interface ProjectInfo {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -136,12 +136,12 @@ export interface TaskWithProject extends Task {
 }
 
 export interface Comment {
-  id: number;
+  id: string;
   content: string;
-  task_id: number;
-  author_id: number;
+  task_id: string;
+  author_id: string;
   author?: {
-    id: number;
+    id: string;
     email: string;
     full_name?: string;
   };

@@ -1,6 +1,6 @@
 import type { Task, Comment, TaskPriority, TaskStatus } from "~/types";
 
-export const useTasks = (projectId?: number) => {
+export const useTasks = (projectId?: string) => {
   const {
     data: tasks,
     pending: isLoading,
@@ -19,7 +19,7 @@ export const useTasks = (projectId?: number) => {
     description?: string;
     priority?: TaskPriority;
     status?: TaskStatus;
-    assignee_id?: number;
+    assignee_id?: string;
     due_date?: string;
   }) => {
     if (!projectId) return;
@@ -35,7 +35,7 @@ export const useTasks = (projectId?: number) => {
     }
   };
 
-  const updateTask = async (taskId: number, updates: Partial<Task>) => {
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
       await useMutation(`/api/v1/tasks/${taskId}`, {
         method: "PATCH",
@@ -48,7 +48,7 @@ export const useTasks = (projectId?: number) => {
     }
   };
 
-  const deleteTask = async (taskId: number) => {
+  const deleteTask = async (taskId: string) => {
     try {
       await useMutation(`/api/v1/tasks/${taskId}`, {
         method: "DELETE",
@@ -71,7 +71,7 @@ export const useTasks = (projectId?: number) => {
   };
 };
 
-export const useTask = (taskId: number) => {
+export const useTask = (taskId: string) => {
   const {
     data: task,
     pending: taskLoading,
@@ -103,7 +103,7 @@ export const useTask = (taskId: number) => {
     }
   };
 
-  const deleteComment = async (commentId: number) => {
+  const deleteComment = async (commentId: string) => {
     try {
       await useMutation(`/api/v1/comments/${commentId}`, {
         method: "DELETE",

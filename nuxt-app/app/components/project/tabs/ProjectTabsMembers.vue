@@ -9,7 +9,7 @@ import {
 } from "lucide-vue-next";
 
 interface Props {
-  projectId: number;
+  projectId: string;
 }
 
 const { projectId } = defineProps<Props>();
@@ -37,7 +37,7 @@ const handleInvite = async () => {
   }
 };
 
-const handleRemoveMember = async (userId: number) => {
+const handleRemoveMember = async (userId: string) => {
   if (!confirm("Remove this member from the project?")) return;
   try {
     await removeMember(userId);
@@ -50,7 +50,7 @@ const handleLinkTeam = async () => {
   if (!selectedTeamId.value) return;
   isLinking.value = true;
   try {
-    await addTeam(parseInt(selectedTeamId.value));
+    await addTeam(selectedTeamId.value);
     selectedTeamId.value = "";
   } catch (err) {
     alert(getApiErrorMessage(err, "Failed to link team"));
@@ -59,7 +59,7 @@ const handleLinkTeam = async () => {
   }
 };
 
-const handleUnlinkTeam = async (teamId: number) => {
+const handleUnlinkTeam = async (teamId: string) => {
   if (!confirm("Unlink this team from the project?")) return;
   try {
     await removeTeam(teamId);

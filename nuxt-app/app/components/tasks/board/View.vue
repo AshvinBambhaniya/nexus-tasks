@@ -20,7 +20,7 @@ const getTasksByStatus = (status: TaskStatus) => {
   return tasks.filter((t) => t.status === status);
 };
 
-const handleTaskMove = (event: { taskId: number; newStatus: TaskStatus }) => {
+const handleTaskMove = (event: { taskId: string; newStatus: TaskStatus }) => {
   emit("task-move", event.taskId, event.newStatus);
 };
 </script>
