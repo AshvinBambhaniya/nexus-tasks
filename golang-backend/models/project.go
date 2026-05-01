@@ -76,7 +76,7 @@ func (model *ProjectModel) Create(transaction *goqu.TxDatabase, project Project)
 			"workspace_id": project.WorkspaceID,
 			"is_archived":  project.IsArchived,
 		},
-	).Executor().ScanStruct(&createdProject)
+	).Returning("*").Executor().ScanStruct(&createdProject)
 
 	if err != nil {
 		return project, err
