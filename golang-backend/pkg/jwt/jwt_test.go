@@ -33,7 +33,7 @@ func TestCreateToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			token, err := CreateToken(cfg, tt.sub, tt.exp)
+			token, err := CreateToken(cfg.Secret, tt.sub, tt.exp)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateToken() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -50,12 +50,12 @@ func TestParseToken(t *testing.T) {
 	cfg := config.AppConfig{Secret: secret}
 
 	validSub := "user-123"
-	validToken, _ := CreateToken(cfg, validSub, time.Now().Add(time.Hour))
+	validToken, _ := CreateToken(cfg.Secret, validSub, time.Now().Add(time.Hour))
 
-	expiredToken, _ := CreateToken(cfg, validSub, time.Now().Add(-time.Hour))
+	expiredToken, _ := CreateToken(cfg.Secret, validSub, time.Now().Add(-time.Hour))
 
 	wrongSecretCfg := config.AppConfig{Secret: "wrong-secret-key-long-enough-for-hs256"}
-	wrongSecretToken, _ := CreateToken(wrongSecretCfg, validSub, time.Now().Add(time.Hour))
+	wrongSecretToken, _ := CreateToken(wrongSecretCfg.Secret, validSub, time.Now().Add(time.Hour))
 
 	tests := []struct {
 		name    string
@@ -93,7 +93,7 @@ func TestParseToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			claims, err := ParseToken(cfg, tt.token)
+			claims, err := ParseToken(cfg.Secret, tt.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseToken() error = %v, wantErr %v", err, tt.wantErr)
 				return

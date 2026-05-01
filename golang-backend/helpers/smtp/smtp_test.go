@@ -15,7 +15,7 @@ func TestSMTPHelper(t *testing.T) {
 	assert.Equal(t, helper.Password, "12345")
 
 	helper.SetSubject("This is subject")
-	assert.Equal(t, helper.MailDetails.Subject, "Subject: This is subject\n\n")
+	assert.Equal(t, helper.MailDetails.Subject, "This is subject")
 
 	helper.SetReceivers([]string{
 		"abc@example.com",
