@@ -45,7 +45,7 @@ export const useProjects = () => {
   };
 };
 
-export const useProject = (id: number) => {
+export const useProject = (id: string) => {
   const {
     data: project,
     pending: isLoading,
@@ -63,7 +63,7 @@ export const useProject = (id: number) => {
   };
 };
 
-export const useProjectMembers = (projectId: number) => {
+export const useProjectMembers = (projectId: string) => {
   const {
     data: members,
     pending: isLoading,
@@ -86,7 +86,7 @@ export const useProjectMembers = (projectId: number) => {
     }
   };
 
-  const removeMember = async (userId: number) => {
+  const removeMember = async (userId: string) => {
     try {
       await useMutation(`/api/v1/projects/${projectId}/members/${userId}`, {
         method: "DELETE",
@@ -108,7 +108,7 @@ export const useProjectMembers = (projectId: number) => {
   };
 };
 
-export const useProjectTeams = (projectId: number) => {
+export const useProjectTeams = (projectId: string) => {
   const {
     data: teams,
     pending: isLoading,
@@ -118,7 +118,7 @@ export const useProjectTeams = (projectId: number) => {
     key: `project-teams-${projectId}`,
   });
 
-  const addTeam = async (teamId: number) => {
+  const addTeam = async (teamId: string) => {
     try {
       await useMutation(`/api/v1/projects/${projectId}/teams`, {
         method: "POST",
@@ -131,7 +131,7 @@ export const useProjectTeams = (projectId: number) => {
     }
   };
 
-  const removeTeam = async (teamId: number) => {
+  const removeTeam = async (teamId: string) => {
     try {
       await useMutation(`/api/v1/projects/${projectId}/teams/${teamId}`, {
         method: "DELETE",

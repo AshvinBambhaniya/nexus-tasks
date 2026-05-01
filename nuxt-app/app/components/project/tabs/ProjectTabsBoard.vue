@@ -2,7 +2,7 @@
 import type { TaskStatus, Task } from "~/types";
 
 interface Props {
-  projectId: number;
+  projectId: string;
 }
 
 const { projectId } = defineProps<Props>();
@@ -10,7 +10,7 @@ const { projectId } = defineProps<Props>();
 const router = useRouter();
 const { tasks, isLoading, updateTask } = useTasks(projectId);
 
-const handleTaskMove = async (taskId: number, newStatus: TaskStatus) => {
+const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
   try {
     await updateTask(taskId, { status: newStatus });
   } catch (err) {

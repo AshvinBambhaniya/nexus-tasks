@@ -2,7 +2,7 @@
 import { Loader2, Trash2, UserPlus, Mail } from "lucide-vue-next";
 
 interface Props {
-  teamId: number;
+  teamId: string;
 }
 
 const { teamId } = defineProps<Props>();
@@ -25,7 +25,7 @@ const handleInvite = async () => {
   }
 };
 
-const handleRemoveMember = async (userId: number) => {
+const handleRemoveMember = async (userId: string) => {
   if (!confirm("Remove this member from the team?")) return;
   try {
     await removeMember(userId);

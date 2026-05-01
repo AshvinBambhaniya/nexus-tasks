@@ -8,7 +8,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const projectId = computed(() => parseInt(route.params.projectId as string));
+const projectId = computed(() => route.params.projectId as string);
 
 const { createTask } = useTasks(projectId.value);
 const { members } = useProjectMembers(projectId.value);
@@ -19,7 +19,7 @@ const formData = ref({
   description: "",
   status: TaskStatus.TODO,
   priority: TaskPriority.P2,
-  assignee_id: null as number | null,
+  assignee_id: null as string | null,
   due_date: "",
 });
 

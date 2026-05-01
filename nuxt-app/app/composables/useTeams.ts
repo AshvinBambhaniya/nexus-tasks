@@ -37,7 +37,7 @@ export const useTeams = () => {
   };
 
   const updateTeam = async (
-    teamId: number,
+    teamId: string,
     data: { name?: string; description?: string }
   ) => {
     if (!workspaceStore.activeWorkspaceId) return;
@@ -56,7 +56,7 @@ export const useTeams = () => {
     }
   };
 
-  const deleteTeam = async (teamId: number) => {
+  const deleteTeam = async (teamId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
@@ -83,7 +83,7 @@ export const useTeams = () => {
   };
 };
 
-export const useTeam = (teamId: number) => {
+export const useTeam = (teamId: string) => {
   const workspaceStore = useWorkspaceStore();
 
   const {
@@ -109,7 +109,7 @@ export const useTeam = (teamId: number) => {
   };
 };
 
-export const useTeamMembers = (teamId: number) => {
+export const useTeamMembers = (teamId: string) => {
   const workspaceStore = useWorkspaceStore();
 
   const {
@@ -144,7 +144,7 @@ export const useTeamMembers = (teamId: number) => {
     }
   };
 
-  const removeMember = async (userId: number) => {
+  const removeMember = async (userId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(

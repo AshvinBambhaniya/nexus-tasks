@@ -24,8 +24,8 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const projectId = computed(() => parseInt(route.params.projectId as string));
-const taskId = computed(() => parseInt(route.params.taskId as string));
+const projectId = computed(() => route.params.projectId as string);
+const taskId = computed(() => route.params.taskId as string);
 
 const userStore = useUsersStore();
 const currentUserId = computed(() => userStore.userData?.id);
@@ -64,7 +64,7 @@ const handleUpdatePriority = async (priority: TaskPriority) => {
   await refreshTask();
 };
 
-const handleUpdateAssignee = async (assigneeId: number | null) => {
+const handleUpdateAssignee = async (assigneeId: string | null) => {
   await updateTask(taskId.value, { assignee_id: assigneeId || undefined });
   await refreshTask();
 };
@@ -105,7 +105,7 @@ const handleSubmitComment = async () => {
   }
 };
 
-const handleDeleteComment = async (id: number) => {
+const handleDeleteComment = async (id: string) => {
   if (!confirm("Delete this comment?")) return;
   try {
     await deleteComment(id);

@@ -3,7 +3,7 @@ import { Folder, ArrowRight, Loader2 } from "lucide-vue-next";
 import { format } from "date-fns";
 
 interface Props {
-  teamId: number;
+  teamId: string;
 }
 
 const { teamId } = defineProps<Props>();

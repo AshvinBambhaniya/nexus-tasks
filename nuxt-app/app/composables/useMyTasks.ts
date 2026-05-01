@@ -10,7 +10,7 @@ export const useMyTasks = () => {
     key: "my-tasks",
   });
 
-  const updateTask = async (taskId: number, updates: Partial<Task>) => {
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
       await useMutation(`/api/v1/tasks/${taskId}`, {
         method: "PATCH",

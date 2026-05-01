@@ -11,7 +11,7 @@ import type { ProjectMember } from "~/types";
 
 interface Props {
   members?: ProjectMember[];
-  modelValue?: number | null;
+  modelValue?: string | null;
   disabled?: boolean;
 }
 
@@ -26,7 +26,7 @@ const selected = computed(
   () => members.find((m) => m.user_id === modelValue) || null
 );
 
-const handleChange = (value: number | null) => {
+const handleChange = (value: string | null) => {
   emit("update:modelValue", value);
   emit("change", value);
 };

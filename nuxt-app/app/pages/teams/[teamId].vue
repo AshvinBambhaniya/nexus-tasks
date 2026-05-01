@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-vue-next";
 definePageMeta({ layout: "dashboard" });
 
 const route = useRoute();
-const teamId = computed(() => parseInt(route.params.teamId as string));
+const teamId = computed(() => route.params.teamId as string);
 
 const { team, isLoading } = useTeam(teamId.value);
 
