@@ -46,14 +46,22 @@ export const useProjects = () => {
 };
 
 export const useProject = (id: string) => {
+  const workspaceStore = useWorkspaceStore();
+
   const {
     data: project,
     pending: isLoading,
     error,
     refresh,
-  } = useApi<Project>(`/api/v1/projects/${id}`, {
-    key: `project-${id}`,
-  });
+  } = useApi<Project>(
+    () =>
+      workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${id}`
+        : `/api/v1/workspaces/0/projects/${id}`,
+    {
+      key: `project-${id}`,
+    }
+  );
 
   return {
     project,
@@ -64,21 +72,33 @@ export const useProject = (id: string) => {
 };
 
 export const useProjectMembers = (projectId: string) => {
+  const workspaceStore = useWorkspaceStore();
+
   const {
     data: members,
     pending: isLoading,
     error,
     refresh,
-  } = useApi<ProjectMember[]>(`/api/v1/projects/${projectId}/members`, {
-    key: `project-members-${projectId}`,
-  });
+  } = useApi<ProjectMember[]>(
+    () =>
+      workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`
+        : `/api/v1/workspaces/0/projects/${projectId}/members`,
+    {
+      key: `project-members-${projectId}`,
+    }
+  );
 
   const addMember = async (email: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/projects/${projectId}/members`, {
-        method: "POST",
-        body: { email, role: "MEMBER" },
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`,
+        {
+          method: "POST",
+          body: { email, role: "MEMBER" },
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to add member", err);
@@ -87,10 +107,14 @@ export const useProjectMembers = (projectId: string) => {
   };
 
   const removeMember = async (userId: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/projects/${projectId}/members/${userId}`, {
-        method: "DELETE",
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members/${userId}`,
+        {
+          method: "DELETE",
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to remove member", err);
@@ -109,21 +133,33 @@ export const useProjectMembers = (projectId: string) => {
 };
 
 export const useProjectTeams = (projectId: string) => {
+  const workspaceStore = useWorkspaceStore();
+
   const {
     data: teams,
     pending: isLoading,
     error,
     refresh,
-  } = useApi<ProjectTeam[]>(`/api/v1/projects/${projectId}/teams`, {
-    key: `project-teams-${projectId}`,
-  });
+  } = useApi<ProjectTeam[]>(
+    () =>
+      workspaceStore.activeWorkspaceId
+        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`
+        : `/api/v1/workspaces/0/projects/${projectId}/teams`,
+    {
+      key: `project-teams-${projectId}`,
+    }
+  );
 
   const addTeam = async (teamId: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/projects/${projectId}/teams`, {
-        method: "POST",
-        body: { team_id: teamId },
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`,
+        {
+          method: "POST",
+          body: { team_id: teamId },
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to add team", err);
@@ -132,10 +168,14 @@ export const useProjectTeams = (projectId: string) => {
   };
 
   const removeTeam = async (teamId: string) => {
+    if (!workspaceStore.activeWorkspaceId) return;
     try {
-      await useMutation(`/api/v1/projects/${projectId}/teams/${teamId}`, {
-        method: "DELETE",
-      });
+      await useMutation(
+        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams/${teamId}`,
+        {
+          method: "DELETE",
+        }
+      );
       await refresh();
     } catch (err) {
       console.error("Failed to remove team", err);

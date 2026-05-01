@@ -28,7 +28,7 @@ const {
   isLoading: detailsLoading,
   createComment,
   deleteComment,
-} = useTask(taskId.value);
+} = useTask(activeProjectId.value, taskId.value);
 
 const isSaving = ref(false);
 const newComment = ref("");

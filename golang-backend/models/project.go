@@ -241,6 +241,7 @@ func (model *ProjectModel) ListByTeamID(teamID uuid.UUID) ([]Project, error) {
 	var projects []Project
 	err := model.db.From(ProjectTable).
 		Join(goqu.T(ProjectTeamTable), goqu.On(goqu.Ex{ProjectTable + ".id": goqu.I(ProjectTeamTable + ".project_id")})).
+		Select(ProjectTable + ".*").
 		Where(goqu.Ex{
 			ProjectTeamTable + ".team_id": teamID,
 			ProjectTable + ".is_archived": false,
