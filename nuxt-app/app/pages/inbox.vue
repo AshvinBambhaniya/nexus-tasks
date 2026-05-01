@@ -247,6 +247,7 @@ const resetFilters = () => {
                 <Hash class="h-3 w-3" />
                 {{ task.project?.name || 'Project' }}
               </NuxtLink>
+              <span class="text-[10px] font-bold text-gray-300">#{{ task.number }}</span>
               <UiBaseBadge 
                 variant="outline" 
                 :class="[getPrioColor(task.priority), 'h-4.5 px-1.5 text-[9px] font-black uppercase tracking-tighter']"

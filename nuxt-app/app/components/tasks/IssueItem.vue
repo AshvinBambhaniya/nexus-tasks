@@ -76,7 +76,7 @@ const icon = computed(() => statusIcons[task.status] || Circle);
       </div>
 
       <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-        <span>#{{ task.id }}</span>
+        <span>#{{ task.number }}</span>
         <span>
           opened {{ formatDistanceToNow(new Date(task.created_at)) }} ago
         </span>

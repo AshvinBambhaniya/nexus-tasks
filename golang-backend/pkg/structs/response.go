@@ -81,6 +81,7 @@ type ResComment struct {
 
 type ResTask struct {
 	ID           uuid.UUID           `json:"id"`
+	Number       int                 `json:"number"`
 	Title        string              `json:"title"`
 	Description  string              `json:"description"`
 	Status       models.TaskStatus   `json:"status"`
@@ -92,7 +93,7 @@ type ResTask struct {
 	CompletedAt  *time.Time          `json:"completed_at"`
 	CreatedAt    time.Time           `json:"created_at"`
 	UpdatedAt    time.Time           `json:"updated_at"`
-	CommentCount uuid.UUID           `json:"comment_count"` // Computed
+	CommentCount int                 `json:"comment_count"` // Computed
 	Assignee     *ResUser            `json:"assignee"`      // Expanded if needed
 	Author       *ResUser            `json:"author"`        // Expanded if needed
 }

@@ -1,6 +1,7 @@
 -- +migrate Up
 CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     status taskstatus NOT NULL DEFAULT 'TODO',
@@ -11,7 +12,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     due_date TIMESTAMP,
     completed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (project_id, number)
 );
 
 CREATE INDEX IF NOT EXISTS ix_tasks_id ON tasks(id);

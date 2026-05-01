@@ -59,6 +59,7 @@ const priorityColors: Record<TaskPriority, string> = {
             @click="emit('task-click', task)"
           >
             <td class="px-4 py-3 font-semibold text-gray-900">
+              <span class="mr-1.5 text-gray-400">#{{ task.number }}</span>
               {{ task.title }}
             </td>
             <td class="px-4 py-3">
