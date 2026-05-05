@@ -58,7 +58,7 @@ const handleSubmit = async () => {
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <!-- Main Content -->
       <div class="space-y-6 lg:col-span-2">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form class="space-y-6" @submit.prevent="handleSubmit">
           <div class="space-y-2">
             <UiBaseLabel for="title">Title</UiBaseLabel>
             <UiBaseInput

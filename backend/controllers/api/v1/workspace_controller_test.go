@@ -24,7 +24,10 @@ func setupWorkspaceControllerTest() (*fiber.App, *mockWorkspaceService, *Workspa
 	mockSvc := new(mockWorkspaceService)
 	logger := zap.NewNop()
 	// publisher is ignored by the actual constructor implementation
-	ctrl, _ := NewWorkspaceController(mockSvc, logger, nil)
+	ctrl, err := NewWorkspaceController(mockSvc, logger, nil)
+	if err != nil {
+		panic(err)
+	}
 	return app, mockSvc, ctrl
 }
 
@@ -101,11 +104,13 @@ func TestWorkspaceController_Create(t *testing.T) {
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -160,7 +165,8 @@ func TestWorkspaceController_List(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -206,7 +212,8 @@ func TestWorkspaceController_ListMembers(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.wsIDParam+"/members", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -299,11 +306,13 @@ func TestWorkspaceController_InviteMember(t *testing.T) {
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.wsIDParam+"/invite", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -390,7 +399,8 @@ func TestWorkspaceController_RemoveMember(t *testing.T) {
 			path := fmt.Sprintf("/%s/members/%s", tt.wsIDParam, tt.targetUIDParam)
 			req := httptest.NewRequest("DELETE", path, nil)
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

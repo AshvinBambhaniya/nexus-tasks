@@ -9,13 +9,24 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func getMockArg[T any](args mock.Arguments, index int) T {
+	val := args.Get(index)
+	switch v := val.(type) {
+	case T:
+		return v
+	default:
+		var zero T
+		return zero
+	}
+}
+
 type mockUserService struct {
 	mock.Mock
 }
 
 func (m *mockUserService) Register(email, password, fullName string) (models.User, string, error) {
 	args := m.Called(email, password, fullName)
-	return args.Get(0).(models.User), args.String(1), args.Error(2)
+	return getMockArg[models.User](args, 0), args.String(1), args.Error(2)
 }
 
 func (m *mockUserService) Authenticate(email, password string) (string, error) {
@@ -25,7 +36,7 @@ func (m *mockUserService) Authenticate(email, password string) (string, error) {
 
 func (m *mockUserService) GetByID(userID uuid.UUID) (models.User, error) {
 	args := m.Called(userID)
-	return args.Get(0).(models.User), args.Error(1)
+	return getMockArg[models.User](args, 0), args.Error(1)
 }
 
 type mockWorkspaceService struct {
@@ -34,25 +45,17 @@ type mockWorkspaceService struct {
 
 func (m *mockWorkspaceService) CreateWorkspace(ownerID uuid.UUID, req structs.ReqCreateWorkspace) (models.Workspace, error) {
 	args := m.Called(ownerID, req)
-	return args.Get(0).(models.Workspace), args.Error(1)
+	return getMockArg[models.Workspace](args, 0), args.Error(1)
 }
 
 func (m *mockWorkspaceService) ListWorkspacesByUserID(userID uuid.UUID) ([]models.Workspace, error) {
 	args := m.Called(userID)
-	var res []models.Workspace
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.Workspace)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.Workspace](args, 0), args.Error(1)
 }
 
 func (m *mockWorkspaceService) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
 	args := m.Called(workspaceID)
-	var res []models.WorkspaceMemberWithUser
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.WorkspaceMemberWithUser)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.WorkspaceMemberWithUser](args, 0), args.Error(1)
 }
 
 func (m *mockWorkspaceService) InviteMember(requestorID, workspaceID uuid.UUID, email string) error {
@@ -67,7 +70,7 @@ func (m *mockWorkspaceService) RemoveMember(requestorID, workspaceID, userID uui
 
 func (m *mockWorkspaceService) ValidateAccess(userID, workspaceID uuid.UUID) (models.WorkspaceMember, error) {
 	args := m.Called(userID, workspaceID)
-	return args.Get(0).(models.WorkspaceMember), args.Error(1)
+	return getMockArg[models.WorkspaceMember](args, 0), args.Error(1)
 }
 
 type mockProjectService struct {
@@ -76,22 +79,22 @@ type mockProjectService struct {
 
 func (m *mockProjectService) CreateProject(userID, workspaceID uuid.UUID, req structs.ReqCreateProject) (models.Project, error) {
 	args := m.Called(userID, workspaceID, req)
-	return args.Get(0).(models.Project), args.Error(1)
+	return getMockArg[models.Project](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) GetProject(userID, projectID uuid.UUID) (models.Project, error) {
 	args := m.Called(userID, projectID)
-	return args.Get(0).(models.Project), args.Error(1)
+	return getMockArg[models.Project](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) UpdateProject(userID, projectID uuid.UUID, req structs.ReqUpdateProject) (models.Project, error) {
 	args := m.Called(userID, projectID, req)
-	return args.Get(0).(models.Project), args.Error(1)
+	return getMockArg[models.Project](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) AddMember(userID, projectID uuid.UUID, req structs.ReqAddProjectMember) (models.ProjectMember, error) {
 	args := m.Called(userID, projectID, req)
-	return args.Get(0).(models.ProjectMember), args.Error(1)
+	return getMockArg[models.ProjectMember](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) RemoveMember(userID, projectID, targetUserID uuid.UUID) error {
@@ -101,25 +104,17 @@ func (m *mockProjectService) RemoveMember(userID, projectID, targetUserID uuid.U
 
 func (m *mockProjectService) ListMembers(userID, projectID uuid.UUID) ([]structs.ResProjectMember, error) {
 	args := m.Called(userID, projectID)
-	var res []structs.ResProjectMember
-	if args.Get(0) != nil {
-		res = args.Get(0).([]structs.ResProjectMember)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]structs.ResProjectMember](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) ListByWorkspaceID(workspaceID uuid.UUID) ([]models.Project, error) {
 	args := m.Called(workspaceID)
-	var res []models.Project
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.Project)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.Project](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) AddTeam(userID, projectID, teamID uuid.UUID) (structs.ResProjectTeam, error) {
 	args := m.Called(userID, projectID, teamID)
-	return args.Get(0).(structs.ResProjectTeam), args.Error(1)
+	return getMockArg[structs.ResProjectTeam](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) RemoveTeam(userID, projectID, teamID uuid.UUID) error {
@@ -129,11 +124,7 @@ func (m *mockProjectService) RemoveTeam(userID, projectID, teamID uuid.UUID) err
 
 func (m *mockProjectService) ListTeams(userID, projectID uuid.UUID) ([]structs.ResProjectTeam, error) {
 	args := m.Called(userID, projectID)
-	var res []structs.ResProjectTeam
-	if args.Get(0) != nil {
-		res = args.Get(0).([]structs.ResProjectTeam)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]structs.ResProjectTeam](args, 0), args.Error(1)
 }
 
 func (m *mockProjectService) ValidateProjectAccess(projectID, userID uuid.UUID, requireAdmin bool) error {
@@ -147,26 +138,22 @@ type mockTeamService struct {
 
 func (m *mockTeamService) CreateTeam(userID uuid.UUID, workspaceID uuid.UUID, req structs.ReqCreateTeam) (models.Team, error) {
 	args := m.Called(userID, workspaceID, req)
-	return args.Get(0).(models.Team), args.Error(1)
+	return getMockArg[models.Team](args, 0), args.Error(1)
 }
 
 func (m *mockTeamService) GetTeam(teamID uuid.UUID) (structs.ResTeamWithProjects, error) {
 	args := m.Called(teamID)
-	return args.Get(0).(structs.ResTeamWithProjects), args.Error(1)
+	return getMockArg[structs.ResTeamWithProjects](args, 0), args.Error(1)
 }
 
 func (m *mockTeamService) ListTeamsByWorkspaceID(workspaceID uuid.UUID) ([]models.Team, error) {
 	args := m.Called(workspaceID)
-	var res []models.Team
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.Team)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.Team](args, 0), args.Error(1)
 }
 
 func (m *mockTeamService) UpdateTeam(requestorID, workspaceID, teamID uuid.UUID, req structs.ReqUpdateTeam) (models.Team, error) {
 	args := m.Called(requestorID, workspaceID, teamID, req)
-	return args.Get(0).(models.Team), args.Error(1)
+	return getMockArg[models.Team](args, 0), args.Error(1)
 }
 
 func (m *mockTeamService) DeleteTeam(requestorID, workspaceID, teamID uuid.UUID) error {
@@ -186,11 +173,7 @@ func (m *mockTeamService) RemoveMember(requestorID, workspaceID, teamID, userID 
 
 func (m *mockTeamService) ListMembersByTeamId(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
 	args := m.Called(teamID)
-	var res []models.TeamMemberWithUser
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.TeamMemberWithUser)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.TeamMemberWithUser](args, 0), args.Error(1)
 }
 
 type mockTaskService struct {
@@ -199,26 +182,22 @@ type mockTaskService struct {
 
 func (m *mockTaskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCreateTask) (models.Task, error) {
 	args := m.Called(userID, projectID, req)
-	return args.Get(0).(models.Task), args.Error(1)
+	return getMockArg[models.Task](args, 0), args.Error(1)
 }
 
 func (m *mockTaskService) ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error) {
 	args := m.Called(userID, projectID, status, assigneeID)
-	var res []models.Task
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.Task)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.Task](args, 0), args.Error(1)
 }
 
 func (m *mockTaskService) GetTask(userID, taskID uuid.UUID) (models.Task, error) {
 	args := m.Called(userID, taskID)
-	return args.Get(0).(models.Task), args.Error(1)
+	return getMockArg[models.Task](args, 0), args.Error(1)
 }
 
 func (m *mockTaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdateTask) (models.Task, error) {
 	args := m.Called(userID, taskID, req)
-	return args.Get(0).(models.Task), args.Error(1)
+	return getMockArg[models.Task](args, 0), args.Error(1)
 }
 
 func (m *mockTaskService) DeleteTask(userID, taskID uuid.UUID) error {
@@ -228,11 +207,7 @@ func (m *mockTaskService) DeleteTask(userID, taskID uuid.UUID) error {
 
 func (m *mockTaskService) ListMyTasks(userID uuid.UUID) ([]models.Task, error) {
 	args := m.Called(userID)
-	var res []models.Task
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.Task)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.Task](args, 0), args.Error(1)
 }
 
 type mockCommentService struct {
@@ -241,16 +216,12 @@ type mockCommentService struct {
 
 func (m *mockCommentService) CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error) {
 	args := m.Called(userID, taskID, req)
-	return args.Get(0).(models.Comment), args.Error(1)
+	return getMockArg[models.Comment](args, 0), args.Error(1)
 }
 
 func (m *mockCommentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error) {
 	args := m.Called(userID, taskID)
-	var res []models.CommentWithAuthor
-	if args.Get(0) != nil {
-		res = args.Get(0).([]models.CommentWithAuthor)
-	}
-	return res, args.Error(1)
+	return getMockArg[[]models.CommentWithAuthor](args, 0), args.Error(1)
 }
 
 func (m *mockCommentService) DeleteComment(userID, commentID uuid.UUID) error {

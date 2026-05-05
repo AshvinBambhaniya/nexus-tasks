@@ -16,7 +16,7 @@ func setupWebsocketTest(t *testing.T) (*websocketService, *mockWorkspaceService,
 	mockProjSvc := new(mockProjectService)
 	logger := zap.NewNop()
 
-	svc := NewWebsocketService(mockWsSvc, mockProjSvc, logger).(*websocketService)
+	svc := &websocketService{workspaceService: mockWsSvc, projectService: mockProjSvc, logger: logger}
 
 	return svc, mockWsSvc, mockProjSvc
 }
@@ -71,7 +71,8 @@ func TestWebsocketService_GetConnectionTopics(t *testing.T) {
 		mockProjSvc.On("ValidateProjectAccess", pid1, uid, false).Return(nil)
 		mockProjSvc.On("ValidateProjectAccess", pid2, uid, false).Return(errors.New("denied"))
 
-		topics, _ := svc.GetConnectionTopics(uid, wid)
+		topics, err := svc.GetConnectionTopics(uid, wid)
+		assert.NoError(t, err)
 		assert.Len(t, topics, 2) // WS + Project1
 		assert.Contains(t, topics, "project:"+pid1.String())
 	})

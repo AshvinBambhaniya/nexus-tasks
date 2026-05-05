@@ -131,41 +131,20 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 			return err
 		}
 
-		err = s.internalValidateProjectAccess(txStorage, task.ProjectID, userID)
-		if err != nil {
+		if err := s.internalValidateProjectAccess(txStorage, task.ProjectID, userID); err != nil {
 			return err
 		}
 
-		if req.Title != "" {
-			task.Title = req.Title
-		}
-		if req.Description != "" {
-			task.Description = req.Description
-		}
+		s.applyBasicUpdates(&task, req)
+
 		if req.AssigneeID != nil {
-			err := s.internalValidateAssignee(txStorage, task.ProjectID, *req.AssigneeID)
-			if err != nil {
+			if err := s.internalValidateAssignee(txStorage, task.ProjectID, *req.AssigneeID); err != nil {
 				return err
 			}
 			task.AssigneeID = req.AssigneeID
 		}
-		if req.Priority != "" {
-			task.Priority = req.Priority
-		}
-		if req.DueDate != nil {
-			task.DueDate = &req.DueDate.Time
-		}
 
-		// Status Logic
-		if req.Status != "" {
-			if req.Status == models.TaskStatusDone && task.Status != models.TaskStatusDone {
-				now := time.Now()
-				task.CompletedAt = &now
-			} else if req.Status != models.TaskStatusDone && task.Status == models.TaskStatusDone {
-				task.CompletedAt = nil
-			}
-			task.Status = req.Status
-		}
+		s.handleStatusUpdate(&task, req.Status)
 
 		updatedTask, err = txStorage.Tasks().Update(task)
 		return err
@@ -175,7 +154,6 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 		return models.Task{}, err
 	}
 
-	// Broadcast Event
 	if s.hub != nil {
 		s.hub.Broadcast(fmt.Sprintf("project:%s", updatedTask.ProjectID.String()), map[string]interface{}{
 			"type": "TASK_UPDATED",
@@ -184,6 +162,35 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 	}
 
 	return updatedTask, nil
+}
+
+func (s *taskService) applyBasicUpdates(task *models.Task, req structs.ReqUpdateTask) {
+	if req.Title != "" {
+		task.Title = req.Title
+	}
+	if req.Description != "" {
+		task.Description = req.Description
+	}
+	if req.Priority != "" {
+		task.Priority = req.Priority
+	}
+	if req.DueDate != nil {
+		task.DueDate = &req.DueDate.Time
+	}
+}
+
+func (s *taskService) handleStatusUpdate(task *models.Task, newStatus models.TaskStatus) {
+	if newStatus == "" || newStatus == task.Status {
+		return
+	}
+
+	if newStatus == models.TaskStatusDone && task.Status != models.TaskStatusDone {
+		now := time.Now()
+		task.CompletedAt = &now
+	} else if newStatus != models.TaskStatusDone && task.Status == models.TaskStatusDone {
+		task.CompletedAt = nil
+	}
+	task.Status = newStatus
 }
 
 func (s *taskService) DeleteTask(userID, taskID uuid.UUID) error {

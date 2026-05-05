@@ -14,7 +14,7 @@ func setupHealthTest(t *testing.T) (*healthService, *mockStorage) {
 	mockStor := new(mockStorage)
 	logger := zap.NewNop()
 
-	svc := NewHealthService(mockStor, logger).(*healthService)
+	svc := &healthService{storage: mockStor, logger: logger}
 
 	return svc, mockStor
 }

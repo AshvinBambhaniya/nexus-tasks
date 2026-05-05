@@ -10,8 +10,18 @@ definePageMeta({
 const activeTab = ref<"general" | "members">("general");
 
 const tabs = [
-  { id: "general", label: "General", icon: User, description: "Profile and workspace info" },
-  { id: "members", label: "Members", icon: Users, description: "Manage team access" },
+  {
+    id: "general",
+    label: "General",
+    icon: User,
+    description: "Profile and workspace info",
+  },
+  {
+    id: "members",
+    label: "Members",
+    icon: Users,
+    description: "Manage team access",
+  },
 ] as const;
 
 // Placeholders for future sections to make sidebar feel full
@@ -23,7 +33,9 @@ const comingSoonTabs = [
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div
+    class="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-6xl duration-500"
+  >
     <div class="mb-8 border-b border-gray-100 pb-6">
       <h1 class="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>
       <p class="mt-2 text-gray-500">
@@ -35,36 +47,45 @@ const comingSoonTabs = [
       <!-- Sidebar Navigation -->
       <aside class="w-full shrink-0 lg:w-72">
         <nav class="space-y-1">
-          <div class="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <div
+            class="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase"
+          >
             Account & Workspace
           </div>
           <button
             v-for="tab in tabs"
             :key="tab.id"
-            @click="activeTab = tab.id"
             :class="[
               'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
               activeTab === tab.id
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
             ]"
+            @click="activeTab = tab.id"
           >
             <component
               :is="tab.icon"
               :class="[
                 'h-5 w-5 shrink-0 transition-colors',
-                activeTab === tab.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-600',
+                activeTab === tab.id
+                  ? 'text-white'
+                  : 'text-gray-400 group-hover:text-gray-600',
               ]"
             />
             <div class="text-left">
               <div>{{ tab.label }}</div>
-              <div v-if="activeTab !== tab.id" class="text-[11px] font-normal text-gray-400">
+              <div
+                v-if="activeTab !== tab.id"
+                class="text-[11px] font-normal text-gray-400"
+              >
                 {{ tab.description }}
               </div>
             </div>
           </button>
 
-          <div class="mt-8 mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <div
+            class="mt-8 mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase"
+          >
             Preferences
           </div>
           <div
@@ -74,7 +95,9 @@ const comingSoonTabs = [
           >
             <component :is="tab.icon" class="h-5 w-5 shrink-0" />
             <span>{{ tab.label }}</span>
-            <span class="ml-auto text-[10px] font-bold tracking-tighter text-gray-300 uppercase italic">
+            <span
+              class="ml-auto text-[10px] font-bold tracking-tighter text-gray-300 uppercase italic"
+            >
               Soon
             </span>
           </div>

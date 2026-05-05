@@ -14,7 +14,6 @@ type WebsocketService interface {
 type websocketService struct {
 	workspaceService WorkspaceService
 	projectService   ProjectService
-	teamService      TeamService
 	logger           *zap.Logger
 }
 

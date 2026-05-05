@@ -1,51 +1,54 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-added-large-files
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: check-case-conflict
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  - id: mixed-line-ending
+  - id: no-commit-to-branch
+    args: [--branch, main, --branch, master]
 
-  # Backend: Ruff (Linting + Formatting)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.0
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
+- repo: https://github.com/dnephin/pre-commit-golang
+  rev: v0.5.1
+  hooks:
+    - id: go-fmt
+    - id: go-imports
+    - id: go-cyclo
+      args: [-over=15]
+    - id: go-critic
+    - id: go-mod-tidy
+    - id: go-mod-vendor
 
-  # Frontend: Prettier (Formatting) - Local hook to ensure local config is used
-  - repo: local
-    hooks:
-      - id: frontend-prettier
-        name: Frontend Prettier
-        entry: bash -c 'cd frontend && npx prettier --write "${@#frontend/}"' --
-        language: system
-        files: ^frontend/.*\.(css|javascript|js|jsx|ts|tsx|json|md)$
-        pass_filenames: true
+- repo: local
+  hooks:
+  - id: go-vet
+    name: "go-vet"
+    entry: ./backend/hooks/go-vet.sh
+    types: [go]
+    pass_filenames: false
+    language: 'script'
+    description: "Runs `go vet ./...` in backend"
 
-  # General: Prettier for non-frontend files (Markdown, YAML in root)
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
-    hooks:
-      - id: prettier
-        types_or: [markdown]
-        exclude: ^frontend/
+  - id: go-lint
+    name: "go-lint"
+    entry: ./backend/hooks/go-lint.sh
+    types: [go]
+    pass_filenames: false
+    language: 'script'
+    description: "Runs `golangci-lint run` in backend"
 
-  # Frontend: ESLint (Linting) - Local hook for better monorepo support
-  - repo: local
-    hooks:
-      - id: frontend-eslint
-        name: Frontend ESLint
-        entry: bash -c 'cd frontend && npx eslint --fix "${@#frontend/}"' --
-        language: system
-        files: ^frontend/.*\.(js|jsx|ts|tsx)$
-        pass_filenames: true
+  - id: go-test
+    name: "go-test"
+    entry: ./backend/hooks/go-test.sh
+    types: [go]
+    pass_filenames: false
+    language: 'script'
+    description: "Runs `go test` in backend"
 
-  # Commit Compliance
-  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.13.0
-    hooks:
-      - id: commitlint
-        stages: [commit-msg]
-        additional_dependencies: ["@commitlint/config-conventional"]
+  - id: node-lint
+    name: "node-lint"
+    entry: ./.husky/pre-commit
+    files: 'package.json$'
+    language: 'script'
+    description: "Runs frontend linting via Husky hook when package.json changes"

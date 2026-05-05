@@ -83,9 +83,7 @@ const onInput = (event: Event) => {
         class="prose prose-sm min-h-[200px] max-w-none bg-gray-50/30 p-4"
       />
       <div v-else class="min-h-[200px] bg-gray-50/30 p-4">
-        <span class="text-sm text-gray-400 italic">
-          Nothing to preview
-        </span>
+        <span class="text-sm text-gray-400 italic"> Nothing to preview </span>
       </div>
     </div>
   </div>

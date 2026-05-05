@@ -1,35 +1,39 @@
 <script setup lang="ts">
-import { Plus, Kanban, Loader2 } from "lucide-vue-next";
+import { Kanban, Loader2 } from "lucide-vue-next";
 import type { TaskStatus } from "~/types";
 
 definePageMeta({ layout: "dashboard" });
 
-const { tasks, isLoading, updateTask, refresh } = useMyTasks();
-const isDialogOpen = ref(false);
+const { tasks, isLoading, updateTask } = useMyTasks();
 
 const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
   try {
     await updateTask(taskId, { status: newStatus });
-  } catch (err) {
+  } catch {
     alert("Failed to move task");
   }
-};
-
-const handleTaskCreated = async () => {
-  isDialogOpen.value = false;
-  await refresh();
 };
 </script>
 
 <template>
-  <div class="flex h-full flex-col space-y-6 overflow-hidden animate-in fade-in duration-500">
-    <div class="flex items-center justify-between border-b border-gray-100 pb-6">
+  <div
+    class="animate-in fade-in flex h-full flex-col space-y-6 overflow-hidden duration-500"
+  >
+    <div
+      class="flex items-center justify-between border-b border-gray-100 pb-6"
+    >
       <div>
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">My Boards</h1>
-        <p class="mt-1 text-gray-500">Visual kanban of all your active tasks.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+          My Boards
+        </h1>
+        <p class="mt-1 text-gray-500">
+          Visual kanban of all your active tasks.
+        </p>
       </div>
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1.5 text-xs font-bold text-gray-500 uppercase tracking-tighter">
+        <div
+          class="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1.5 text-xs font-bold tracking-tighter text-gray-500 uppercase"
+        >
           <Kanban class="h-3.5 w-3.5" />
           Cross-Project View
         </div>
@@ -45,10 +49,10 @@ const handleTaskCreated = async () => {
 
     <div v-else class="flex-1 overflow-hidden">
       <!-- We use the TasksBoardView which handles columns and drag-drop -->
-      <TasksBoardView 
-        :tasks="tasks" 
-        @task-move="handleTaskMove" 
+      <TasksBoardView
+        :tasks="tasks"
         class="h-full"
+        @task-move="handleTaskMove"
       />
     </div>
   </div>

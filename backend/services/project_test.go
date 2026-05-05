@@ -22,7 +22,7 @@ func setupProjectTest(t *testing.T) (*projectService, *mockProjectRepository, *m
 	mockStor.On("Projects").Return(mockProjectRepo)
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 
-	svc := NewProjectService(mockStor, logger).(*projectService)
+	svc := &projectService{storage: mockStor, logger: logger}
 
 	return svc, mockProjectRepo, mockWorkspaceRepo, mockStor
 }

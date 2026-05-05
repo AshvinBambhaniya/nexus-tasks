@@ -23,7 +23,10 @@ func setupTeamControllerTest() (*fiber.App, *mockTeamService, *TeamController) {
 	app := fiber.New()
 	mockSvc := new(mockTeamService)
 	logger := zap.NewNop()
-	ctrl, _ := NewTeamController(mockSvc, logger)
+	ctrl, err := NewTeamController(mockSvc, logger)
+	if err != nil {
+		panic(err)
+	}
 	return app, mockSvc, ctrl
 }
 
@@ -127,11 +130,13 @@ func TestTeamController_Create(t *testing.T) {
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.wsIDParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -185,7 +190,8 @@ func TestTeamController_List(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.wsIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -242,7 +248,8 @@ func TestTeamController_Get(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.tidParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -343,12 +350,14 @@ func TestTeamController_Update(t *testing.T) {
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			path := fmt.Sprintf("/%s/%s", tt.wsIDParam, tt.tidParam)
 			req := httptest.NewRequest("PATCH", path, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -435,7 +444,8 @@ func TestTeamController_Delete(t *testing.T) {
 			path := fmt.Sprintf("/%s/%s", tt.wsIDParam, tt.tidParam)
 			req := httptest.NewRequest("DELETE", path, nil)
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -536,12 +546,14 @@ func TestTeamController_AddMember(t *testing.T) {
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			path := fmt.Sprintf("/%s/%s/members", tt.wsIDParam, tt.tidParam)
 			req := httptest.NewRequest("POST", path, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -646,7 +658,8 @@ func TestTeamController_RemoveMember(t *testing.T) {
 			path := fmt.Sprintf("/%s/%s/members/%s", tt.wsIDParam, tt.tidParam, tt.targetUIDParam)
 			req := httptest.NewRequest("DELETE", path, nil)
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -702,7 +715,8 @@ func TestTeamController_ListMembers(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.tidParam+"/members", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

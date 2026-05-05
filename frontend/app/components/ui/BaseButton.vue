@@ -44,7 +44,14 @@ const sizes: Record<ButtonSize, string> = {
 <template>
   <button
     :disabled="disabled"
-    :class="cn('inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50', variants[variant], sizes[size], className)"
+    :class="
+      cn(
+        'inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+        variants[variant],
+        sizes[size],
+        className
+      )
+    "
   >
     <slot />
   </button>

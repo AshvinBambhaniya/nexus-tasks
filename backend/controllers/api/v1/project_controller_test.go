@@ -19,11 +19,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupProjectControllerTest() (*fiber.App, *mockProjectService, *ProjectController) {
+func setupProjectControllerTest(t *testing.T) (*fiber.App, *mockProjectService, *ProjectController) {
 	app := fiber.New()
 	mockSvc := new(mockProjectService)
 	logger := zap.NewNop()
-	ctrl, _ := NewProjectController(mockSvc, logger)
+	ctrl, err := NewProjectController(mockSvc, logger)
+	assert.NoError(t, err)
 	return app, mockSvc, ctrl
 }
 
@@ -120,18 +121,20 @@ func TestProjectController_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Post("/:"+constants.ParamWorkspaceID, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.Create(c)
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.wsIDParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -180,12 +183,13 @@ func TestProjectController_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Get("/:"+constants.ParamWorkspaceID, ctrl.List)
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.wsIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -246,7 +250,7 @@ func TestProjectController_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Get("/:"+constants.ParamProjectID, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.Get(c)
@@ -254,7 +258,8 @@ func TestProjectController_Get(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.pidParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -330,18 +335,20 @@ func TestProjectController_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Patch("/:"+constants.ParamProjectID, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.Update(c)
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("PATCH", "/"+tt.pidParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -427,18 +434,20 @@ func TestProjectController_AddMember(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Post("/:"+constants.ParamProjectID+"/members", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.AddMember(c)
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.pidParam+"/members", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -515,7 +524,7 @@ func TestProjectController_RemoveMember(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Delete("/:"+constants.ParamProjectID+"/members/:"+constants.ParamUid, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.RemoveMember(c)
@@ -525,7 +534,8 @@ func TestProjectController_RemoveMember(t *testing.T) {
 			path := fmt.Sprintf("/%s/members/%s", tt.pidParam, tt.targetUIDParam)
 			req := httptest.NewRequest("DELETE", path, nil)
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -599,7 +609,7 @@ func TestProjectController_ListMembers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Get("/:"+constants.ParamProjectID+"/members", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.ListMembers(c)
@@ -607,7 +617,8 @@ func TestProjectController_ListMembers(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.pidParam+"/members", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -694,18 +705,20 @@ func TestProjectController_AddTeam(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Post("/:"+constants.ParamProjectID+"/teams", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.AddTeam(c)
 			})
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.pidParam+"/teams", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -782,7 +795,7 @@ func TestProjectController_RemoveTeam(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Delete("/:"+constants.ParamProjectID+"/teams/:"+constants.ParamTeamID, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.RemoveTeam(c)
@@ -792,7 +805,8 @@ func TestProjectController_RemoveTeam(t *testing.T) {
 			path := fmt.Sprintf("/%s/teams/%s", tt.pidParam, tt.tidParam)
 			req := httptest.NewRequest("DELETE", path, nil)
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -866,7 +880,7 @@ func TestProjectController_ListTeams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupProjectControllerTest()
+			app, mockSvc, ctrl := setupProjectControllerTest(t)
 			app.Get("/:"+constants.ParamProjectID+"/teams", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.ListTeams(c)
@@ -874,7 +888,8 @@ func TestProjectController_ListTeams(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.pidParam+"/teams", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

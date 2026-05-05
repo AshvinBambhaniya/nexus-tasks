@@ -19,12 +19,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupAuthTest() (*fiber.App, *mockUserService, *AuthController) {
+func setupAuthTest(t *testing.T) (*fiber.App, *mockUserService, *AuthController) {
 	app := fiber.New()
 	mockSvc := new(mockUserService)
 	logger := zap.NewNop()
 	cfg := &config.AppConfig{JwtExpirationHours: 24}
-	ctrl, _ := NewAuthController(mockSvc, logger, cfg)
+	ctrl, err := NewAuthController(mockSvc, logger, cfg)
+	assert.NoError(t, err)
 	return app, mockSvc, ctrl
 }
 
@@ -82,15 +83,17 @@ func TestAuthController_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Post("/register", ctrl.Register)
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)
 		})
@@ -136,26 +139,29 @@ func TestAuthController_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Post("/login", ctrl.Login)
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
 }
 
 func TestAuthController_Logout(t *testing.T) {
-	app, _, ctrl := setupAuthTest()
+	app, _, ctrl := setupAuthTest(t)
 	app.Post("/logout", ctrl.Logout)
 
 	r := httptest.NewRequest("POST", "/logout", nil)
-	resp, _ := app.Test(r)
+	resp, err := app.Test(r)
+	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
@@ -203,7 +209,7 @@ func TestAuthController_Me(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Get("/me", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.Me(c)
@@ -211,7 +217,8 @@ func TestAuthController_Me(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/me", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})

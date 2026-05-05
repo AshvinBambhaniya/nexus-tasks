@@ -27,8 +27,8 @@ We are using symmetric key methodology for sign token
 
 // ParseToken parse, validate the jwt token
 // On valid token it returns the decoded token
-func ParseToken(Secret string, token string) (jwt.Token, error) {
-	key, err := jwk.FromRaw([]byte(Secret))
+func ParseToken(secret string, token string) (jwt.Token, error) {
+	key, err := jwk.FromRaw([]byte(secret))
 	if err != nil {
 		return nil, err
 	}

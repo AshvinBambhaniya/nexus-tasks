@@ -27,7 +27,7 @@ func NewProjectController(projectService services.ProjectService, logger *zap.Lo
 }
 
 func (ctrl *ProjectController) Create(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -96,7 +96,7 @@ func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -124,7 +124,7 @@ func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -157,7 +157,7 @@ func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -194,7 +194,7 @@ func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -221,7 +221,7 @@ func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -242,7 +242,7 @@ func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -273,7 +273,7 @@ func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -300,7 +300,7 @@ func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
 }
 
 func (ctrl *ProjectController) ListTeams(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")

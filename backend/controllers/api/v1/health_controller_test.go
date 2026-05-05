@@ -12,11 +12,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupHealthControllerTest() (*fiber.App, *mockHealthService, *HealthController) {
+func setupHealthControllerTest(t *testing.T) (*fiber.App, *mockHealthService, *HealthController) {
 	app := fiber.New()
 	mockSvc := new(mockHealthService)
 	logger := zap.NewNop()
-	ctrl, _ := NewHealthController(mockSvc, logger)
+	ctrl, err := NewHealthController(mockSvc, logger)
+	assert.NoError(t, err)
 	return app, mockSvc, ctrl
 }
 
@@ -44,12 +45,13 @@ func TestHealthController_Overall(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupHealthControllerTest()
+			app, mockSvc, ctrl := setupHealthControllerTest(t)
 			app.Get("/healthz", ctrl.Overall)
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/healthz", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)
@@ -58,13 +60,16 @@ func TestHealthController_Overall(t *testing.T) {
 }
 
 func TestHealthController_Self(t *testing.T) {
-	app, _, ctrl := setupHealthControllerTest()
-	app.Get("/healthz/self", ctrl.Self)
+	t.Run("success", func(t *testing.T) {
+		app, _, ctrl := setupHealthControllerTest(t)
+		app.Get("/healthz/self", ctrl.Self)
 
-	req := httptest.NewRequest("GET", "/healthz/self", nil)
-	resp, _ := app.Test(req)
+		req := httptest.NewRequest("GET", "/healthz/self", nil)
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }
 
 func TestHealthController_Db(t *testing.T) {
@@ -91,12 +96,13 @@ func TestHealthController_Db(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupHealthControllerTest()
+			app, mockSvc, ctrl := setupHealthControllerTest(t)
 			app.Get("/healthz/db", ctrl.Db)
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/healthz/db", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)

@@ -23,7 +23,7 @@ func setupWorkspaceTest(t *testing.T) (*workspaceService, *mockWorkspaceReposito
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 	mockStor.On("Users").Return(mockUserRepo)
 
-	svc := NewWorkspaceService(mockStor, logger, mockPub).(*workspaceService)
+	svc := &workspaceService{storage: mockStor, logger: logger, publisher: mockPub}
 
 	return svc, mockWorkspaceRepo, mockUserRepo, mockStor, mockPub
 }

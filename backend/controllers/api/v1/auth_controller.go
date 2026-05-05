@@ -109,7 +109,7 @@ func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
 
 func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 	// Got from middleware
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		ctrl.logger.Error("invalid user id in context", zap.Error(err))

@@ -30,7 +30,7 @@ func NewTaskController(taskService services.TaskService, commentService services
 }
 
 func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -62,7 +62,7 @@ func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -105,7 +105,7 @@ func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -126,7 +126,7 @@ func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -152,7 +152,7 @@ func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -173,7 +173,7 @@ func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -199,7 +199,7 @@ func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
 // Comments
 
 func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -240,7 +240,7 @@ func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -278,7 +278,7 @@ func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
 }
 
 func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")

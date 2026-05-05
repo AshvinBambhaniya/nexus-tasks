@@ -27,7 +27,7 @@ func NewWorkspaceController(workspaceService services.WorkspaceService, logger *
 }
 
 func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		ctrl.logger.Error("invalid user id in context", zap.Error(err))
@@ -59,7 +59,7 @@ func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
 }
 
 func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		ctrl.logger.Error("invalid user id in context", zap.Error(err))
@@ -118,7 +118,7 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 }
 
 func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
@@ -149,7 +149,7 @@ func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
 }
 
 func (ctrl *WorkspaceController) RemoveMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")

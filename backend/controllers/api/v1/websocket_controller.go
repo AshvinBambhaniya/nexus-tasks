@@ -6,6 +6,7 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/jwt"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
+	"github.com/AshvinBambhaniya/nexus-tasks/utils"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -68,25 +69,31 @@ func (ctrl *WebsocketController) UpgradeMiddleware(c *fiber.Ctx) error {
 
 // HandleWorkspaceConnection handles /ws/:workspaceId
 func (ctrl *WebsocketController) HandleWorkspaceConnection(c *websocket.Conn) {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUid))
 	workspaceIDStr := c.Params("id")
 	workspaceID, err := uuid.Parse(workspaceIDStr)
 	if err != nil {
-		c.WriteJSON(fiber.Map{"error": "Invalid workspace ID"})
+		if err := c.WriteJSON(fiber.Map{"error": "Invalid workspace ID"}); err != nil {
+			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
+		}
 		c.Close()
 		return
 	}
 
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		c.WriteJSON(fiber.Map{"error": "Invalid user ID"})
+		if err := c.WriteJSON(fiber.Map{"error": "Invalid user ID"}); err != nil {
+			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
+		}
 		c.Close()
 		return
 	}
 
 	topics, err := ctrl.websocketService.GetConnectionTopics(uid, workspaceID)
 	if err != nil {
-		c.WriteJSON(fiber.Map{"error": err.Error()})
+		if err := c.WriteJSON(fiber.Map{"error": err.Error()}); err != nil {
+			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
+		}
 		c.Close()
 		return
 	}

@@ -9,7 +9,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "lint-fix": "eslint . --fix",
+    "prepare": "cd .. && npx husky",
+    "format": "prettier --write \"**/*.{js,ts,vue,css,scss,md,json}\" --ignore-path .gitignore"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -31,9 +33,22 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@nuxt/eslint": "^1.15.2",
     "eslint": "^9.39.4",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,vue}": [
+      "eslint",
+      "prettier --check"
+    ],
+    "**/*.{css,scss,md,json}": [
+      "prettier --check"
+    ]
   }
 }

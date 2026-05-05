@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2/apiv1/pubsubpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/database"
@@ -15,7 +16,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 
-	"github.com/ThreeDotsLabs/watermill-googlecloud/pkg/googlecloud"
+	"github.com/ThreeDotsLabs/watermill-googlecloud/v2/pkg/googlecloud"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -57,7 +58,7 @@ func InitSubscriber(cfg config.AppConfig, isDeadLetterQ bool) (*WatermillSubscri
 }
 
 // InitRouter init router for add middleware,retry count,delay etc
-func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, MaxRetry int) (*WatermillSubscriber, error) {
+func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, maxRetry int) (*WatermillSubscriber, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, MaxRe
 		middleware.CorrelationID,
 		poq,
 		middleware.Retry{
-			MaxRetries:      MaxRetry,
+			MaxRetries:      maxRetry,
 			Logger:          logger,
 			MaxInterval:     time.Millisecond * time.Duration(delayTime),
 			InitialInterval: time.Millisecond * time.Duration(delayTime),
@@ -171,11 +172,13 @@ func initGoogleCloudSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 			DoNotCreateSubscriptionIfMissing: false,
 			InitializeTimeout:                30 * time.Second,
 			GenerateSubscriptionName:         subscriptionName,
-			SubscriptionConfig: pubsub.SubscriptionConfig{
-				RetainAckedMessages:   false,
-				EnableMessageOrdering: false,
-				AckDeadline:           ackDeadline,
-				RetentionDuration:     24 * time.Hour,
+			GenerateSubscription: func(params googlecloud.GenerateSubscriptionParams) *pubsubpb.Subscription {
+				return &pubsubpb.Subscription{
+					RetainAckedMessages:      false,
+					EnableMessageOrdering:    false,
+					AckDeadlineSeconds:       int32(ackDeadline.Seconds()),
+					MessageRetentionDuration: durationpb.New(24 * time.Hour),
+				}
 			},
 			Unmarshaler: googlecloud.DefaultMarshalerUnmarshaler{},
 		},

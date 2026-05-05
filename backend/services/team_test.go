@@ -21,7 +21,7 @@ func setupTeamTest(t *testing.T) (*teamService, *mockTeamRepository, *mockWorksp
 	mockStor.On("Teams").Return(mockTeamRepo)
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 
-	svc := NewTeamService(mockStor, logger).(*teamService)
+	svc := &teamService{storage: mockStor, logger: logger}
 
 	return svc, mockTeamRepo, mockWorkspaceRepo, mockStor
 }

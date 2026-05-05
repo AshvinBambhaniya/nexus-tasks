@@ -4,7 +4,6 @@ import {
   Trash2,
   Check,
   Loader2,
-  Settings as SettingsIcon,
   AlertTriangle,
   RefreshCw,
 } from "lucide-vue-next";
@@ -104,18 +103,28 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div class="max-w-4xl space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-300">
+  <div
+    class="animate-in fade-in slide-in-from-bottom-4 max-w-4xl space-y-8 pb-10 duration-300"
+  >
     <!-- General Settings -->
     <section>
       <div class="mb-4">
         <h2 class="text-lg font-semibold text-gray-900">General Settings</h2>
-        <p class="text-sm text-gray-500">Update project name and description.</p>
+        <p class="text-sm text-gray-500">
+          Update project name and description.
+        </p>
       </div>
-      
-      <UiBaseCard class="border-gray-100 shadow-sm transition-shadow hover:shadow-md">
-        <form @submit.prevent="handleUpdateGeneral" class="p-8 space-y-6">
+
+      <UiBaseCard
+        class="border-gray-100 shadow-sm transition-shadow hover:shadow-md"
+      >
+        <form class="space-y-6 p-8" @submit.prevent="handleUpdateGeneral">
           <div class="space-y-2">
-            <UiBaseLabel for="projectName" class="text-xs font-bold tracking-wide text-gray-500 uppercase">Project Name</UiBaseLabel>
+            <UiBaseLabel
+              for="projectName"
+              class="text-xs font-bold tracking-wide text-gray-500 uppercase"
+              >Project Name</UiBaseLabel
+            >
             <UiBaseInput
               id="projectName"
               v-model="projectName"
@@ -126,7 +135,11 @@ const handleDelete = async () => {
           </div>
 
           <div class="space-y-2">
-            <UiBaseLabel for="projectDesc" class="text-xs font-bold tracking-wide text-gray-500 uppercase">Description</UiBaseLabel>
+            <UiBaseLabel
+              for="projectDesc"
+              class="text-xs font-bold tracking-wide text-gray-500 uppercase"
+              >Description</UiBaseLabel
+            >
             <UiBaseTextArea
               id="projectDesc"
               v-model="projectDescription"
@@ -136,15 +149,23 @@ const handleDelete = async () => {
             />
           </div>
 
-          <div class="flex items-center justify-end border-t border-gray-50 pt-6">
-            <UiBaseButton 
-              type="submit" 
+          <div
+            class="flex items-center justify-end border-t border-gray-50 pt-6"
+          >
+            <UiBaseButton
+              type="submit"
               :disabled="isUpdating"
               class="min-w-[140px] shadow-sm active:scale-95"
             >
               <Loader2 v-if="isUpdating" class="mr-2 h-4 w-4 animate-spin" />
               <Check v-else-if="isSuccess" class="mr-2 h-4 w-4 text-white" />
-              {{ isUpdating ? "Saving..." : isSuccess ? "Changes Saved" : "Save Changes" }}
+              {{
+                isUpdating
+                  ? "Saving..."
+                  : isSuccess
+                    ? "Changes Saved"
+                    : "Save Changes"
+              }}
             </UiBaseButton>
           </div>
         </form>
@@ -155,27 +176,32 @@ const handleDelete = async () => {
     <section>
       <div class="mb-4">
         <h2 class="text-lg font-semibold text-gray-900">Project Lifecycle</h2>
-        <p class="text-sm text-gray-500">Archive or restore this project from your active view.</p>
+        <p class="text-sm text-gray-500">
+          Archive or restore this project from your active view.
+        </p>
       </div>
-      
+
       <UiBaseCard class="border-gray-100 shadow-sm">
-        <div class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row">
+        <div
+          class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
+        >
           <div class="space-y-1 text-center sm:text-left">
             <h3 class="font-bold text-gray-900">
               {{ project.is_archived ? "Restore Project" : "Archive Project" }}
             </h3>
             <p class="text-sm text-gray-500">
-              {{ project.is_archived 
-                ? "Move this project back to the active list to continue working on it." 
-                : "Archived projects are hidden but keep all their data. You can restore them anytime." 
+              {{
+                project.is_archived
+                  ? "Move this project back to the active list to continue working on it."
+                  : "Archived projects are hidden but keep all their data. You can restore them anytime."
               }}
             </p>
           </div>
           <UiBaseButton
             variant="outline"
             :disabled="isUpdating"
-            @click="handleToggleArchive"
             class="min-w-[160px] border-gray-200 transition-all hover:bg-gray-50 active:scale-95"
+            @click="handleToggleArchive"
           >
             <RefreshCw v-if="project.is_archived" class="mr-2 h-4 w-4" />
             <Archive v-else class="mr-2 h-4 w-4 text-amber-600" />
@@ -191,13 +217,18 @@ const handleDelete = async () => {
         <AlertTriangle class="h-5 w-5 text-red-600" />
         <h2 class="text-lg font-semibold text-red-900">Danger Zone</h2>
       </div>
-      
-      <div class="overflow-hidden rounded-xl border border-red-100 bg-red-50/20 shadow-sm ring-1 ring-red-100/50">
-        <div class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row">
+
+      <div
+        class="overflow-hidden rounded-xl border border-red-100 bg-red-50/20 shadow-sm ring-1 ring-red-100/50"
+      >
+        <div
+          class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
+        >
           <div class="space-y-1 text-center sm:text-left">
             <h3 class="font-bold text-red-900">Delete this project</h3>
             <p class="text-sm text-red-700 opacity-80">
-              Once you delete a project, there is no going back. Please be certain.
+              Once you delete a project, there is no going back. Please be
+              certain.
             </p>
           </div>
           <UiBaseButton

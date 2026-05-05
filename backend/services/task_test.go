@@ -25,7 +25,11 @@ func setupTaskTest(t *testing.T) (*taskService, *mockTaskRepository, *mockProjec
 	mockStor.On("Projects").Return(mockProjectRepo)
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 
-	svc := NewTaskService(mockStor, logger, mockH).(*taskService)
+	svc := &taskService{
+		storage: mockStor,
+		logger:  logger,
+		hub:     mockH,
+	}
 
 	return svc, mockTaskRepo, mockProjectRepo, mockWorkspaceRepo, mockStor, mockH
 }

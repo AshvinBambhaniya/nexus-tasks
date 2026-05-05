@@ -21,7 +21,11 @@ func SentryMiddleware() fiber.Handler {
 				sentry.CaptureException(err)
 				sentry.Flush(2 * time.Second)
 
-				c.Status(500).JSON(fiber.Map{"error": "internal server error"})
+				if err := c.Status(500).JSON(fiber.Map{"error": "internal server error"}); err != nil {
+					// We use a blank assignment here to satisfy the linter's requirement for checking the error,
+					// as there is no meaningful recovery path if sending the error response itself fails.
+					_ = err
+				}
 			}
 		}()
 

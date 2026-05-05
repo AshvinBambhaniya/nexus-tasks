@@ -53,9 +53,7 @@ const handleTaskClick = (task: Task) => {
         />
       </div>
       <NuxtLink :to="`/projects/${projectId}/tasks/new`">
-        <UiBaseButton>
-          <Plus class="mr-2 h-4 w-4" /> New Task
-        </UiBaseButton>
+        <UiBaseButton> <Plus class="mr-2 h-4 w-4" /> New Task </UiBaseButton>
       </NuxtLink>
     </div>
 

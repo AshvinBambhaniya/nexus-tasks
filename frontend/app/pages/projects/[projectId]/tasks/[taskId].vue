@@ -9,13 +9,14 @@ import {
   CheckCircle2,
   Circle,
   AlertCircle,
-  MessageSquare,
   Send,
 } from "lucide-vue-next";
+import type { Component } from "vue";
 import { formatDistanceToNow } from "date-fns";
 import VueMarkdown from "vue-markdown-render";
 import { cn } from "~/utils/cn";
-import { TaskStatus, TaskPriority } from "~/types";
+import type { TaskPriority } from "~/types";
+import { TaskStatus } from "~/types";
 import { useUsersStore } from "~/stores/user";
 
 definePageMeta({
@@ -48,11 +49,15 @@ const isSubmittingComment = ref(false);
 const isEditingTitle = ref(false);
 const titleValue = ref("");
 
-watch(task, (newTask) => {
-  if (newTask && !titleValue.value) {
-    titleValue.value = newTask.title;
-  }
-}, { immediate: true });
+watch(
+  task,
+  (newTask) => {
+    if (newTask && !titleValue.value) {
+      titleValue.value = newTask.title;
+    }
+  },
+  { immediate: true }
+);
 
 const handleUpdateStatus = async (status: TaskStatus) => {
   await updateTask(taskId.value, { status });
@@ -115,14 +120,16 @@ const handleDeleteComment = async (id: string) => {
   }
 };
 
-const statusIcons: Record<TaskStatus, any> = {
+const statusIcons: Record<TaskStatus, Component> = {
   [TaskStatus.BACKLOG]: Clock,
   [TaskStatus.TODO]: Circle,
   [TaskStatus.IN_PROGRESS]: AlertCircle,
   [TaskStatus.DONE]: CheckCircle2,
 };
 
-const statusIcon = computed(() => (task.value ? statusIcons[task.value.status] || Circle : Circle));
+const statusIcon = computed(() =>
+  task.value ? statusIcons[task.value.status] || Circle : Circle
+);
 
 const authorName = computed(() => {
   if (!task.value?.author) return "Unknown";
@@ -162,12 +169,15 @@ const authorName = computed(() => {
               Cancel
             </UiBaseButton>
           </div>
-          <h1 v-else class="group flex items-center gap-2 text-3xl font-bold text-gray-900">
+          <h1
+            v-else
+            class="group flex items-center gap-2 text-3xl font-bold text-gray-900"
+          >
             {{ task.title }}
             <span class="font-normal text-gray-400">#{{ task.number }}</span>
             <button
-              @click="isEditingTitle = true"
               class="rounded p-1 opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-100"
+              @click="isEditingTitle = true"
             >
               <Settings2 class="h-4 w-4 text-gray-500" />
             </button>
@@ -188,7 +198,7 @@ const authorName = computed(() => {
               v-else
               variant="primary"
               size="sm"
-              class="whitespace-nowrap !bg-green-600 !hover:bg-green-700 !shadow-none"
+              class="!hover:bg-green-700 !bg-green-600 whitespace-nowrap !shadow-none"
               @click="handleUpdateStatus(TaskStatus.DONE)"
             >
               <CheckCircle2 class="mr-2 h-4 w-4" />
@@ -206,7 +216,9 @@ const authorName = computed(() => {
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 pb-6">
+        <div
+          class="flex flex-wrap items-center gap-3 border-b border-gray-200 pb-6"
+        >
           <UiBaseBadge
             :class="
               cn(
@@ -218,14 +230,18 @@ const authorName = computed(() => {
             "
           >
             <component :is="statusIcon" class="h-4 w-4" />
-            {{ task.status.replace('_', ' ') }}
+            {{ task.status.replace("_", " ") }}
           </UiBaseBadge>
-          <span class="flex items-center gap-1.5 text-sm font-medium text-gray-500">
+          <span
+            class="flex items-center gap-1.5 text-sm font-medium text-gray-500"
+          >
             <UserIcon class="h-4 w-4" />
             <span class="font-semibold text-gray-900">
               {{ authorName }}
             </span>
-            opened this task {{ formatDistanceToNow(new Date(task.created_at)) }} ago • {{ comments.length }} comments
+            opened this task
+            {{ formatDistanceToNow(new Date(task.created_at)) }} ago •
+            {{ comments.length }} comments
           </span>
         </div>
       </div>
@@ -241,8 +257,12 @@ const authorName = computed(() => {
             class-name="mt-1 h-10 w-10 border border-gray-100 shadow-sm"
           />
           <div class="flex-1">
-            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-              <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50/50 px-4 py-2">
+            <div
+              class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+            >
+              <div
+                class="flex items-center justify-between border-b border-gray-200 bg-gray-50/50 px-4 py-2"
+              >
                 <span class="text-sm font-semibold text-gray-700">
                   Description
                 </span>
@@ -252,13 +272,17 @@ const authorName = computed(() => {
                 :source="task.description"
                 class="prose prose-sm prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 max-w-none p-4"
               />
-              <div v-else class="p-4 text-gray-400 italic">No description provided.</div>
+              <div v-else class="p-4 text-gray-400 italic">
+                No description provided.
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Comments List -->
-        <div class="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-[1.25rem] before:w-0.5 before:bg-gray-100">
+        <div
+          class="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-[1.25rem] before:w-0.5 before:bg-gray-100"
+        >
           <TasksCommentItem
             v-for="comment in comments"
             :key="comment.id"
@@ -275,7 +299,7 @@ const authorName = computed(() => {
             class-name="mt-1 h-10 w-10 border border-gray-100 shadow-sm"
           />
           <div class="flex-1">
-            <form @submit.prevent="handleSubmitComment" class="space-y-4">
+            <form class="space-y-4" @submit.prevent="handleSubmitComment">
               <UiBaseMarkdownEditor
                 v-model="commentContent"
                 placeholder="Add a comment..."
@@ -287,7 +311,10 @@ const authorName = computed(() => {
                   :disabled="isSubmittingComment || !commentContent.trim()"
                   class-name="bg-blue-600 px-6 text-white hover:bg-blue-700"
                 >
-                  <Loader2 v-if="isSubmittingComment" class="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2
+                    v-if="isSubmittingComment"
+                    class="mr-2 h-4 w-4 animate-spin"
+                  />
                   <Send v-else class="mr-2 h-4 w-4" />
                   Comment
                 </UiBaseButton>
@@ -301,7 +328,9 @@ const authorName = computed(() => {
       <div class="space-y-8 lg:col-span-1">
         <div class="space-y-6">
           <div class="space-y-2 border-b border-gray-100 pb-4">
-            <UiBaseLabel class-name="text-xs font-bold tracking-wider text-gray-500 uppercase">
+            <UiBaseLabel
+              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+            >
               Due Date
             </UiBaseLabel>
             <UiBaseInput
@@ -312,7 +341,9 @@ const authorName = computed(() => {
           </div>
 
           <div class="space-y-2 border-b border-gray-100 pb-4">
-            <UiBaseLabel class-name="text-xs font-bold tracking-wider text-gray-500 uppercase">
+            <UiBaseLabel
+              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+            >
               Assignee
             </UiBaseLabel>
             <TasksSelectorsAssigneeSelector
@@ -323,7 +354,9 @@ const authorName = computed(() => {
           </div>
 
           <div class="space-y-2 border-b border-gray-100 pb-4">
-            <UiBaseLabel class-name="text-xs font-bold tracking-wider text-gray-500 uppercase">
+            <UiBaseLabel
+              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+            >
               Status
             </UiBaseLabel>
             <TasksSelectorsStatusSelector
@@ -332,8 +365,13 @@ const authorName = computed(() => {
             />
           </div>
 
-          <div v-if="task.completed_at" class="space-y-2 border-b border-gray-100 pb-4">
-            <UiBaseLabel class-name="text-xs font-bold tracking-wider text-gray-500 uppercase">
+          <div
+            v-if="task.completed_at"
+            class="space-y-2 border-b border-gray-100 pb-4"
+          >
+            <UiBaseLabel
+              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+            >
               Completed On
             </UiBaseLabel>
             <div class="flex items-center gap-2 text-sm text-gray-700">
@@ -343,7 +381,9 @@ const authorName = computed(() => {
           </div>
 
           <div class="space-y-2 border-b border-gray-100 pb-4">
-            <UiBaseLabel class-name="text-xs font-bold tracking-wider text-gray-500 uppercase">
+            <UiBaseLabel
+              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+            >
               Priority
             </UiBaseLabel>
             <TasksSelectorsPrioritySelector

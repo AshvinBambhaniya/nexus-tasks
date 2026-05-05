@@ -23,7 +23,10 @@ func setupTaskControllerTest() (*fiber.App, *mockTaskService, *mockCommentServic
 	mockTaskSvc := new(mockTaskService)
 	mockCommentSvc := new(mockCommentService)
 	logger := zap.NewNop()
-	ctrl, _ := NewTaskController(mockTaskSvc, mockCommentSvc, logger)
+	ctrl, err := NewTaskController(mockTaskSvc, mockCommentSvc, logger)
+	if err != nil {
+		panic(err)
+	}
 	return app, mockTaskSvc, mockCommentSvc, ctrl
 }
 
@@ -115,11 +118,13 @@ func TestTaskController_CreateTask(t *testing.T) {
 			})
 			tt.setupMocks(mockTaskSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.projectIDParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -201,7 +206,8 @@ func TestTaskController_ListProjectTasks(t *testing.T) {
 			tt.setupMocks(mockTaskSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.projectIDParam+tt.queryParams, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -270,7 +276,8 @@ func TestTaskController_GetTask(t *testing.T) {
 			tt.setupMocks(mockTaskSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.taskIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -353,11 +360,13 @@ func TestTaskController_UpdateTask(t *testing.T) {
 			})
 			tt.setupMocks(mockTaskSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("PATCH", "/"+tt.taskIDParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -426,7 +435,8 @@ func TestTaskController_DeleteTask(t *testing.T) {
 			tt.setupMocks(mockTaskSvc)
 
 			req := httptest.NewRequest("DELETE", "/"+tt.taskIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -481,7 +491,8 @@ func TestTaskController_ListMyTasks(t *testing.T) {
 			tt.setupMocks(mockTaskSvc)
 
 			req := httptest.NewRequest("GET", "/", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -574,11 +585,13 @@ func TestTaskController_CreateComment(t *testing.T) {
 			})
 			tt.setupMocks(mockCommentSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/"+tt.taskIDParam, bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -647,7 +660,8 @@ func TestTaskController_ListTaskComments(t *testing.T) {
 			tt.setupMocks(mockCommentSvc)
 
 			req := httptest.NewRequest("GET", "/"+tt.taskIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -716,7 +730,8 @@ func TestTaskController_DeleteComment(t *testing.T) {
 			tt.setupMocks(mockCommentSvc)
 
 			req := httptest.NewRequest("DELETE", "/"+tt.commentIDParam, nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

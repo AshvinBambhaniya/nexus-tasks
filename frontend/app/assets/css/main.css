@@ -5,7 +5,7 @@
   .prose {
     @apply max-w-none;
   }
-  
+
   /* Remove top margin from the first element and bottom from the last in prose */
   .prose > :first-child {
     margin-top: 0 !important;

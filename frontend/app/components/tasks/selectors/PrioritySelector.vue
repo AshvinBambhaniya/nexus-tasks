@@ -90,19 +90,24 @@ const handleChange = (value: TaskPriority) => {
               :class="[
                 active ? 'bg-gray-100' : '',
                 isSelected ? 'bg-gray-50' : '',
-                'relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 transition-colors',
+                'relative flex cursor-default items-center justify-between rounded-sm px-2 py-1.5 transition-colors select-none',
               ]"
             >
               <div class="flex items-center gap-2">
-                <component :is="config.icon" :class="cn('h-4 w-4', config.color)" />
-                <span :class="[isSelected ? 'font-medium' : 'font-normal', 'text-gray-700']">
+                <component
+                  :is="config.icon"
+                  :class="cn('h-4 w-4', config.color)"
+                />
+                <span
+                  :class="[
+                    isSelected ? 'font-medium' : 'font-normal',
+                    'text-gray-700',
+                  ]"
+                >
                   {{ config.label }}
                 </span>
               </div>
-              <span
-                v-if="isSelected"
-                class="text-blue-600"
-              >
+              <span v-if="isSelected" class="text-blue-600">
                 <Check class="h-4 w-4" aria-hidden="true" />
               </span>
             </li>
