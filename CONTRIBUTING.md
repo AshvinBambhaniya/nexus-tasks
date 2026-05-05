@@ -39,73 +39,67 @@ This section guides you through submitting an enhancement suggestion for Nexus T
 
 ### Pre-commit Hooks
 
-We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting, linting) before every commit.
+We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting, linting, security) and commit message compliance.
 
-1. **Install pre-commit:**
+1.  **Install pre-commit:**
 
-   ```bash
-   pip install pre-commit
-   # Or via brew: brew install pre-commit
-   ```
+    ```bash
+    pip install pre-commit
+    # Or via brew: brew install pre-commit
+    ```
 
-2. **Install the hooks:**
+2.  **Install the hooks:**
 
-   ```bash
-   pre-commit install
-   ```
+    ```bash
+    pre-commit install
+    pre-commit install --hook-type commit-msg
+    ```
 
-3. **Run manually (optional):**
-   ```bash
-   pre-commit run --all-files
-   ```
+3.  **Run manually (optional):**
+    ```bash
+    pre-commit run --all-files
+    ```
 
 ## Development Setup
 
-### Backend (FastAPI)
+### Backend (Go)
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run the server:
-   ```bash
-   uvicorn main:app --reload
-   ```
+1.  Navigate to the backend directory:
+    ```bash
+    cd backend
+    ```
+2.  Install dependencies:
+    ```bash
+    go mod download
+    ```
+3.  Run the API server:
+    ```bash
+    go run cli/main.go api
+    ```
 
-### Frontend (Next.js)
+### Frontend (Nuxt 4)
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
+1.  Navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
 ## Styleguides
 
 ### Git Commit Messages
 
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests liberally after the first line
+We follow [Conventional Commits](https://www.conventionalcommits.org/). This is enforced by `commitlint`.
+Example: `feat: add task assignment` or `fix: resolve websocket reconnection issue`.
 
 ### Coding Standards
 
-- **Python:** Follow PEP 8 style guide.
-- **TypeScript/React:** Follow standard React best practices (Functional components, Hooks).
+- **Go:** Follow standard `gofmt` and `golangci-lint` recommendations.
+- **Vue/TypeScript:** Follow Nuxt 4 best practices and ESLint configurations.

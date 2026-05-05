@@ -14,11 +14,11 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 1.  **Unified Context:** Manage your private side-projects and shared team sprints in a single interface without constant context switching.
 2.  **Developer Experience:** Built for speed. Features Markdown support, keyboard navigation, and a clean UI that gets out of your way.
 3.  **Simplicity over Configuration:** Opinionated workflows (To Do -> In Progress -> Done) allow teams to start shipping immediately without spending days setting up boards.
-4.  **Open & Extensible:** Fully open-source, built with modern standard technologies (Python/FastAPI & React/Next.js), making it easy to self-host or extend.
+4.  **Open & Extensible:** Fully open-source, built with modern standard technologies (**Go** & **Nuxt 4**), making it easy to self-host or extend.
 
 ## Features
 
-- **Hybrid Workspaces:** distinct environments for Personal and Team work.
+- **Hybrid Workspaces:** Distinct environments for Personal and Team work.
 - **Real-Time Sync:** Instant updates across clients using WebSockets.
 - **Kanban & Lists:** Toggle between visual boards and structured lists.
 - **Markdown Editor:** Write tasks and comments using standard Markdown.
@@ -29,30 +29,32 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 
 **Frontend**
 
-- Next.js 16 (App Router)
-- TypeScript
-- Tailwind CSS
-- Zustand (State Management)
+- **Nuxt 4** (Vue 3)
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Pinia** (State Management)
+- **Lucide Vue Next** (Icons)
 
 **Backend**
 
-- FastAPI (Python 3.12)
-- SQLAlchemy & Alembic
-- PostgreSQL
-- Redis & Celery (Background Tasks)
-- WebSockets
+- **Go 1.26** (Fiber Framework)
+- **Goqu** (SQL Builder & Unit of Work)
+- **Watermill** (Event-Driven Messaging)
+- **PostgreSQL / MySQL / SQLite**
+- **Redis** (Message Broker)
+- **WebSockets**
 
 ## Getting Started
 
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js 20+ (for local development)
-- Python 3.12+ (for local development)
+- Node.js 22+
+- Go 1.26+
 
 ### Quick Start (Docker)
 
-To run the entire stack (Frontend, Backend, Database) in production mode:
+To run the entire stack (Frontend, Backend, Database, Redis, Mailpit) in development mode:
 
 1. Clone the repository:
 
@@ -73,13 +75,12 @@ To run the entire stack (Frontend, Backend, Database) in production mode:
 
 The application will be available at:
 
-- Frontend: http://localhost:3000
-- API Documentation: http://localhost:8000/docs
-- Mailpit (Email Preview): http://localhost:8025
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- API: [http://localhost:8000](http://localhost:8000)
+- Mailpit (Email Preview): [http://localhost:8025](http://localhost:8025)
+- Adminer (DB Management): [http://localhost:8080](http://localhost:8080)
 
 ### Local Development Setup
-
-If you wish to contribute or run services individually:
 
 #### 1. Backend
 
@@ -89,29 +90,34 @@ Navigate to the backend directory:
 cd backend
 ```
 
-Create a virtual environment:
+Copy the example environment file and configure it:
 
 ```bash
-python -m venv venv
+cp .env.example .env
 ```
 
-Activate the virtual environment:
+Install Go dependencies:
 
 ```bash
-source venv/bin/activate
-# On Windows use: venv\Scripts\activate
+go mod download
 ```
 
-Install dependencies:
+Run database migrations:
 
 ```bash
-pip install -r requirements.txt
+go run app.go migrate up
 ```
 
-Start the backend server:
+Start the API server:
 
 ```bash
-uvicorn main:app --reload
+go run app.go api
+```
+
+Start the background worker:
+
+```bash
+go run app.go worker
 ```
 
 #### 2. Frontend
