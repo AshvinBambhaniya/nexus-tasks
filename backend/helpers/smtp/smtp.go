@@ -1,3 +1,4 @@
+// Package helpers provides utility functions and helpers for the application.
 package helpers
 
 import (
@@ -6,6 +7,7 @@ import (
 	"strings"
 )
 
+// SMTPHelper provides methods to send emails using SMTP.
 type SMTPHelper struct {
 	Host        string
 	Port        string
@@ -14,6 +16,7 @@ type SMTPHelper struct {
 	MailDetails MailDetails
 }
 
+// MailDetails holds the information for an email to be sent.
 type MailDetails struct {
 	Receivers []string
 	Subject   string
@@ -22,6 +25,7 @@ type MailDetails struct {
 	MimeType  string
 }
 
+// NewSMTPHelper creates a new instance of SMTPHelper.
 func NewSMTPHelper(host, port, username, password string) *SMTPHelper {
 	return &SMTPHelper{
 		Host:     host,
@@ -79,7 +83,7 @@ func (sh *SMTPHelper) SendMail() error {
 
 	var msgBuilder strings.Builder
 	for k, v := range header {
-		msgBuilder.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		fmt.Fprintf(&msgBuilder, "%s: %s\r\n", k, v)
 	}
 	msgBuilder.WriteString("\r\n")
 	msgBuilder.Write(sh.MailDetails.Data)

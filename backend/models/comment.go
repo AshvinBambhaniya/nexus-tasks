@@ -1,3 +1,4 @@
+// Package models contains the data models and database repositories for the application.
 package models
 
 import (
@@ -8,8 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
+// CommentTable is the name of the table in the database
 const CommentTable = "comments"
 
+// Comment represents a comment on a task.
 type Comment struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	Content   string    `json:"content" db:"content"`
@@ -19,12 +22,14 @@ type Comment struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
+// CommentWithAuthor represents a comment with author details.
 type CommentWithAuthor struct {
 	Comment
 	AuthorEmail    string `db:"author_email"`
 	AuthorFullName string `db:"author_full_name"`
 }
 
+// CommentRepository defines the interface for comment data access.
 type CommentRepository interface {
 	Create(comment Comment) (Comment, error)
 	GetByID(id uuid.UUID) (Comment, error)
@@ -32,16 +37,19 @@ type CommentRepository interface {
 	Delete(id uuid.UUID) error
 }
 
+// CommentModel is the implementation of CommentRepository.
 type CommentModel struct {
 	db DbExecutor
 }
 
+// InitCommentModel initializes a new CommentModel.
 func InitCommentModel(db DbExecutor) CommentRepository {
 	return &CommentModel{
 		db: db,
 	}
 }
 
+// Create creates a new comment.
 func (model *CommentModel) Create(comment Comment) (Comment, error) {
 	var createdComment Comment
 	found, err := model.db.Insert(CommentTable).Rows(
@@ -61,6 +69,7 @@ func (model *CommentModel) Create(comment Comment) (Comment, error) {
 	return createdComment, nil
 }
 
+// GetByID returns a comment by its ID.
 func (model *CommentModel) GetByID(id uuid.UUID) (Comment, error) {
 	comment := Comment{}
 	found, err := model.db.From(CommentTable).Where(goqu.Ex{"id": id}).ScanStruct(&comment)
@@ -73,6 +82,7 @@ func (model *CommentModel) GetByID(id uuid.UUID) (Comment, error) {
 	return comment, nil
 }
 
+// ListByTaskID returns all comments for a specific task.
 func (model *CommentModel) ListByTaskID(taskID uuid.UUID) ([]CommentWithAuthor, error) {
 	var comments []CommentWithAuthor
 	err := model.db.From(CommentTable).
@@ -89,6 +99,7 @@ func (model *CommentModel) ListByTaskID(taskID uuid.UUID) ([]CommentWithAuthor, 
 	return comments, err
 }
 
+// Delete removes a comment by its ID.
 func (model *CommentModel) Delete(id uuid.UUID) error {
 	_, err := model.db.Delete(CommentTable).
 		Where(goqu.Ex{"id": id}).

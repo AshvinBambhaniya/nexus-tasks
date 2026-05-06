@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupWebsocketTest(t *testing.T) (*websocketService, *mockWorkspaceService, *mockProjectService) {
+func setupWebsocketTest(_ *testing.T) (*websocketService, *mockWorkspaceService, *mockProjectService) {
 	mockWsSvc := new(mockWorkspaceService)
 	mockProjSvc := new(mockProjectService)
 	logger := zap.NewNop()

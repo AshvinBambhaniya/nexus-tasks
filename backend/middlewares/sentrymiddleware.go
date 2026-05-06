@@ -1,3 +1,4 @@
+// Package middlewares provides HTTP middleware for the application.
 package middlewares
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// SentryMiddleware returns a fiber handler that captures panics and sends them to Sentry.
 func SentryMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		defer func() {

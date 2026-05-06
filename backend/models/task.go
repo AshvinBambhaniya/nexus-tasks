@@ -8,26 +8,38 @@ import (
 	"github.com/google/uuid"
 )
 
+// TaskTable is the name of the tasks table.
 const TaskTable = "tasks"
 
+// TaskStatus defines the status of a task.
 type TaskStatus string
 
 const (
-	TaskStatusTodo       TaskStatus = "TODO"
+	// TaskStatusTodo represents a task that is yet to be started.
+	TaskStatusTodo TaskStatus = "TODO"
+	// TaskStatusInProgress represents a task that is currently being worked on.
 	TaskStatusInProgress TaskStatus = "IN_PROGRESS"
-	TaskStatusDone       TaskStatus = "DONE"
-	TaskStatusBacklog    TaskStatus = "BACKLOG"
+	// TaskStatusDone represents a task that has been completed.
+	TaskStatusDone TaskStatus = "DONE"
+	// TaskStatusBacklog represents a task that is in the backlog.
+	TaskStatusBacklog TaskStatus = "BACKLOG"
 )
 
+// TaskPriority defines the priority of a task.
 type TaskPriority string
 
 const (
+	// TaskPriorityP0 represents critical priority.
 	TaskPriorityP0 TaskPriority = "P0" // Critical
+	// TaskPriorityP1 represents high priority.
 	TaskPriorityP1 TaskPriority = "P1" // High
+	// TaskPriorityP2 represents medium priority.
 	TaskPriorityP2 TaskPriority = "P2" // Medium
+	// TaskPriorityP3 represents low priority.
 	TaskPriorityP3 TaskPriority = "P3" // Low
 )
 
+// Task represents a task in a project.
 type Task struct {
 	ID          uuid.UUID    `json:"id" db:"id"`
 	Number      int          `json:"number" db:"number"`
@@ -48,16 +60,19 @@ type Task struct {
 // but for now, we'll keep it simple and load relations separately or via simple joins if critical.
 // The Python version loads relationships. We can do a struct with embedded user info.
 
+// TaskWithAssignee represents a task with assignee details.
 type TaskWithAssignee struct {
 	Task
 	AssigneeEmail    *string `db:"assignee_email"`
 	AssigneeFullName *string `db:"assignee_full_name"`
 }
 
+// TaskModel is the implementation of TaskRepository.
 type TaskModel struct {
 	db DbExecutor
 }
 
+// TaskRepository defines the interface for task data access.
 type TaskRepository interface {
 	Create(task Task) (Task, error)
 	GetByID(id uuid.UUID) (Task, error)
@@ -67,12 +82,14 @@ type TaskRepository interface {
 	ListByAssigneeID(assigneeID uuid.UUID) ([]Task, error)
 }
 
+// InitTaskModel initializes a new TaskModel.
 func InitTaskModel(db DbExecutor) TaskRepository {
 	return &TaskModel{
 		db: db,
 	}
 }
 
+// Create inserts a new task into the database.
 func (model *TaskModel) Create(task Task) (Task, error) {
 	var createdTask Task
 	found, err := model.db.Insert(TaskTable).Rows(
@@ -98,6 +115,7 @@ func (model *TaskModel) Create(task Task) (Task, error) {
 	return createdTask, nil
 }
 
+// GetNextTaskNumber returns the next available task number for a project.
 func (model *TaskModel) GetNextTaskNumber(transaction *goqu.TxDatabase, projectID uuid.UUID) (int, error) {
 	var maxNum struct {
 		Max int `db:"max"`
@@ -116,6 +134,7 @@ func (model *TaskModel) GetNextTaskNumber(transaction *goqu.TxDatabase, projectI
 	return maxNum.Max + 1, nil
 }
 
+// GetByID retrieves a task by its ID.
 func (model *TaskModel) GetByID(id uuid.UUID) (Task, error) {
 	task := Task{}
 	found, err := model.db.From(TaskTable).Where(goqu.Ex{"id": id}).ScanStruct(&task)
@@ -128,6 +147,7 @@ func (model *TaskModel) GetByID(id uuid.UUID) (Task, error) {
 	return task, nil
 }
 
+// Update updates an existing task record.
 func (model *TaskModel) Update(task Task) (Task, error) {
 	// Only update fields that are usually mutable via this method
 	// Or pass the full struct.
@@ -156,6 +176,7 @@ func (model *TaskModel) Update(task Task) (Task, error) {
 	return task, nil
 }
 
+// Delete removes a task record by ID.
 func (model *TaskModel) Delete(id uuid.UUID) error {
 	_, err := model.db.Delete(TaskTable).
 		Where(goqu.Ex{"id": id}).
@@ -163,6 +184,7 @@ func (model *TaskModel) Delete(id uuid.UUID) error {
 	return err
 }
 
+// ListByProjectID lists all tasks in a project, optionally filtered by status and assignee.
 func (model *TaskModel) ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]Task, error) {
 	query := model.db.From(TaskTable).Where(goqu.Ex{"project_id": projectID})
 
@@ -178,6 +200,7 @@ func (model *TaskModel) ListByProjectID(projectID uuid.UUID, status *TaskStatus,
 	return tasks, err
 }
 
+// ListByAssigneeID lists all tasks assigned to a specific user.
 func (model *TaskModel) ListByAssigneeID(assigneeID uuid.UUID) ([]Task, error) {
 	var tasks []Task
 	err := model.db.From(TaskTable).

@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupUserTest(t *testing.T) (*userService, *mockUserRepository, *mockWorkspaceRepository, *mockStorage) {
+func setupUserTest(_ *testing.T) (*userService, *mockUserRepository, *mockWorkspaceRepository, *mockStorage) {
 	mockUserRepo := new(mockUserRepository)
 	mockWorkspaceRepo := new(mockWorkspaceRepository)
 	mockStor := new(mockStorage)

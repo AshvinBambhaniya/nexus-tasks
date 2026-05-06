@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// TaskService defines the interface for task-related business logic
 type TaskService interface {
 	CreateTask(userID, projectID uuid.UUID, req structs.ReqCreateTask) (models.Task, error)
 	ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error)
@@ -28,6 +29,7 @@ type taskService struct {
 	logger  *zap.Logger
 }
 
+// NewTaskService creates a new task service instance
 func NewTaskService(storage models.Storage, logger *zap.Logger, hub realtime.IHub) TaskService {
 	return &taskService{
 		storage: storage,
@@ -91,9 +93,9 @@ func (s *taskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 
 	// Broadcast Event (After commit)
 	if s.hub != nil {
-		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), map[string]interface{}{
-			"type": "TASK_CREATED",
-			"task": createdTask,
+		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), structs.RealtimeEvent{
+			Type:    structs.EventTypeTaskCreated,
+			Payload: createdTask,
 		})
 	}
 
@@ -155,9 +157,9 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 	}
 
 	if s.hub != nil {
-		s.hub.Broadcast(fmt.Sprintf("project:%s", updatedTask.ProjectID.String()), map[string]interface{}{
-			"type": "TASK_UPDATED",
-			"task": updatedTask,
+		s.hub.Broadcast(fmt.Sprintf("project:%s", updatedTask.ProjectID.String()), structs.RealtimeEvent{
+			Type:    structs.EventTypeTaskUpdated,
+			Payload: updatedTask,
 		})
 	}
 
@@ -216,9 +218,9 @@ func (s *taskService) DeleteTask(userID, taskID uuid.UUID) error {
 
 	// Broadcast Event
 	if s.hub != nil {
-		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), map[string]interface{}{
-			"type":    "TASK_DELETED",
-			"task_id": taskID,
+		s.hub.Broadcast(fmt.Sprintf("project:%s", projectID.String()), structs.RealtimeEvent{
+			Type:    structs.EventTypeTaskDeleted,
+			Payload: taskID,
 		})
 	}
 

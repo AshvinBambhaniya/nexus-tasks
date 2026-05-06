@@ -44,7 +44,7 @@ func TestProjectController_Create(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam: wsID.String(),
 			reqBody:   structs.ReqCreateProject{Name: "P1"},
@@ -56,7 +56,7 @@ func TestProjectController_Create(t *testing.T) {
 		{
 			name: "forbidden",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam: wsID.String(),
 			reqBody:   structs.ReqCreateProject{Name: "P1"},
@@ -68,47 +68,47 @@ func TestProjectController_Create(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			wsIDParam:      wsID.String(),
 			reqBody:        structs.ReqCreateProject{Name: "P1"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_workspace_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam:      "invalid-uuid",
 			reqBody:        structs.ReqCreateProject{Name: "P1"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "invaluid_request_body",
+			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam:      wsID.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "validation_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam:      wsID.String(),
 			reqBody:        structs.ReqCreateProject{Name: ""},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			wsIDParam: wsID.String(),
 			reqBody:   structs.ReqCreateProject{Name: "P1"},
@@ -135,6 +135,7 @@ func TestProjectController_Create(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -168,7 +169,7 @@ func TestProjectController_List(t *testing.T) {
 		{
 			name:           "invalid_workspace_id_param",
 			wsIDParam:      "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -190,6 +191,7 @@ func TestProjectController_List(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.wsIDParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -209,7 +211,7 @@ func TestProjectController_Get(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -220,25 +222,25 @@ func TestProjectController_Get(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "project_not_found",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -260,6 +262,7 @@ func TestProjectController_Get(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.pidParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -280,7 +283,7 @@ func TestProjectController_Update(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqUpdateProject{Name: "Updated"},
@@ -292,37 +295,37 @@ func TestProjectController_Update(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
 			reqBody:        structs.ReqUpdateProject{Name: "Updated"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
 			reqBody:        structs.ReqUpdateProject{Name: "Updated"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqUpdateProject{Name: "Updated"},
@@ -349,6 +352,7 @@ func TestProjectController_Update(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -369,7 +373,7 @@ func TestProjectController_AddMember(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqAddProjectMember{Email: "u@t.com", Role: "MEMBER"},
@@ -381,47 +385,47 @@ func TestProjectController_AddMember(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
 			reqBody:        structs.ReqAddProjectMember{Email: "u@t.com", Role: "MEMBER"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
 			reqBody:        structs.ReqAddProjectMember{Email: "u@t.com", Role: "MEMBER"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "validation_error_missing_email",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			reqBody:        structs.ReqAddProjectMember{Email: "", Role: "MEMBER"},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqAddProjectMember{Email: "u@t.com", Role: "MEMBER"},
@@ -448,6 +452,7 @@ func TestProjectController_AddMember(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -469,7 +474,7 @@ func TestProjectController_RemoveMember(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			targetUIDParam: targetUID.String(),
@@ -481,37 +486,37 @@ func TestProjectController_RemoveMember(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
 			targetUIDParam: targetUID.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
 			targetUIDParam: targetUID.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_target_user_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			targetUIDParam: "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			targetUIDParam: targetUID.String(),
@@ -525,7 +530,7 @@ func TestProjectController_RemoveMember(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, mockSvc, ctrl := setupProjectControllerTest(t)
-			app.Delete("/:"+constants.ParamProjectID+"/members/:"+constants.ParamUid, func(c *fiber.Ctx) error {
+			app.Delete("/:"+constants.ParamProjectID+"/members/:"+constants.ParamUID, func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.RemoveMember(c)
 			})
@@ -536,6 +541,7 @@ func TestProjectController_RemoveMember(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -555,7 +561,7 @@ func TestProjectController_ListMembers(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -566,7 +572,7 @@ func TestProjectController_ListMembers(t *testing.T) {
 		{
 			name: "success_with_members",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -579,25 +585,25 @@ func TestProjectController_ListMembers(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -619,6 +625,7 @@ func TestProjectController_ListMembers(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.pidParam+"/members", nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -640,7 +647,7 @@ func TestProjectController_AddTeam(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqAddProjectTeam{TeamID: tid},
@@ -652,47 +659,47 @@ func TestProjectController_AddTeam(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
 			reqBody:        structs.ReqAddProjectTeam{TeamID: tid},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
 			reqBody:        structs.ReqAddProjectTeam{TeamID: tid},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "validation_error_missing_team_id",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			reqBody:        structs.ReqAddProjectTeam{TeamID: uuid.UUID{}},
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			reqBody:  structs.ReqAddProjectTeam{TeamID: tid},
@@ -719,6 +726,7 @@ func TestProjectController_AddTeam(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -740,7 +748,7 @@ func TestProjectController_RemoveTeam(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			tidParam: tid.String(),
@@ -752,37 +760,37 @@ func TestProjectController_RemoveTeam(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
 			tidParam:       tid.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
 			tidParam:       tid.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_team_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       pid.String(),
 			tidParam:       "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			tidParam: tid.String(),
@@ -807,6 +815,7 @@ func TestProjectController_RemoveTeam(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -826,7 +835,7 @@ func TestProjectController_ListTeams(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -837,7 +846,7 @@ func TestProjectController_ListTeams(t *testing.T) {
 		{
 			name: "success_with_teams",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -850,25 +859,25 @@ func TestProjectController_ListTeams(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			pidParam:       pid.String(),
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam:       "invalid-uuid",
-			setupMocks:     func(m *mockProjectService) {},
+			setupMocks:     func(_ *mockProjectService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			pidParam: pid.String(),
 			setupMocks: func(m *mockProjectService) {
@@ -890,6 +899,7 @@ func TestProjectController_ListTeams(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.pidParam+"/teams", nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

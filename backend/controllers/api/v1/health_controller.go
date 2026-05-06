@@ -10,11 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// HealthController handles health check requests.
 type HealthController struct {
 	healthService services.HealthService
 	logger        *zap.Logger
 }
 
+// NewHealthController creates a new instance of HealthController.
 func NewHealthController(healthService services.HealthService, logger *zap.Logger) (*HealthController, error) {
 	return &HealthController{
 		healthService: healthService,
@@ -46,11 +48,12 @@ func (hc *HealthController) Overall(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, "ok")
 }
 
+// Self returns the status of the application.
 func (hc *HealthController) Self(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, "ok")
 }
 
-// Database health check
+// Db handles database health check.
 // swagger:route GET /healthz/db Healthcheck dbHealthCheck
 //
 //	Database health check

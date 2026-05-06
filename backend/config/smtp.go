@@ -1,5 +1,6 @@
 package config
 
+// MailConfig defines the configuration for SMTP mail service.
 type MailConfig struct {
 	Username       string `envconfig:"MAIL_USERNAME"`
 	Password       string `envconfig:"MAIL_PASSWORD"`

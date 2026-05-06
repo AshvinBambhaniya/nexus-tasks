@@ -1,3 +1,4 @@
+// Package services provides business logic for the application.
 package services
 
 import (
@@ -11,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// CommentService defines the interface for comment-related business logic
 type CommentService interface {
 	CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error)
 	ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error)
@@ -23,6 +25,7 @@ type commentService struct {
 	logger         *zap.Logger
 }
 
+// NewCommentService creates a new comment service instance
 func NewCommentService(storage models.Storage, projectService ProjectService, logger *zap.Logger) CommentService {
 	return &commentService{
 		storage:        storage,

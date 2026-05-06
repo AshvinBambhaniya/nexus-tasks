@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupTaskTest(t *testing.T) (*taskService, *mockTaskRepository, *mockProjectRepository, *mockWorkspaceRepository, *mockStorage, *mockHub) {
+func setupTaskTest(_ *testing.T) (*taskService, *mockTaskRepository, *mockProjectRepository, *mockWorkspaceRepository, *mockStorage, *mockHub) {
 	mockTaskRepo := new(mockTaskRepository)
 	mockProjectRepo := new(mockProjectRepository)
 	mockWorkspaceRepo := new(mockWorkspaceRepository)

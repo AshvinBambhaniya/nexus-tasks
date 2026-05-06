@@ -1,3 +1,4 @@
+// Package main provides the entry point for the nexus-tasks application.
 package main
 
 import (

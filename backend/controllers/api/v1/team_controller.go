@@ -13,11 +13,13 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// TeamController handles team related requests.
 type TeamController struct {
 	teamService services.TeamService
 	logger      *zap.Logger
 }
 
+// NewTeamController creates a new instance of TeamController.
 func NewTeamController(teamService services.TeamService, logger *zap.Logger) (*TeamController, error) {
 	return &TeamController{
 		teamService: teamService,
@@ -25,17 +27,18 @@ func NewTeamController(teamService services.TeamService, logger *zap.Logger) (*T
 	}, nil
 }
 
+// Create handles the creation of a new team in a workspace.
 func (ctrl *TeamController) Create(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	var req structs.ReqCreateTeam
@@ -65,11 +68,12 @@ func (ctrl *TeamController) Create(c *fiber.Ctx) error {
 	})
 }
 
+// List handles listing all teams in a workspace.
 func (ctrl *TeamController) List(c *fiber.Ctx) error {
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	teams, err := ctrl.teamService.ListTeamsByWorkspaceID(wsID)
@@ -91,11 +95,12 @@ func (ctrl *TeamController) List(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// Get handles fetching a single team by its ID, including its projects.
 func (ctrl *TeamController) Get(c *fiber.Ctx) error {
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
 	teamWithProjects, err := ctrl.teamService.GetTeam(teamID)
@@ -106,23 +111,24 @@ func (ctrl *TeamController) Get(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, teamWithProjects)
 }
 
+// Update handles updating an existing team.
 func (ctrl *TeamController) Update(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
 	var req structs.ReqUpdateTeam
@@ -143,23 +149,24 @@ func (ctrl *TeamController) Update(c *fiber.Ctx) error {
 	})
 }
 
+// Delete handles deleting a team.
 func (ctrl *TeamController) Delete(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
 	err = ctrl.teamService.DeleteTeam(uid, wsID, teamID)
@@ -167,26 +174,27 @@ func (ctrl *TeamController) Delete(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Team deleted"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgTeamDeleted})
 }
 
+// AddMember handles adding a new member to a team.
 func (ctrl *TeamController) AddMember(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
 	var req structs.ReqAddTeamMember
@@ -199,32 +207,33 @@ func (ctrl *TeamController) AddMember(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member added"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgMemberAdded})
 }
 
+// RemoveMember handles removing a member from a team.
 func (ctrl *TeamController) RemoveMember(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
-	targetUserIDStr := c.Params(constants.ParamUid)
+	targetUserIDStr := c.Params(constants.ParamUID)
 	targetUserID, err := uuid.Parse(targetUserIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid target user id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTargetUserID)
 	}
 
 	err = ctrl.teamService.RemoveMember(uid, wsID, teamID, targetUserID)
@@ -232,17 +241,18 @@ func (ctrl *TeamController) RemoveMember(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member removed"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgMemberRemoved})
 }
 
+// ListMembers handles listing all members of a team.
 func (ctrl *TeamController) ListMembers(c *fiber.Ctx) error {
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
-	members, err := ctrl.teamService.ListMembersByTeamId(teamID)
+	members, err := ctrl.teamService.ListMembersByTeamID(teamID)
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}

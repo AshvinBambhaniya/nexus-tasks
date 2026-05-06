@@ -13,7 +13,7 @@ func init() {
 	}
 }
 
-// Register all worker struct here befour run worker for proper unmarshalling
+// RegisterWorkerStruct registers all worker structs for proper unmarshalling.
 func RegisterWorkerStruct() []interface{} {
 	return []interface{}{
 		WelcomeMail{},
@@ -26,7 +26,7 @@ type Handler interface {
 	Handle() error
 }
 
-// process all worker struct and call Handle function according to struct
+// Process handles worker messages by decoding them into the appropriate struct and calling its Handle method.
 func Process(msg *message.Message) error {
 	buf := bytes.NewBuffer(msg.Payload)
 	dec := gob.NewDecoder(buf)

@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupTeamTest(t *testing.T) (*teamService, *mockTeamRepository, *mockWorkspaceRepository, *mockStorage) {
+func setupTeamTest(_ *testing.T) (*teamService, *mockTeamRepository, *mockWorkspaceRepository, *mockStorage) {
 	mockTeamRepo := new(mockTeamRepository)
 	mockWorkspaceRepo := new(mockWorkspaceRepository)
 	mockStor := new(mockStorage)
@@ -426,13 +426,13 @@ func TestTeamService_RemoveMember(t *testing.T) {
 
 }
 
-func TestTeamService_ListMembersByTeamId(t *testing.T) {
+func TestTeamService_ListMembersByTeamID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		svc, mt, _, _ := setupTeamTest(t)
 		teamID := uuid.New()
-		mt.On("ListMembersByTeamId", teamID).Return([]models.TeamMemberWithUser{{Email: "u1@test.com"}}, nil)
+		mt.On("ListMembersByTeamID", teamID).Return([]models.TeamMemberWithUser{{Email: "u1@test.com"}}, nil)
 
-		res, err := svc.ListMembersByTeamId(teamID)
+		res, err := svc.ListMembersByTeamID(teamID)
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
 	})

@@ -1,3 +1,4 @@
+// Package monitoring provides monitoring and error tracking services.
 package monitoring
 
 import (
@@ -8,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// InitSentry initializes the Sentry SDK
 func InitSentry(cfg config.SentryConfig, logger *zap.Logger) error {
 	if !cfg.IsEnabled {
 		logger.Info("Sentry is disabled")
@@ -35,6 +37,7 @@ func InitSentry(cfg config.SentryConfig, logger *zap.Logger) error {
 	return nil
 }
 
+// CloseSentry flushes any remaining Sentry events and closes the client
 func CloseSentry(cfg config.SentryConfig, logger *zap.Logger) {
 	if !cfg.IsEnabled {
 		logger.Info("Sentry is disabled")

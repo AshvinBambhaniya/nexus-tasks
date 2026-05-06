@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// WebsocketController handles websocket connections.
 type WebsocketController struct {
 	hub              realtime.IHub
 	websocketService services.WebsocketService
@@ -20,6 +21,7 @@ type WebsocketController struct {
 	logger           *zap.Logger
 }
 
+// NewWebsocketController creates a new instance of WebsocketController.
 func NewWebsocketController(hub realtime.IHub, websocketService services.WebsocketService, cfg *config.AppConfig, logger *zap.Logger) (*WebsocketController, error) {
 	return &WebsocketController{
 		hub:              hub,
@@ -57,44 +59,44 @@ func (ctrl *WebsocketController) UpgradeMiddleware(c *fiber.Ctx) error {
 	// Let's keep it consistent with what the user had or improve it if it was a bug.
 	// The original code:
 	// uid, err := strconv.Atoi(uidStr)
-	// c.Locals(constants.ContextUid, uid)
+	// c.Locals(constants.ContextUID, uid)
 	// Then in HandleWorkspaceConnection:
-	// uidStr := c.Locals(constants.ContextUid).(string) // This would panic if it was int!
+	// uidStr := c.Locals(constants.ContextUID).(string) // This would panic if it was int!
 
 	// I'll fix it to use string UID as expected by HandleWorkspaceConnection.
-	c.Locals(constants.ContextUid, uidStr)
+	c.Locals(constants.ContextUID, uidStr)
 
 	return c.Next()
 }
 
 // HandleWorkspaceConnection handles /ws/:workspaceId
 func (ctrl *WebsocketController) HandleWorkspaceConnection(c *websocket.Conn) {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	workspaceIDStr := c.Params("id")
 	workspaceID, err := uuid.Parse(workspaceIDStr)
 	if err != nil {
-		if err := c.WriteJSON(fiber.Map{"error": "Invalid workspace ID"}); err != nil {
+		if err := c.WriteJSON(fiber.Map{constants.PropError: constants.ErrInvalidWorkspaceID}); err != nil {
 			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
 		}
-		c.Close()
+		_ = c.Close()
 		return
 	}
 
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		if err := c.WriteJSON(fiber.Map{"error": "Invalid user ID"}); err != nil {
+		if err := c.WriteJSON(fiber.Map{constants.PropError: constants.ErrInvalidUserID}); err != nil {
 			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
 		}
-		c.Close()
+		_ = c.Close()
 		return
 	}
 
 	topics, err := ctrl.websocketService.GetConnectionTopics(uid, workspaceID)
 	if err != nil {
-		if err := c.WriteJSON(fiber.Map{"error": err.Error()}); err != nil {
+		if err := c.WriteJSON(fiber.Map{constants.PropError: err.Error()}); err != nil {
 			ctrl.logger.Error("failed to write websocket message", zap.Error(err))
 		}
-		c.Close()
+		_ = c.Close()
 		return
 	}
 
@@ -108,7 +110,7 @@ func (ctrl *WebsocketController) HandleWorkspaceConnection(c *websocket.Conn) {
 		for _, topic := range topics {
 			ctrl.hub.Unsubscribe(topic, c)
 		}
-		c.Close()
+		_ = c.Close()
 	}()
 
 	for {

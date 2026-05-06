@@ -53,7 +53,7 @@ func (m *mockWorkspaceService) ListWorkspacesByUserID(userID uuid.UUID) ([]model
 	return getMockArg[[]models.Workspace](args, 0), args.Error(1)
 }
 
-func (m *mockWorkspaceService) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
+func (m *mockWorkspaceService) ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
 	args := m.Called(workspaceID)
 	return getMockArg[[]models.WorkspaceMemberWithUser](args, 0), args.Error(1)
 }
@@ -171,7 +171,7 @@ func (m *mockTeamService) RemoveMember(requestorID, workspaceID, teamID, userID 
 	return args.Error(0)
 }
 
-func (m *mockTeamService) ListMembersByTeamId(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
+func (m *mockTeamService) ListMembersByTeamID(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
 	args := m.Called(teamID)
 	return getMockArg[[]models.TeamMemberWithUser](args, 0), args.Error(1)
 }

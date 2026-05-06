@@ -13,11 +13,13 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// ProjectController handles project related requests.
 type ProjectController struct {
 	projectService services.ProjectService
 	logger         *zap.Logger
 }
 
+// NewProjectController creates a new instance of ProjectController.
 func NewProjectController(projectService services.ProjectService, logger *zap.Logger) (*ProjectController, error) {
 
 	return &ProjectController{
@@ -26,17 +28,18 @@ func NewProjectController(projectService services.ProjectService, logger *zap.Lo
 	}, nil
 }
 
+// Create handles the creation of a new project.
 func (ctrl *ProjectController) Create(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	var req structs.ReqCreateProject
@@ -68,11 +71,12 @@ func (ctrl *ProjectController) Create(c *fiber.Ctx) error {
 	})
 }
 
+// List handles listing all projects in a workspace.
 func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	projects, err := ctrl.projectService.ListByWorkspaceID(wsID)
@@ -95,17 +99,18 @@ func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// Get handles fetching a single project by its ID.
 func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	project, err := ctrl.projectService.GetProject(uid, projectID)
@@ -123,17 +128,18 @@ func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
 	})
 }
 
+// Update handles updating an existing project.
 func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	var req structs.ReqUpdateProject
@@ -156,17 +162,18 @@ func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
 	})
 }
 
+// AddMember handles adding a new member to a project.
 func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	var req structs.ReqAddProjectMember
@@ -193,23 +200,24 @@ func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
 	})
 }
 
+// RemoveMember handles removing a member from a project.
 func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
-	targetUserIDStr := c.Params(constants.ParamUid)
+	targetUserIDStr := c.Params(constants.ParamUID)
 	targetUserID, err := uuid.Parse(targetUserIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid target user id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTargetUserID)
 	}
 
 	err = ctrl.projectService.RemoveMember(uid, projectID, targetUserID)
@@ -217,20 +225,21 @@ func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member removed"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgMemberRemoved})
 }
 
+// ListMembers handles listing all members of a project.
 func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	members, err := ctrl.projectService.ListMembers(uid, projectID)
@@ -241,17 +250,18 @@ func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, members)
 }
 
+// AddTeam handles adding a team to a project.
 func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	var req structs.ReqAddProjectTeam
@@ -272,23 +282,24 @@ func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, projectTeam)
 }
 
+// RemoveTeam handles removing a team from a project.
 func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid team id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTeamID)
 	}
 
 	err = ctrl.projectService.RemoveTeam(uid, projectID, teamID)
@@ -296,20 +307,21 @@ func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Team removed"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgTeamRemoved})
 }
 
+// ListTeams handles listing all teams associated with a project.
 func (ctrl *ProjectController) ListTeams(c *fiber.Ctx) error {
-	uidStr := utils.GetString(c.Locals(constants.ContextUid))
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	teams, err := ctrl.projectService.ListTeams(uid, projectID)

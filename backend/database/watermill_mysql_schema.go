@@ -14,13 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// custom schema for mysql database
+// MySQLSchema is a custom schema for mysql database.
 // source: https://github.com/ThreeDotsLabs/watermill-sql/blob/master/pkg/sql/schema_adapter_mysql.go
 type MySQLSchema struct {
 	GenerateMessagesTableName func(topic string) string
 	SubscribeBatchSize        int
 }
 
+// SchemaInitializingQueries returns SQL queries for initializing the database schema.
 func (s MySQLSchema) SchemaInitializingQueries(topic string) []string {
 	createMessagesTable := strings.Join([]string{
 		"CREATE TABLE IF NOT EXISTS " + s.MessagesTable(topic) + " (",
@@ -35,6 +36,7 @@ func (s MySQLSchema) SchemaInitializingQueries(topic string) []string {
 	return []string{createMessagesTable}
 }
 
+// InsertQuery returns a SQL query for inserting messages.
 func (s MySQLSchema) InsertQuery(topic string, msgs message.Messages) (string, []interface{}, error) {
 	insertQuery := fmt.Sprintf(
 		`INSERT INTO %s (uuid, payload, metadata) VALUES %s`,
@@ -58,6 +60,7 @@ func (s MySQLSchema) batchSize() int {
 	return s.SubscribeBatchSize
 }
 
+// SelectQuery returns a SQL query for selecting messages.
 func (s MySQLSchema) SelectQuery(topic string, consumerGroup string, offsetsAdapter sql.OffsetsAdapter) (string, []interface{}) {
 	nextOffsetQuery, nextOffsetArgs := offsetsAdapter.NextOffsetQuery(topic, consumerGroup)
 	selectQuery := `
@@ -71,6 +74,7 @@ func (s MySQLSchema) SelectQuery(topic string, consumerGroup string, offsetsAdap
 	return selectQuery, nextOffsetArgs
 }
 
+// UnmarshalMessage unmarshals a database row into a Watermill message.
 func (s MySQLSchema) UnmarshalMessage(row sql.Scanner) (sql.Row, error) {
 	r := sql.Row{}
 	err := row.Scan(&r.Offset, &r.UUID, &r.Payload, &r.Metadata)
@@ -92,6 +96,7 @@ func (s MySQLSchema) UnmarshalMessage(row sql.Scanner) (sql.Row, error) {
 	return r, nil
 }
 
+// MessagesTable returns the name of the messages table for a given topic.
 func (s MySQLSchema) MessagesTable(topic string) string {
 	if s.GenerateMessagesTableName != nil {
 		return s.GenerateMessagesTableName(topic)
@@ -99,12 +104,14 @@ func (s MySQLSchema) MessagesTable(topic string) string {
 	return fmt.Sprintf("`watermill_%s`", topic)
 }
 
+// SubscribeIsolationLevel returns the isolation level for subscribing.
 func (s MySQLSchema) SubscribeIsolationLevel() stdSQL.IsolationLevel {
 	// MySQL requires serializable isolation level for not losing messages.
 	return stdSQL.LevelSerializable
 }
 
-func MysqlDBConnection(cfg config.Sql) (*stdSQL.DB, error) {
+// MysqlDBConnection creates a new connection to the MySQL database.
+func MysqlDBConnection(cfg config.SQL) (*stdSQL.DB, error) {
 	dbURL := cfg.Username + ":" + cfg.Password + "@tcp(" + cfg.Host + ":" + strconv.Itoa(cfg.Port) + ")/" + cfg.Db
 
 	db, err := stdSQL.Open("mysql", dbURL)

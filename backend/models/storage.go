@@ -17,6 +17,7 @@ type DbExecutor interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }
 
+// Storage defines the interface for the entire data access layer.
 type Storage interface {
 	Users() UserRepository
 	Workspaces() WorkspaceRepository

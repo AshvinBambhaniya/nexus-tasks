@@ -58,7 +58,7 @@ func (m *mockStorage) Comments() models.CommentRepository {
 	return getMockArg[models.CommentRepository](args, 0)
 }
 
-func (m *mockStorage) Atomic(ctx context.Context, fn func(models.Storage) error) error {
+func (m *mockStorage) Atomic(_ context.Context, fn func(models.Storage) error) error {
 	// For testing, we usually just execute the function with the mock itself
 	return fn(m)
 }
@@ -103,7 +103,7 @@ func (m *mockWorkspaceRepository) ListWorkspacesByUserID(userID uuid.UUID) ([]mo
 	return getMockArg[[]models.Workspace](args, 0), args.Error(1)
 }
 
-func (m *mockWorkspaceRepository) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
+func (m *mockWorkspaceRepository) ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
 	args := m.Called(workspaceID)
 	return getMockArg[[]models.WorkspaceMemberWithUser](args, 0), args.Error(1)
 }
@@ -152,7 +152,7 @@ func (m *mockTeamRepository) AddMember(member models.TeamMember) error {
 	return args.Error(0)
 }
 
-func (m *mockTeamRepository) ListMembersByTeamId(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
+func (m *mockTeamRepository) ListMembersByTeamID(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
 	args := m.Called(teamID)
 	return getMockArg[[]models.TeamMemberWithUser](args, 0), args.Error(1)
 }
@@ -401,7 +401,7 @@ func (m *mockWorkspaceService) ListWorkspacesByUserID(userID uuid.UUID) ([]model
 	return getMockArg[[]models.Workspace](args, 0), args.Error(1)
 }
 
-func (m *mockWorkspaceService) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
+func (m *mockWorkspaceService) ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
 	args := m.Called(workspaceID)
 	return getMockArg[[]models.WorkspaceMemberWithUser](args, 0), args.Error(1)
 }

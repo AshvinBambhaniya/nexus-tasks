@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// TeamService defines the interface for team-related business logic
 type TeamService interface {
 	CreateTeam(userID uuid.UUID, workspaceID uuid.UUID, req structs.ReqCreateTeam) (models.Team, error)
 	GetTeam(teamID uuid.UUID) (structs.ResTeamWithProjects, error)
@@ -18,7 +19,7 @@ type TeamService interface {
 	DeleteTeam(requestorID, workspaceID, teamID uuid.UUID) error
 	AddMember(requestorID, workspaceID, teamID uuid.UUID, email, role string) error
 	RemoveMember(requestorID, workspaceID, teamID, userID uuid.UUID) error
-	ListMembersByTeamId(teamID uuid.UUID) ([]models.TeamMemberWithUser, error)
+	ListMembersByTeamID(teamID uuid.UUID) ([]models.TeamMemberWithUser, error)
 }
 
 type teamService struct {
@@ -26,6 +27,7 @@ type teamService struct {
 	logger  *zap.Logger
 }
 
+// NewTeamService creates a new team service instance
 func NewTeamService(storage models.Storage, logger *zap.Logger) TeamService {
 	return &teamService{
 		storage: storage,
@@ -245,6 +247,6 @@ func (s *teamService) RemoveMember(requestorID, workspaceID, teamID, userID uuid
 	return nil
 }
 
-func (s *teamService) ListMembersByTeamId(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
-	return s.storage.Teams().ListMembersByTeamId(teamID)
+func (s *teamService) ListMembersByTeamID(teamID uuid.UUID) ([]models.TeamMemberWithUser, error) {
+	return s.storage.Teams().ListMembersByTeamID(teamID)
 }

@@ -1,3 +1,4 @@
+// Package realtime provides websocket-based real-time communication features.
 package realtime
 
 import (
@@ -40,6 +41,7 @@ type message struct {
 	payload interface{}
 }
 
+// NewHub creates a new instance of Hub.
 func NewHub(logger *zap.Logger) *Hub {
 	return &Hub{
 		broadcast:  make(chan message),
@@ -50,6 +52,7 @@ func NewHub(logger *zap.Logger) *Hub {
 	}
 }
 
+// Run starts the hub's main loop to handle client registrations and message broadcasting.
 func (h *Hub) Run() {
 	for {
 		select {
@@ -84,7 +87,7 @@ func (h *Hub) Run() {
 				for client := range clients {
 					if err := client.WriteJSON(msg.payload); err != nil {
 						h.logger.Error("error writing json to websocket", zap.Error(err))
-						client.Close()
+						_ = client.Close()
 						// We should schedule unregister, but careful of deadlock if channel is full.
 						// Typically in this loop, we can just remove it directly if we had the lock,
 						// but since we are iterating, we need to be safe.
@@ -98,14 +101,17 @@ func (h *Hub) Run() {
 
 // Public API
 
+// Subscribe registers a client connection to a specific topic.
 func (h *Hub) Subscribe(topic string, conn *websocket.Conn) {
 	h.register <- subscription{topic: topic, conn: conn}
 }
 
+// Unsubscribe removes a client connection from a specific topic.
 func (h *Hub) Unsubscribe(topic string, conn *websocket.Conn) {
 	h.unregister <- subscription{topic: topic, conn: conn}
 }
 
+// Broadcast sends a message to all clients subscribed to a specific topic.
 func (h *Hub) Broadcast(topic string, payload interface{}) {
 	h.broadcast <- message{topic: topic, payload: payload}
 }

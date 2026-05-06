@@ -1,5 +1,6 @@
 package config
 
+// SentryConfig defines the configuration for Sentry integration.
 type SentryConfig struct {
 	IsEnabled      bool   `envconfig:"SENTRY_ENABLED"`
 	DSN            string `envconfig:"SENTRY_DSN"`

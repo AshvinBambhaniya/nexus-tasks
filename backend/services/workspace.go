@@ -14,10 +14,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// WorkspaceService defines the interface for workspace-related business logic
 type WorkspaceService interface {
 	CreateWorkspace(ownerID uuid.UUID, req structs.ReqCreateWorkspace) (models.Workspace, error)
 	ListWorkspacesByUserID(userID uuid.UUID) ([]models.Workspace, error)
-	ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error)
+	ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error)
 	InviteMember(requestorID, workspaceID uuid.UUID, email string) error
 	RemoveMember(requestorID, workspaceID, userID uuid.UUID) error
 	ValidateAccess(userID, workspaceID uuid.UUID) (models.WorkspaceMember, error)
@@ -25,11 +26,12 @@ type WorkspaceService interface {
 
 type workspaceService struct {
 	storage   models.Storage
-	publisher watermill.Publisher
+	publisher watermill.IPublisher
 	logger    *zap.Logger
 }
 
-func NewWorkspaceService(storage models.Storage, logger *zap.Logger, publisher watermill.Publisher) WorkspaceService {
+// NewWorkspaceService creates a new workspace service instance
+func NewWorkspaceService(storage models.Storage, logger *zap.Logger, publisher watermill.IPublisher) WorkspaceService {
 	return &workspaceService{
 		storage:   storage,
 		publisher: publisher,
@@ -80,8 +82,8 @@ func (s *workspaceService) ListWorkspacesByUserID(userID uuid.UUID) ([]models.Wo
 	return s.storage.Workspaces().ListWorkspacesByUserID(userID)
 }
 
-func (s *workspaceService) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
-	return s.storage.Workspaces().ListMembersByWorkspaceId(workspaceID)
+func (s *workspaceService) ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]models.WorkspaceMemberWithUser, error) {
+	return s.storage.Workspaces().ListMembersByWorkspaceID(workspaceID)
 }
 
 func (s *workspaceService) InviteMember(requestorID, workspaceID uuid.UUID, email string) error {

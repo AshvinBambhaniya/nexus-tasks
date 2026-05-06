@@ -52,6 +52,7 @@ func TestHealthController_Overall(t *testing.T) {
 			req := httptest.NewRequest("GET", "/healthz", nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)
@@ -67,6 +68,7 @@ func TestHealthController_Self(t *testing.T) {
 		req := httptest.NewRequest("GET", "/healthz/self", nil)
 		resp, err := app.Test(req)
 		assert.NoError(t, err)
+		defer func() { _ = resp.Body.Close() }()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -103,6 +105,7 @@ func TestHealthController_Db(t *testing.T) {
 			req := httptest.NewRequest("GET", "/healthz/db", nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)

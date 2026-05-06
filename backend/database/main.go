@@ -1,3 +1,4 @@
+// Package database provides functionality for database connections and migrations.
 package database
 
 import (
@@ -18,6 +19,7 @@ var db *sql.DB
 var dbURL string
 var err error
 
+// Database dialects
 const (
 	POSTGRES = "postgres"
 	MYSQL    = "mysql"

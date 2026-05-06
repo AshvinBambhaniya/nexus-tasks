@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupProjectTest(t *testing.T) (*projectService, *mockProjectRepository, *mockWorkspaceRepository, *mockStorage) {
+func setupProjectTest(_ *testing.T) (*projectService, *mockProjectRepository, *mockWorkspaceRepository, *mockStorage) {
 	mockProjectRepo := new(mockProjectRepository)
 	mockWorkspaceRepo := new(mockWorkspaceRepository)
 	mockStor := new(mockStorage)
@@ -366,7 +366,7 @@ func TestProjectService_ListMembers(t *testing.T) {
 			{UserID: userID, Email: "admin@test.com", Role: models.ProjectRoleAdmin},
 		}, nil)
 		mp.On("GetTeams", projectID).Return([]models.ProjectTeamWithDetails{{TeamID: teamID}}, nil)
-		mt.On("ListMembersByTeamId", teamID).Return([]models.TeamMemberWithUser{
+		mt.On("ListMembersByTeamID", teamID).Return([]models.TeamMemberWithUser{
 			{UserID: uuid.New(), Email: "team@test.com"},
 		}, nil)
 

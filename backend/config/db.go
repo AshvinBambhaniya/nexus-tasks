@@ -1,3 +1,4 @@
+// Package config defines the configuration structures for the application.
 package config
 
 // DBConfig type of db config object

@@ -46,7 +46,7 @@ func TestTaskController_CreateTask(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			reqBody:        structs.ReqCreateTask{Title: "Task 1"},
@@ -58,47 +58,47 @@ func TestTaskController_CreateTask(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			projectIDParam: projectID.String(),
 			reqBody:        structs.ReqCreateTask{Title: "Task 1"},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: "invalid-uuid",
 			reqBody:        structs.ReqCreateTask{Title: "Task 1"},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "validation_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			reqBody:        structs.ReqCreateTask{Title: ""},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			reqBody:        structs.ReqCreateTask{Title: "Task 1"},
@@ -125,6 +125,7 @@ func TestTaskController_CreateTask(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -145,7 +146,7 @@ func TestTaskController_ListProjectTasks(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -156,7 +157,7 @@ func TestTaskController_ListProjectTasks(t *testing.T) {
 		{
 			name: "success_with_filters",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			queryParams:    "?status=TODO&assignee_id=" + uuid.New().String(),
@@ -168,25 +169,25 @@ func TestTaskController_ListProjectTasks(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			projectIDParam: projectID.String(),
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_project_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: "invalid-uuid",
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			projectIDParam: projectID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -208,6 +209,7 @@ func TestTaskController_ListProjectTasks(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.projectIDParam+tt.queryParams, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -227,7 +229,7 @@ func TestTaskController_GetTask(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -238,25 +240,25 @@ func TestTaskController_GetTask(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			taskIDParam:    taskID.String(),
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_task_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    "invalid-uuid",
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "task_not_found",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -278,6 +280,7 @@ func TestTaskController_GetTask(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.taskIDParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -298,7 +301,7 @@ func TestTaskController_UpdateTask(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			reqBody:     structs.ReqUpdateTask{Title: "Updated"},
@@ -310,37 +313,37 @@ func TestTaskController_UpdateTask(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			taskIDParam:    taskID.String(),
 			reqBody:        structs.ReqUpdateTask{Title: "Updated"},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_task_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    "invalid-uuid",
 			reqBody:        structs.ReqUpdateTask{Title: "Updated"},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    taskID.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			reqBody:     structs.ReqUpdateTask{Title: "Updated"},
@@ -367,6 +370,7 @@ func TestTaskController_UpdateTask(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -386,7 +390,7 @@ func TestTaskController_DeleteTask(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -397,25 +401,25 @@ func TestTaskController_DeleteTask(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			taskIDParam:    taskID.String(),
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_task_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    "invalid-uuid",
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
@@ -437,6 +441,7 @@ func TestTaskController_DeleteTask(t *testing.T) {
 			req := httptest.NewRequest("DELETE", "/"+tt.taskIDParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -454,7 +459,7 @@ func TestTaskController_ListMyTasks(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			setupMocks: func(mt *mockTaskService) {
 				mt.On("ListMyTasks", uid).Return([]models.Task{{ID: uuid.New()}}, nil)
@@ -464,15 +469,15 @@ func TestTaskController_ListMyTasks(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
-			setupMocks:     func(mt *mockTaskService) {},
+			setupMocks:     func(_ *mockTaskService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			setupMocks: func(mt *mockTaskService) {
 				mt.On("ListMyTasks", uid).Return(nil, errors.New("internal error"))
@@ -493,6 +498,7 @@ func TestTaskController_ListMyTasks(t *testing.T) {
 			req := httptest.NewRequest("GET", "/", nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -513,7 +519,7 @@ func TestTaskController_CreateComment(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			reqBody:     structs.ReqCreateComment{Content: "Nice task"},
@@ -525,47 +531,47 @@ func TestTaskController_CreateComment(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			taskIDParam:    taskID.String(),
 			reqBody:        structs.ReqCreateComment{Content: "Nice task"},
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_task_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    "invalid-uuid",
 			reqBody:        structs.ReqCreateComment{Content: "Nice task"},
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "invalid_request_body",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    taskID.String(),
 			reqBody:        "invalid json",
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "validation_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    taskID.String(),
 			reqBody:        structs.ReqCreateComment{Content: ""},
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			reqBody:     structs.ReqCreateComment{Content: "Nice task"},
@@ -592,6 +598,7 @@ func TestTaskController_CreateComment(t *testing.T) {
 
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -611,7 +618,7 @@ func TestTaskController_ListTaskComments(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mc *mockCommentService) {
@@ -622,25 +629,25 @@ func TestTaskController_ListTaskComments(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			taskIDParam:    taskID.String(),
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_task_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam:    "invalid-uuid",
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mc *mockCommentService) {
@@ -662,6 +669,7 @@ func TestTaskController_ListTaskComments(t *testing.T) {
 			req := httptest.NewRequest("GET", "/"+tt.taskIDParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -681,7 +689,7 @@ func TestTaskController_DeleteComment(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			commentIDParam: commentID.String(),
 			setupMocks: func(mc *mockCommentService) {
@@ -692,25 +700,25 @@ func TestTaskController_DeleteComment(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			commentIDParam: commentID.String(),
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid_comment_id_param",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			commentIDParam: "invalid-uuid",
-			setupMocks:     func(mc *mockCommentService) {},
+			setupMocks:     func(_ *mockCommentService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "service_error",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, uid.String())
+				c.Locals(constants.ContextUID, uid.String())
 			},
 			commentIDParam: commentID.String(),
 			setupMocks: func(mc *mockCommentService) {
@@ -732,6 +740,7 @@ func TestTaskController_DeleteComment(t *testing.T) {
 			req := httptest.NewRequest("DELETE", "/"+tt.commentIDParam, nil)
 			resp, err := app.Test(req)
 			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}

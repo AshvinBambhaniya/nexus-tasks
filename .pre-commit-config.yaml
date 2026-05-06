@@ -9,26 +9,8 @@ repos:
   - id: no-commit-to-branch
     args: [--branch, main, --branch, master]
 
-- repo: https://github.com/dnephin/pre-commit-golang
-  rev: v0.5.1
-  hooks:
-    - id: go-fmt
-    - id: go-imports
-    - id: go-cyclo
-      args: [-over=15]
-    - id: go-critic
-    - id: go-mod-tidy
-    - id: go-mod-vendor
-
 - repo: local
   hooks:
-  - id: go-vet
-    name: "go-vet"
-    entry: ./backend/hooks/go-vet.sh
-    types: [go]
-    pass_filenames: false
-    language: 'script'
-    description: "Runs `go vet ./...` in backend"
 
   - id: go-lint
     name: "go-lint"

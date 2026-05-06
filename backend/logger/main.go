@@ -1,3 +1,4 @@
+// Package logger provides functionality for initializing and configuring zap logger.
 package logger
 
 import (

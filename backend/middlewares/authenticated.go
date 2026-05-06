@@ -1,3 +1,4 @@
+// Package middlewares provides HTTP middleware for the application.
 package middlewares
 
 import (
@@ -12,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Authenticated is a middleware that validates the JWT token in the cookie.
 func (m *Middleware) Authenticated(c *fiber.Ctx) error {
 	token := c.Cookies(constants.CookieUser, "")
 	if token == "" {
@@ -28,6 +30,6 @@ func (m *Middleware) Authenticated(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, constants.ErrUnauthenticated)
 	}
 
-	c.Locals(constants.ContextUid, claims.Subject())
+	c.Locals(constants.ContextUID, claims.Subject())
 	return c.Next()
 }

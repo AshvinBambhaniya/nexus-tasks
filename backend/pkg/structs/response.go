@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// ResUser defines the response payload for a user.
 type ResUser struct {
 	ID       uuid.UUID `json:"id"`
 	Email    string    `json:"email"`
@@ -14,6 +15,7 @@ type ResUser struct {
 	IsActive bool      `json:"is_active"`
 }
 
+// ResWorkspace defines the response payload for a workspace.
 type ResWorkspace struct {
 	ID      uuid.UUID            `json:"id"`
 	Name    string               `json:"name"`
@@ -21,6 +23,7 @@ type ResWorkspace struct {
 	OwnerID uuid.UUID            `json:"owner_id"`
 }
 
+// ResWorkspaceMember defines the response payload for a workspace member.
 type ResWorkspaceMember struct {
 	WorkspaceID uuid.UUID            `json:"workspace_id"`
 	UserID      uuid.UUID            `json:"user_id"`
@@ -28,6 +31,7 @@ type ResWorkspaceMember struct {
 	User        ResUser              `json:"user"`
 }
 
+// ResTeam defines the response payload for a team.
 type ResTeam struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
@@ -35,11 +39,13 @@ type ResTeam struct {
 	WorkspaceID uuid.UUID `json:"workspace_id"`
 }
 
+// ResTeamWithProjects defines the response payload for a team with its projects.
 type ResTeamWithProjects struct {
 	ResTeam
 	Projects []models.Project `json:"projects"`
 }
 
+// ResTeamMember defines the response payload for a team member.
 type ResTeamMember struct {
 	TeamID uuid.UUID       `json:"team_id"`
 	UserID uuid.UUID       `json:"user_id"`
@@ -47,6 +53,7 @@ type ResTeamMember struct {
 	User   ResUser         `json:"user"`
 }
 
+// ResProject defines the response payload for a project.
 type ResProject struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
@@ -56,6 +63,7 @@ type ResProject struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+// ResProjectMember defines the response payload for a project member.
 type ResProjectMember struct {
 	UserID   uuid.UUID          `json:"user_id"`
 	Email    string             `json:"email"`
@@ -63,12 +71,14 @@ type ResProjectMember struct {
 	IsDirect bool               `json:"is_direct"`
 }
 
+// ResProjectTeam defines the response payload for a project team.
 type ResProjectTeam struct {
 	ProjectID uuid.UUID `json:"project_id"`
 	TeamID    uuid.UUID `json:"team_id"`
 	TeamName  string    `json:"team_name"`
 }
 
+// ResComment defines the response payload for a comment.
 type ResComment struct {
 	ID        uuid.UUID `json:"id"`
 	Content   string    `json:"content"`
@@ -79,6 +89,7 @@ type ResComment struct {
 	Author    ResUser   `json:"author"`
 }
 
+// ResTask defines the response payload for a task.
 type ResTask struct {
 	ID           uuid.UUID           `json:"id"`
 	Number       int                 `json:"number"`
@@ -98,6 +109,7 @@ type ResTask struct {
 	Author       *ResUser            `json:"author"`        // Expanded if needed
 }
 
+// ResTaskWithProject defines the response payload for a task with its project.
 type ResTaskWithProject struct {
 	ResTask
 	Project ResProject `json:"project"`
