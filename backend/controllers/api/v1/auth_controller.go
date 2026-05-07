@@ -1,3 +1,4 @@
+// Package v1 provides the version 1 of the API controllers.
 package v1
 
 import (
@@ -15,12 +16,16 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// AuthController handles authentication related requests.
 type AuthController struct {
 	userService services.UserService
 	logger      *zap.Logger
 	config      *config.AppConfig
 }
 
+const cookieSameSiteLax = "Lax"
+
+// NewAuthController creates a new instance of AuthController.
 func NewAuthController(userSvc services.UserService, logger *zap.Logger, cfg *config.AppConfig) (*AuthController, error) {
 	return &AuthController{
 		userService: userSvc,
@@ -29,6 +34,7 @@ func NewAuthController(userSvc services.UserService, logger *zap.Logger, cfg *co
 	}, nil
 }
 
+// Register handles user registration.
 func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 	var req structs.ReqRegisterUser
 	if err := c.BodyParser(&req); err != nil {
@@ -52,7 +58,7 @@ func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 		Value:    token,
 		HTTPOnly: true,
 		Secure:   false,
-		SameSite: "Lax",
+		SameSite: cookieSameSiteLax,
 		MaxAge:   ctrl.config.JwtExpirationHours * 60 * 60,
 	})
 
@@ -64,6 +70,7 @@ func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 	})
 }
 
+// Login handles user login and sets the authentication cookie.
 func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	var req structs.ReqLoginUser
 
@@ -87,33 +94,35 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 		Value:    token,
 		HTTPOnly: true,
 		Secure:   false,
-		SameSite: "Lax",
+		SameSite: cookieSameSiteLax,
 		MaxAge:   ctrl.config.JwtExpirationHours * 60 * 60,
 	})
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Login successful"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: "Login successful"})
 }
 
+// Logout handles user logout by clearing the authentication cookie.
 func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     constants.CookieUser,
 		Value:    "",
 		HTTPOnly: true,
 		Secure:   false,
-		SameSite: "Lax",
+		SameSite: cookieSameSiteLax,
 		Expires:  time.Now().Add(-24 * time.Hour),
 		MaxAge:   -1,
 	})
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Logout successful"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: "Logout successful"})
 }
 
+// Me returns the current authenticated user's information.
 func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 	// Got from middleware
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		ctrl.logger.Error("invalid user id in context", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
+		ctrl.logger.Error(constants.ErrInvalidUserID, zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	user, err := ctrl.userService.GetByID(uid)

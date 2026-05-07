@@ -13,7 +13,7 @@ import (
 
 // CheckAccess verifies if the authenticated user is a member of the workspace
 func (m *Middleware) CheckAccess(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
 		m.logger.Error("invalid user id in context", zap.Error(err))

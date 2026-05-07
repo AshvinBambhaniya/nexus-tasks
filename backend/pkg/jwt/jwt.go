@@ -1,3 +1,4 @@
+// Package jwt provides functionality for creating and parsing JWT tokens.
 package jwt
 
 import (
@@ -27,8 +28,8 @@ We are using symmetric key methodology for sign token
 
 // ParseToken parse, validate the jwt token
 // On valid token it returns the decoded token
-func ParseToken(Secret string, token string) (jwt.Token, error) {
-	key, err := jwk.FromRaw([]byte(Secret))
+func ParseToken(secret string, token string) (jwt.Token, error) {
+	key, err := jwk.FromRaw([]byte(secret))
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +38,7 @@ func ParseToken(Secret string, token string) (jwt.Token, error) {
 	return claims, err
 }
 
+// CreateToken creates a new JWT token with the given secret, subject and expiration time.
 func CreateToken(secret, sub string, exp time.Time) (string, error) {
 	stringToken := ""
 	token, err := jwt.NewBuilder().Subject(sub).Expiration(exp).Issuer(issuer).Build()

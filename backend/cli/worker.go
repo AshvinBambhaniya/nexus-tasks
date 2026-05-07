@@ -8,11 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetWorkerCommandDef(cfg config.AppConfig, logger *zap.Logger) cobra.Command {
+// GetWorkerCommandDef returns the worker command definition.
+func GetWorkerCommandDef(cfg config.AppConfig, _ *zap.Logger) cobra.Command {
 	workerCmd := cobra.Command{
 		Use:   "worker",
 		Short: "Start the background worker",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Get details from flag
 			topic, err := cmd.Flags().GetString("topic")
 			if err != nil {

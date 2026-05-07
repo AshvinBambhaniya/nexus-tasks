@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2/apiv1/pubsubpb"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/config"
 	"github.com/AshvinBambhaniya/nexus-tasks/database"
 	"github.com/Shopify/sarama"
 
 	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
+	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 
-	"github.com/ThreeDotsLabs/watermill-googlecloud/pkg/googlecloud"
+	"github.com/ThreeDotsLabs/watermill-googlecloud/v2/pkg/googlecloud"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -26,15 +27,17 @@ import (
 
 var logger watermill.LoggerAdapter
 
-type WatermillSubscriber struct {
+// Subscriber is a subscriber that uses Watermill.
+type Subscriber struct {
 	Subscriber message.Subscriber
 	Router     *message.Router
 }
 
-func InitSubscriber(cfg config.AppConfig, isDeadLetterQ bool) (*WatermillSubscriber, error) {
+// InitSubscriber initializes a new Subscriber.
+func InitSubscriber(cfg config.AppConfig, isDeadLetterQ bool) (*Subscriber, error) {
 	logger = watermill.NewStdLogger(cfg.MQ.Debug, cfg.MQ.Track)
 	if isDeadLetterQ {
-		return initSqlSub(cfg)
+		return initSQLSub(cfg)
 	}
 	switch cfg.MQ.Dialect {
 	case "amqp":
@@ -50,14 +53,14 @@ func InitSubscriber(cfg config.AppConfig, isDeadLetterQ bool) (*WatermillSubscri
 		return initGoogleCloudSub(cfg)
 
 	case "sql":
-		return initSqlSub(cfg)
+		return initSQLSub(cfg)
 	default:
 		return nil, nil
 	}
 }
 
-// InitRouter init router for add middleware,retry count,delay etc
-func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, MaxRetry int) (*WatermillSubscriber, error) {
+// InitRouter initializes the router for adding middleware, retry count, delay, etc.
+func (ws *Subscriber) InitRouter(cfg config.AppConfig, delayTime, maxRetry int) (*Subscriber, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
@@ -77,7 +80,7 @@ func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, MaxRe
 		middleware.CorrelationID,
 		poq,
 		middleware.Retry{
-			MaxRetries:      MaxRetry,
+			MaxRetries:      maxRetry,
 			Logger:          logger,
 			MaxInterval:     time.Millisecond * time.Duration(delayTime),
 			InitialInterval: time.Millisecond * time.Duration(delayTime),
@@ -91,7 +94,8 @@ func (ws *WatermillSubscriber) InitRouter(cfg config.AppConfig, delayTime, MaxRe
 	return ws, nil
 }
 
-func (ws *WatermillSubscriber) Run(topic, handlerName string, handlerFunc message.NoPublishHandlerFunc) error {
+// Run runs the subscriber with the given topic, handler name, and handler function.
+func (ws *Subscriber) Run(topic, handlerName string, handlerFunc message.NoPublishHandlerFunc) error {
 	if ws.Subscriber == nil {
 		return fmt.Errorf("subscriber is nil")
 	}
@@ -115,16 +119,16 @@ func (ws *WatermillSubscriber) Run(topic, handlerName string, handlerFunc messag
 	return err
 }
 
-func initAmqpSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
-	amqpConfig := amqp.NewDurableQueueConfig(cfg.MQ.Amqp.AmqbUrl)
+func initAmqpSub(cfg config.AppConfig) (*Subscriber, error) {
+	amqpConfig := amqp.NewDurableQueueConfig(cfg.MQ.Amqp.AmqpURL)
 	subscriber, err := amqp.NewSubscriber(
 		amqpConfig,
 		logger,
 	)
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }
 
-func initKafkaSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
+func initKafkaSub(cfg config.AppConfig) (*Subscriber, error) {
 	saramaSubscriberConfig := kafka.DefaultSaramaSubscriberConfig()
 	saramaSubscriberConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 	subscriber, err := kafka.NewSubscriber(
@@ -139,12 +143,12 @@ func initKafkaSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }
 
-func initRedisSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
+func initRedisSub(cfg config.AppConfig) (*Subscriber, error) {
 	subClient := redis.NewClient(&redis.Options{
-		Addr:     cfg.MQ.Redis.RedisUrl,
+		Addr:     cfg.MQ.Redis.RedisURL,
 		Username: cfg.MQ.Redis.UserName,
 		Password: cfg.MQ.Redis.Password,
 	})
@@ -156,12 +160,12 @@ func initRedisSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 		},
 		logger,
 	)
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }
 
-func initGoogleCloudSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
+func initGoogleCloudSub(cfg config.AppConfig) (*Subscriber, error) {
 	subscriptionName := func(string) string {
-		return cfg.MQ.GoogleCloud.SubscriptionId
+		return cfg.MQ.GoogleCloud.SubscriptionID
 	}
 	ackDeadline := 20 * time.Second
 	subscriber, err := googlecloud.NewSubscriber(
@@ -171,25 +175,27 @@ func initGoogleCloudSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 			DoNotCreateSubscriptionIfMissing: false,
 			InitializeTimeout:                30 * time.Second,
 			GenerateSubscriptionName:         subscriptionName,
-			SubscriptionConfig: pubsub.SubscriptionConfig{
-				RetainAckedMessages:   false,
-				EnableMessageOrdering: false,
-				AckDeadline:           ackDeadline,
-				RetentionDuration:     24 * time.Hour,
+			GenerateSubscription: func(_ googlecloud.GenerateSubscriptionParams) *pubsubpb.Subscription {
+				return &pubsubpb.Subscription{
+					RetainAckedMessages:      false,
+					EnableMessageOrdering:    false,
+					AckDeadlineSeconds:       int32(ackDeadline.Seconds()),
+					MessageRetentionDuration: durationpb.New(24 * time.Hour),
+				}
 			},
 			Unmarshaler: googlecloud.DefaultMarshalerUnmarshaler{},
 		},
 		logger,
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }
 
-func initSqlSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
-	switch cfg.MQ.Sql.Dialect {
+func initSQLSub(cfg config.AppConfig) (*Subscriber, error) {
+	switch cfg.MQ.SQL.Dialect {
 	case "postgres":
 		return initPostgresSub(cfg)
 
@@ -201,8 +207,8 @@ func initSqlSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 	}
 }
 
-func initPostgresSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
-	db, err := database.PostgresDBConnection(cfg.MQ.Sql)
+func initPostgresSub(cfg config.AppConfig) (*Subscriber, error) {
+	db, err := database.PostgresDBConnection(cfg.MQ.SQL)
 	if err != nil {
 		return nil, err
 	}
@@ -218,11 +224,11 @@ func initPostgresSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }
 
-func initMysqlSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
-	db, err := database.MysqlDBConnection(cfg.MQ.Sql)
+func initMysqlSub(cfg config.AppConfig) (*Subscriber, error) {
+	db, err := database.MysqlDBConnection(cfg.MQ.SQL)
 	if err != nil {
 		return nil, err
 	}
@@ -239,5 +245,5 @@ func initMysqlSub(cfg config.AppConfig) (*WatermillSubscriber, error) {
 		return nil, err
 	}
 
-	return &WatermillSubscriber{Subscriber: subscriber}, err
+	return &Subscriber{Subscriber: subscriber}, err
 }

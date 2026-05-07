@@ -14,12 +14,14 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// TaskController handles task related requests.
 type TaskController struct {
 	taskService    services.TaskService
 	commentService services.CommentService
 	logger         *zap.Logger
 }
 
+// NewTaskController creates a new instance of TaskController.
 func NewTaskController(taskService services.TaskService, commentService services.CommentService, logger *zap.Logger) (*TaskController, error) {
 
 	return &TaskController{
@@ -29,17 +31,18 @@ func NewTaskController(taskService services.TaskService, commentService services
 	}, nil
 }
 
+// CreateTask handles the creation of a new task in a project.
 func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	var req structs.ReqCreateTask
@@ -61,17 +64,18 @@ func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusCreated, ctrl.mapTaskToRes(task))
 }
 
+// ListProjectTasks handles listing all tasks in a project.
 func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	projectIDStr := c.Params(constants.ParamProjectID)
 	projectID, err := uuid.Parse(projectIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid project id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
 	// Filter
@@ -104,17 +108,18 @@ func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// GetTask handles fetching a single task by its ID.
 func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	taskIDStr := c.Params(constants.ParamTaskID)
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTaskID)
 	}
 
 	task, err := ctrl.taskService.GetTask(uid, taskID)
@@ -125,17 +130,18 @@ func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(task))
 }
 
+// UpdateTask handles updating an existing task.
 func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	taskIDStr := c.Params(constants.ParamTaskID)
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTaskID)
 	}
 
 	var req structs.ReqUpdateTask
@@ -151,17 +157,18 @@ func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(task))
 }
 
+// DeleteTask handles deleting a task.
 func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	taskIDStr := c.Params(constants.ParamTaskID)
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTaskID)
 	}
 
 	err = ctrl.taskService.DeleteTask(uid, taskID)
@@ -169,14 +176,15 @@ func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Task deleted"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgTaskDeleted})
 }
 
+// ListMyTasks handles listing all tasks assigned to the current user.
 func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	tasks, err := ctrl.taskService.ListMyTasks(uid)
@@ -198,17 +206,18 @@ func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
 
 // Comments
 
+// CreateComment handles creating a new comment on a task.
 func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	taskIDStr := c.Params(constants.ParamTaskID)
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTaskID)
 	}
 
 	var req structs.ReqCreateComment
@@ -239,17 +248,18 @@ func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
 	})
 }
 
+// ListTaskComments handles listing all comments on a task.
 func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	taskIDStr := c.Params(constants.ParamTaskID)
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid task id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTaskID)
 	}
 
 	comments, err := ctrl.commentService.ListTaskComments(uid, taskID)
@@ -277,17 +287,18 @@ func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// DeleteComment handles deleting a comment.
 func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	commentIDStr := c.Params(constants.ParamCommentID)
 	commentID, err := uuid.Parse(commentIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid comment id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidCommentID)
 	}
 
 	err = ctrl.commentService.DeleteComment(uid, commentID)
@@ -295,7 +306,7 @@ func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Comment deleted"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgCommentDeleted})
 }
 
 func (ctrl *TaskController) mapTaskToRes(t models.Task) structs.ResTask {

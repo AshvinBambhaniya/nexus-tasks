@@ -7,24 +7,35 @@ import (
 	"github.com/google/uuid"
 )
 
+// WorkspaceTable is the name of the workspaces table
 const WorkspaceTable = "workspaces"
+
+// WorkspaceMemberTable is the name of the workspace members table
 const WorkspaceMemberTable = "workspace_members"
 
+// WorkspaceType represents the type of a workspace
 type WorkspaceType string
 
 const (
+	// WorkspaceTypePersonal is a personal workspace
 	WorkspaceTypePersonal WorkspaceType = "PERSONAL"
-	WorkspaceTypeTeam     WorkspaceType = "TEAM"
+	// WorkspaceTypeTeam is a team workspace
+	WorkspaceTypeTeam WorkspaceType = "TEAM"
 )
 
+// WorkspaceRole represents the role of a user in a workspace
 type WorkspaceRole string
 
 const (
-	WorkspaceRoleAdmin  WorkspaceRole = "ADMIN"
+	// WorkspaceRoleAdmin is the administrator role
+	WorkspaceRoleAdmin WorkspaceRole = "ADMIN"
+	// WorkspaceRoleMember is the standard member role
 	WorkspaceRoleMember WorkspaceRole = "MEMBER"
+	// WorkspaceRoleViewer is the read-only viewer role
 	WorkspaceRoleViewer WorkspaceRole = "VIEWER"
 )
 
+// Workspace represents a workspace record
 type Workspace struct {
 	ID        uuid.UUID     `json:"id" db:"id"`
 	Name      string        `json:"name" db:"name"`
@@ -34,6 +45,7 @@ type Workspace struct {
 	UpdatedAt string        `json:"updated_at,omitempty" db:"updated_at"`
 }
 
+// WorkspaceMember represents a membership record in a workspace
 type WorkspaceMember struct {
 	WorkspaceID uuid.UUID     `json:"workspace_id" db:"workspace_id"`
 	UserID      uuid.UUID     `json:"user_id" db:"user_id"`
@@ -42,6 +54,7 @@ type WorkspaceMember struct {
 	UpdatedAt   string        `json:"updated_at" db:"updated_at"`
 }
 
+// WorkspaceMemberWithUser represents a workspace member with joined user details
 type WorkspaceMemberWithUser struct {
 	WorkspaceID uuid.UUID     `db:"workspace_id"`
 	UserID      uuid.UUID     `db:"user_id"`
@@ -50,20 +63,23 @@ type WorkspaceMemberWithUser struct {
 	FullName    string        `db:"full_name"`
 }
 
+// WorkspaceRepository defines the interface for workspace-related database operations
 type WorkspaceRepository interface {
 	GetByID(id uuid.UUID) (Workspace, error)
 	ListWorkspacesByUserID(userID uuid.UUID) ([]Workspace, error)
-	ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error)
+	ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error)
 	GetMember(workspaceID, userID uuid.UUID) (WorkspaceMember, error)
 	CreateWorkspace(ws Workspace) (Workspace, error)
 	AddMember(member WorkspaceMember) error
 	RemoveMember(workspaceID, userID uuid.UUID) error
 }
 
+// WorkspaceModel implements the WorkspaceRepository interface
 type WorkspaceModel struct {
 	db DbExecutor
 }
 
+// InitWorkspaceModel initializes the workspace model
 func InitWorkspaceModel(db DbExecutor) WorkspaceRepository {
 	return &WorkspaceModel{
 		db: db,
@@ -86,7 +102,7 @@ func (model *WorkspaceModel) GetByID(id uuid.UUID) (Workspace, error) {
 	return ws, nil
 }
 
-// GetWorkspacesByUserID returns all workspaces a user is a member of
+// ListWorkspacesByUserID returns all workspaces a user is a member of
 func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspace, error) {
 	var workspaces []Workspace
 	// Join with workspace_members
@@ -102,8 +118,8 @@ func (model *WorkspaceModel) ListWorkspacesByUserID(userID uuid.UUID) ([]Workspa
 	return workspaces, nil
 }
 
-// GetMembers returns all members of a workspace with user details
-func (model *WorkspaceModel) ListMembersByWorkspaceId(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
+// ListMembersByWorkspaceID returns all members of a workspace with user details
+func (model *WorkspaceModel) ListMembersByWorkspaceID(workspaceID uuid.UUID) ([]WorkspaceMemberWithUser, error) {
 	var members []WorkspaceMemberWithUser
 	err := model.db.From(WorkspaceMemberTable).
 		Join(goqu.T(UserTable), goqu.On(goqu.Ex{WorkspaceMemberTable + ".user_id": goqu.I(UserTable + ".id")})).
@@ -163,6 +179,7 @@ func (model *WorkspaceModel) CreateWorkspace(ws Workspace) (Workspace, error) {
 	return createdWs, nil
 }
 
+// AddMember adds a user to a workspace
 func (model *WorkspaceModel) AddMember(member WorkspaceMember) error {
 	_, err := model.db.Insert(WorkspaceMemberTable).Rows(
 		goqu.Record{

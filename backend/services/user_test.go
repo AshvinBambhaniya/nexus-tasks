@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupUserTest(t *testing.T) (*userService, *mockUserRepository, *mockWorkspaceRepository, *mockStorage) {
+func setupUserTest(_ *testing.T) (*userService, *mockUserRepository, *mockWorkspaceRepository, *mockStorage) {
 	mockUserRepo := new(mockUserRepository)
 	mockWorkspaceRepo := new(mockWorkspaceRepository)
 	mockStor := new(mockStorage)
@@ -28,7 +28,7 @@ func setupUserTest(t *testing.T) (*userService, *mockUserRepository, *mockWorksp
 	mockStor.On("Users").Return(mockUserRepo)
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 
-	svc := NewUserService(mockStor, logger, cfg).(*userService)
+	svc := &userService{storage: mockStor, logger: logger, config: cfg}
 
 	return svc, mockUserRepo, mockWorkspaceRepo, mockStor
 }
@@ -106,7 +106,8 @@ func TestUserService_Authenticate(t *testing.T) {
 
 		email := "test@example.com"
 		password := "password123"
-		hashedPassword, _ := utils.PasswordHash(password)
+		hashedPassword, err := utils.PasswordHash(password)
+		assert.NoError(t, err)
 		userID := uuid.New()
 
 		mockUserRepo.On("GetByEmail", email).Return(models.User{ID: userID, HashedPassword: hashedPassword}, nil)
@@ -128,7 +129,8 @@ func TestUserService_Authenticate(t *testing.T) {
 		svc, mockUserRepo, _, _ := setupUserTest(t)
 
 		email := "test@example.com"
-		hashedPassword, _ := utils.PasswordHash("correct")
+		hashedPassword, err := utils.PasswordHash("correct")
+		assert.NoError(t, err)
 
 		mockUserRepo.On("GetByEmail", email).Return(models.User{HashedPassword: hashedPassword}, nil)
 

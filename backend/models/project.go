@@ -8,18 +8,28 @@ import (
 	"github.com/google/uuid"
 )
 
+// ProjectTable is the name of the projects table.
 const ProjectTable = "projects"
+
+// ProjectMemberTable is the name of the project members table.
 const ProjectMemberTable = "project_members"
+
+// ProjectTeamTable is the name of the project teams table.
 const ProjectTeamTable = "project_teams"
 
+// ProjectRole defines the role of a user in a project.
 type ProjectRole string
 
 const (
-	ProjectRoleAdmin  ProjectRole = "ADMIN"
+	// ProjectRoleAdmin is the admin role in a project.
+	ProjectRoleAdmin ProjectRole = "ADMIN"
+	// ProjectRoleMember is the member role in a project.
 	ProjectRoleMember ProjectRole = "MEMBER"
+	// ProjectRoleViewer is the viewer role in a project.
 	ProjectRoleViewer ProjectRole = "VIEWER"
 )
 
+// Project represents a project in a workspace.
 type Project struct {
 	ID          uuid.UUID `json:"id" db:"id"`
 	Name        string    `json:"name" db:"name"`
@@ -30,6 +40,7 @@ type Project struct {
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
+// ProjectMember represents a member of a project.
 type ProjectMember struct {
 	ProjectID uuid.UUID   `json:"project_id" db:"project_id"`
 	UserID    uuid.UUID   `json:"user_id" db:"user_id"`
@@ -38,6 +49,7 @@ type ProjectMember struct {
 	UpdatedAt time.Time   `json:"updated_at" db:"updated_at"`
 }
 
+// ProjectMemberWithUser represents a project member with user details.
 type ProjectMemberWithUser struct {
 	ProjectID uuid.UUID   `db:"project_id"`
 	UserID    uuid.UUID   `db:"user_id"`
@@ -46,17 +58,20 @@ type ProjectMemberWithUser struct {
 	FullName  string      `db:"full_name"`
 }
 
+// ProjectTeam represents a team associated with a project.
 type ProjectTeam struct {
 	ProjectID uuid.UUID `json:"project_id" db:"project_id"`
 	TeamID    uuid.UUID `json:"team_id" db:"team_id"`
 }
 
+// ProjectTeamWithDetails represents a project team with team details.
 type ProjectTeamWithDetails struct {
 	ProjectID uuid.UUID `db:"project_id"`
 	TeamID    uuid.UUID `db:"team_id"`
 	TeamName  string    `db:"name"`
 }
 
+// ProjectRepository defines the interface for project data access.
 type ProjectRepository interface {
 	Create(project Project) (Project, error)
 	GetByID(id uuid.UUID) (Project, error)
@@ -77,16 +92,19 @@ type ProjectRepository interface {
 	ListByTeamID(teamID uuid.UUID) ([]Project, error)
 }
 
+// ProjectModel is the implementation of ProjectRepository.
 type ProjectModel struct {
 	db DbExecutor
 }
 
+// InitProjectModel initializes a new ProjectModel.
 func InitProjectModel(db DbExecutor) ProjectRepository {
 	return &ProjectModel{
 		db: db,
 	}
 }
 
+// Create creates a new project.
 func (model *ProjectModel) Create(project Project) (Project, error) {
 	var createdProject Project
 	found, err := model.db.Insert(ProjectTable).Rows(
@@ -107,6 +125,7 @@ func (model *ProjectModel) Create(project Project) (Project, error) {
 	return createdProject, nil
 }
 
+// GetByID returns a project by its ID.
 func (model *ProjectModel) GetByID(id uuid.UUID) (Project, error) {
 	project := Project{}
 	found, err := model.db.From(ProjectTable).Where(goqu.Ex{"id": id}).ScanStruct(&project)
@@ -119,6 +138,7 @@ func (model *ProjectModel) GetByID(id uuid.UUID) (Project, error) {
 	return project, nil
 }
 
+// ListByWorkspaceID lists all projects in a workspace.
 func (model *ProjectModel) ListByWorkspaceID(workspaceID uuid.UUID) ([]Project, error) {
 	var projects []Project
 	err := model.db.From(ProjectTable).
@@ -130,6 +150,7 @@ func (model *ProjectModel) ListByWorkspaceID(workspaceID uuid.UUID) ([]Project, 
 	return projects, nil
 }
 
+// Update updates an existing project.
 func (model *ProjectModel) Update(project Project) (Project, error) {
 	_, err := model.db.Update(ProjectTable).
 		Set(goqu.Record{
@@ -147,6 +168,8 @@ func (model *ProjectModel) Update(project Project) (Project, error) {
 }
 
 // Members
+
+// AddMember adds a member to a project.
 func (model *ProjectModel) AddMember(member ProjectMember) error {
 	_, err := model.db.Insert(ProjectMemberTable).Rows(
 		goqu.Record{
@@ -158,6 +181,7 @@ func (model *ProjectModel) AddMember(member ProjectMember) error {
 	return err
 }
 
+// RemoveMember removes a member from a project.
 func (model *ProjectModel) RemoveMember(projectID, userID uuid.UUID) error {
 	_, err := model.db.Delete(ProjectMemberTable).
 		Where(goqu.Ex{
@@ -167,6 +191,7 @@ func (model *ProjectModel) RemoveMember(projectID, userID uuid.UUID) error {
 	return err
 }
 
+// GetMember returns a project member by project ID and user ID.
 func (model *ProjectModel) GetMember(projectID, userID uuid.UUID) (ProjectMember, error) {
 	member := ProjectMember{}
 	found, err := model.db.From(ProjectMemberTable).
@@ -184,6 +209,7 @@ func (model *ProjectModel) GetMember(projectID, userID uuid.UUID) (ProjectMember
 	return member, nil
 }
 
+// GetMembers returns all members of a project.
 func (model *ProjectModel) GetMembers(projectID uuid.UUID) ([]ProjectMemberWithUser, error) {
 	var members []ProjectMemberWithUser
 	err := model.db.From(ProjectMemberTable).
@@ -204,6 +230,8 @@ func (model *ProjectModel) GetMembers(projectID uuid.UUID) ([]ProjectMemberWithU
 }
 
 // Teams
+
+// AddTeam adds a team to a project.
 func (model *ProjectModel) AddTeam(team ProjectTeam) error {
 	_, err := model.db.Insert(ProjectTeamTable).Rows(
 		goqu.Record{
@@ -214,6 +242,7 @@ func (model *ProjectModel) AddTeam(team ProjectTeam) error {
 	return err
 }
 
+// RemoveTeam removes a team from a project.
 func (model *ProjectModel) RemoveTeam(projectID, teamID uuid.UUID) error {
 	_, err := model.db.Delete(ProjectTeamTable).
 		Where(goqu.Ex{
@@ -223,6 +252,7 @@ func (model *ProjectModel) RemoveTeam(projectID, teamID uuid.UUID) error {
 	return err
 }
 
+// GetTeam returns a project team association.
 func (model *ProjectModel) GetTeam(projectID, teamID uuid.UUID) (ProjectTeam, error) {
 	team := ProjectTeam{}
 	found, err := model.db.From(ProjectTeamTable).
@@ -240,6 +270,7 @@ func (model *ProjectModel) GetTeam(projectID, teamID uuid.UUID) (ProjectTeam, er
 	return team, nil
 }
 
+// GetTeams returns all teams associated with a project.
 func (model *ProjectModel) GetTeams(projectID uuid.UUID) ([]ProjectTeamWithDetails, error) {
 	var teams []ProjectTeamWithDetails
 	err := model.db.From(ProjectTeamTable).
@@ -257,6 +288,7 @@ func (model *ProjectModel) GetTeams(projectID uuid.UUID) ([]ProjectTeamWithDetai
 	return teams, nil
 }
 
+// ListByTeamID returns all projects associated with a specific team.
 func (model *ProjectModel) ListByTeamID(teamID uuid.UUID) ([]Project, error) {
 	var projects []Project
 	err := model.db.From(ProjectTable).

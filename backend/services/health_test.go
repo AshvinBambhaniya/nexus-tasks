@@ -10,11 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupHealthTest(t *testing.T) (*healthService, *mockStorage) {
+func setupHealthTest(_ *testing.T) (*healthService, *mockStorage) {
 	mockStor := new(mockStorage)
 	logger := zap.NewNop()
 
-	svc := NewHealthService(mockStor, logger).(*healthService)
+	svc := &healthService{storage: mockStor, logger: logger}
 
 	return svc, mockStor
 }

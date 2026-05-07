@@ -1,3 +1,4 @@
+// Package middlewares provides HTTP middleware for the application.
 package middlewares
 
 import (
@@ -21,7 +22,7 @@ var (
 	}
 )
 
-// Handler will log each request
+// LogHandler will log each request
 func LogHandler(logger *zap.Logger) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		err := ctx.Next()

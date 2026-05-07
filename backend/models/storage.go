@@ -17,6 +17,7 @@ type DbExecutor interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }
 
+// Storage defines the interface for the entire data access layer.
 type Storage interface {
 	Users() UserRepository
 	Workspaces() WorkspaceRepository
@@ -66,13 +67,14 @@ func (s *storage) Atomic(ctx context.Context, fn func(Storage) error) error {
 	var tx *goqu.TxDatabase
 	var err error
 
-	switch d := s.db.(type) {
-	case *goqu.Database:
-		tx, err = d.BeginTx(ctx, nil)
-	case *goqu.TxDatabase:
+	if _, ok := s.db.(*goqu.TxDatabase); ok {
 		// Already in a transaction, just use it
 		return fn(s)
-	default:
+	}
+
+	if d, ok := s.db.(*goqu.Database); ok {
+		tx, err = d.BeginTx(ctx, nil)
+	} else {
 		return fmt.Errorf("unsupported database executor type")
 	}
 

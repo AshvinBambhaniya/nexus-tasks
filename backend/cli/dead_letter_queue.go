@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// DeadLetterQ represents the structure of a dead letter queue message.
 type DeadLetterQ struct {
 	Handler    string `json:"handler_poisoned"`
 	Reason     string `json:"reason_poisoned"`
@@ -16,14 +17,14 @@ type DeadLetterQ struct {
 	Topic      string `json:"topic_poisoned"`
 }
 
-// GetAPICommandDef runs app
-func GetDeadQueueCommandDef(cfg config.AppConfig, logger *zap.Logger) cobra.Command {
+// GetDeadQueueCommandDef runs app
+func GetDeadQueueCommandDef(cfg config.AppConfig, _ *zap.Logger) cobra.Command {
 
 	workerCommand := cobra.Command{
 		Use:   "dead-letter-queue",
 		Short: "To start dead-letter queue",
 		Long:  `This queue is used to store failed job from all worker`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 
 			// Init worker
 			subscriber, err := watermill.InitSubscriber(cfg, true)

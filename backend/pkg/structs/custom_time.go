@@ -1,3 +1,4 @@
+// Package structs defines custom data structures used throughout the application.
 package structs
 
 import (
@@ -6,10 +7,12 @@ import (
 	"time"
 )
 
+// CustomTime is a wrapper around time.Time to support custom JSON unmarshaling.
 type CustomTime struct {
 	time.Time
 }
 
+// UnmarshalJSON unmarshals JSON data into CustomTime, supporting RFC3339 and YYYY-MM-DD formats.
 func (ct *CustomTime) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	if s == "null" || s == "" {
@@ -33,9 +36,10 @@ func (ct *CustomTime) UnmarshalJSON(b []byte) error {
 	return fmt.Errorf("invalid time format: %s", s)
 }
 
+// MarshalJSON marshals CustomTime into JSON data in RFC3339 format.
 func (ct CustomTime) MarshalJSON() ([]byte, error) {
-	if ct.Time.IsZero() {
+	if ct.IsZero() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf("\"%s\"", ct.Time.Format(time.RFC3339))), nil
+	return []byte(fmt.Sprintf("\"%s\"", ct.Format(time.RFC3339))), nil
 }

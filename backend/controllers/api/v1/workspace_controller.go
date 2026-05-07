@@ -5,7 +5,6 @@ import (
 
 	"github.com/AshvinBambhaniya/nexus-tasks/constants"
 	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
 	"github.com/AshvinBambhaniya/nexus-tasks/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/utils"
 	"github.com/gofiber/fiber/v2"
@@ -14,24 +13,27 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// WorkspaceController handles workspace-related requests.
 type WorkspaceController struct {
 	workspaceService services.WorkspaceService
 	logger           *zap.Logger
 }
 
-func NewWorkspaceController(workspaceService services.WorkspaceService, logger *zap.Logger, publisher *watermill.WatermillPublisher) (*WorkspaceController, error) {
+// NewWorkspaceController creates a new instance of WorkspaceController.
+func NewWorkspaceController(workspaceService services.WorkspaceService, logger *zap.Logger) (*WorkspaceController, error) {
 	return &WorkspaceController{
 		workspaceService: workspaceService,
 		logger:           logger,
 	}, nil
 }
 
+// Create handles the creation of a new workspace.
 func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		ctrl.logger.Error("invalid user id in context", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
+		ctrl.logger.Error(constants.ErrInvalidUserID, zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	var req structs.ReqCreateWorkspace
@@ -58,12 +60,13 @@ func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
 	})
 }
 
+// List returns a list of workspaces for the authenticated user.
 func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		ctrl.logger.Error("invalid user id in context", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "invalid user id in context")
+		ctrl.logger.Error(constants.ErrInvalidUserID, zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	workspaces, err := ctrl.workspaceService.ListWorkspacesByUserID(uid)
@@ -86,15 +89,16 @@ func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// ListMembers returns a list of members for a specific workspace.
 func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
-	members, err := ctrl.workspaceService.ListMembersByWorkspaceId(wsID)
+	members, err := ctrl.workspaceService.ListMembersByWorkspaceID(wsID)
 	if err != nil {
 		ctrl.logger.Error("failed to list members", zap.Error(err))
 		return utils.JSONError(c, http.StatusInternalServerError, "failed to list members")
@@ -117,17 +121,18 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, res)
 }
 
+// InviteMember invites a new member to the workspace.
 func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
 	var req structs.ReqInviteWorkspaceMember
@@ -145,32 +150,33 @@ func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member invited"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgMemberInvited})
 }
 
+// RemoveMember removes a member from the workspace.
 func (ctrl *WorkspaceController) RemoveMember(c *fiber.Ctx) error {
-	uidStr := c.Locals(constants.ContextUid).(string)
+	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusInternalServerError, "invalid user id")
+		return utils.JSONFail(c, http.StatusInternalServerError, constants.ErrInvalidUserID)
 	}
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid workspace id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidWorkspaceID)
 	}
 
-	targetUserIDStr := c.Params(constants.ParamUid)
-	targetUserID, err := uuid.Parse(targetUserIDStr)
+	targetUIDStr := c.Params(constants.ParamUID)
+	targetUID, err := uuid.Parse(targetUIDStr)
 	if err != nil {
-		return utils.JSONFail(c, http.StatusBadRequest, "invalid target user id")
+		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidTargetUserID)
 	}
 
-	err = ctrl.workspaceService.RemoveMember(uid, wsID, targetUserID)
+	err = ctrl.workspaceService.RemoveMember(uid, wsID, targetUID)
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{"message": "Member removed"})
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgMemberRemoved})
 }

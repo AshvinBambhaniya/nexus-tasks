@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupCommentTest(t *testing.T) (*commentService, *mockCommentRepository, *mockTaskRepository, *mockProjectService, *mockStorage) {
+func setupCommentTest(_ *testing.T) (*commentService, *mockCommentRepository, *mockTaskRepository, *mockProjectService, *mockStorage) {
 	mockCommentRepo := new(mockCommentRepository)
 	mockTaskRepo := new(mockTaskRepository)
 	mockProjSvc := new(mockProjectService)
@@ -22,7 +22,7 @@ func setupCommentTest(t *testing.T) (*commentService, *mockCommentRepository, *m
 	mockStor.On("Comments").Return(mockCommentRepo)
 	mockStor.On("Tasks").Return(mockTaskRepo)
 
-	svc := NewCommentService(mockStor, mockProjSvc, logger).(*commentService)
+	svc := &commentService{storage: mockStor, projectService: mockProjSvc, logger: logger}
 
 	return svc, mockCommentRepo, mockTaskRepo, mockProjSvc, mockStor
 }

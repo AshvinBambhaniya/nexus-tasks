@@ -1,3 +1,4 @@
+// Package watermill provides message queue functionality using Watermill.
 package watermill
 
 import (
@@ -11,7 +12,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
-	"github.com/ThreeDotsLabs/watermill-googlecloud/pkg/googlecloud"
+	"github.com/ThreeDotsLabs/watermill-googlecloud/v2/pkg/googlecloud"
 	"github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
@@ -20,18 +21,21 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Publisher interface {
+// IPublisher is an interface for publishing messages to a topic.
+type IPublisher interface {
 	Publish(topic string, handle workers.Handler) error
 }
 
-type WatermillPublisher struct {
+// Publisher is an implementation of Publisher interface using Watermill.
+type Publisher struct {
 	publisher message.Publisher
 }
 
-func InitPublisher(cfg config.AppConfig, isDeadLetterQ bool) (*WatermillPublisher, error) {
+// InitPublisher initializes a new Publisher.
+func InitPublisher(cfg config.AppConfig, isDeadLetterQ bool) (*Publisher, error) {
 	logger = watermill.NewStdLogger(cfg.MQ.Debug, cfg.MQ.Track)
 	if isDeadLetterQ {
-		return initSqlPub(cfg)
+		return initSQLPub(cfg)
 	}
 	switch cfg.MQ.Dialect {
 	case "amqp":
@@ -47,17 +51,14 @@ func InitPublisher(cfg config.AppConfig, isDeadLetterQ bool) (*WatermillPublishe
 		return initGoogleCloudPub(cfg)
 
 	case "sql":
-		return initSqlPub(cfg)
+		return initSQLPub(cfg)
 	default:
-		return &WatermillPublisher{}, nil
+		return &Publisher{}, nil
 	}
-
 }
 
-// send message into queue using topic name
-//
-// struct must from worker package(/cli/workers)
-func (wp *WatermillPublisher) Publish(topic string, handle workers.Handler) error {
+// Publish sends a message into the queue using a topic name.
+func (wp *Publisher) Publish(topic string, handle workers.Handler) error {
 	// if broker is not set then return nil
 	if wp.publisher == nil {
 		return nil
@@ -75,15 +76,15 @@ func (wp *WatermillPublisher) Publish(topic string, handle workers.Handler) erro
 	return err
 }
 
-func initAmqpPub(cfg config.AppConfig) (*WatermillPublisher, error) {
-	amqpConfig := amqp.NewDurableQueueConfig(cfg.MQ.Amqp.AmqbUrl)
+func initAmqpPub(cfg config.AppConfig) (*Publisher, error) {
+	amqpConfig := amqp.NewDurableQueueConfig(cfg.MQ.Amqp.AmqpURL)
 	publisher, err := amqp.NewPublisher(amqpConfig, logger)
-	return &WatermillPublisher{publisher: publisher}, err
+	return &Publisher{publisher: publisher}, err
 }
 
-func initRedisPub(cfg config.AppConfig) (*WatermillPublisher, error) {
+func initRedisPub(cfg config.AppConfig) (*Publisher, error) {
 	pubClient := redis.NewClient(&redis.Options{
-		Addr:     cfg.MQ.Redis.RedisUrl,
+		Addr:     cfg.MQ.Redis.RedisURL,
 		Username: cfg.MQ.Redis.UserName,
 		Password: cfg.MQ.Redis.Password,
 	})
@@ -94,10 +95,10 @@ func initRedisPub(cfg config.AppConfig) (*WatermillPublisher, error) {
 		},
 		logger,
 	)
-	return &WatermillPublisher{publisher: publisher}, err
+	return &Publisher{publisher: publisher}, err
 }
 
-func initKafkaPub(cfg config.AppConfig) (*WatermillPublisher, error) {
+func initKafkaPub(cfg config.AppConfig) (*Publisher, error) {
 	publisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
 			Brokers:               cfg.MQ.Kafka.KafkaBroker,
@@ -106,10 +107,10 @@ func initKafkaPub(cfg config.AppConfig) (*WatermillPublisher, error) {
 		},
 		logger,
 	)
-	return &WatermillPublisher{publisher: publisher}, err
+	return &Publisher{publisher: publisher}, err
 }
 
-func initGoogleCloudPub(cfg config.AppConfig) (*WatermillPublisher, error) {
+func initGoogleCloudPub(cfg config.AppConfig) (*Publisher, error) {
 	publisher, err := googlecloud.NewPublisher(googlecloud.PublisherConfig{
 		ProjectID:      cfg.MQ.GoogleCloud.ProjectID,
 		ConnectTimeout: 10 * time.Second,
@@ -117,11 +118,11 @@ func initGoogleCloudPub(cfg config.AppConfig) (*WatermillPublisher, error) {
 		Marshaler:      googlecloud.DefaultMarshalerUnmarshaler{},
 	}, logger)
 
-	return &WatermillPublisher{publisher: publisher}, err
+	return &Publisher{publisher: publisher}, err
 }
 
-func initSqlPub(cfg config.AppConfig) (*WatermillPublisher, error) {
-	switch cfg.MQ.Sql.Dialect {
+func initSQLPub(cfg config.AppConfig) (*Publisher, error) {
+	switch cfg.MQ.SQL.Dialect {
 	case "postgres":
 		return initPostgresPub(cfg)
 	case "mysql":
@@ -129,32 +130,29 @@ func initSqlPub(cfg config.AppConfig) (*WatermillPublisher, error) {
 	default:
 		return nil, nil
 	}
-
 }
 
-func initPostgresPub(cfg config.AppConfig) (*WatermillPublisher, error) {
-	db, err := database.PostgresDBConnection(cfg.MQ.Sql)
+func initPostgresPub(cfg config.AppConfig) (*Publisher, error) {
+	db, err := database.PostgresDBConnection(cfg.MQ.SQL)
 	if err != nil {
 		return nil, err
 	}
 	publisher, err := sql.NewPublisher(
 		db,
 		sql.PublisherConfig{
-			// we are customizing schema adapter because default schema adapter has some issue
 			SchemaAdapter:        database.PostgreSQLSchema{},
 			AutoInitializeSchema: true,
 		},
-
 		logger,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &WatermillPublisher{publisher: publisher}, nil
+	return &Publisher{publisher: publisher}, nil
 }
 
-func initMysqlPub(cfg config.AppConfig) (*WatermillPublisher, error) {
-	db, err := database.MysqlDBConnection(cfg.MQ.Sql)
+func initMysqlPub(cfg config.AppConfig) (*Publisher, error) {
+	db, err := database.MysqlDBConnection(cfg.MQ.SQL)
 	if err != nil {
 		return nil, err
 	}
@@ -164,12 +162,11 @@ func initMysqlPub(cfg config.AppConfig) (*WatermillPublisher, error) {
 			SchemaAdapter:        database.MySQLSchema{},
 			AutoInitializeSchema: true,
 		},
-
 		logger,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &WatermillPublisher{publisher: publisher}, nil
+	return &Publisher{publisher: publisher}, nil
 }

@@ -1,3 +1,4 @@
+// Package routes handles the registration of all API routes.
 package routes
 
 import (
@@ -22,7 +23,7 @@ import (
 var mu sync.Mutex
 
 // Setup func
-func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *config.AppConfig, pub *watermill.WatermillPublisher) error {
+func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *config.AppConfig, pub *watermill.Publisher) error {
 	mu.Lock()
 
 	app.Use(middlewares.LogHandler(logger))
@@ -67,7 +68,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 		return err
 	}
 
-	err = setupWorkspaceController(v1, workspaceService, logger, pub, middlewares)
+	err = setupWorkspaceController(v1, workspaceService, logger, middlewares)
 	if err != nil {
 		return err
 	}
@@ -124,8 +125,8 @@ func setupAuthController(v1 fiber.Router, userSvc services.UserService, logger *
 	return nil
 }
 
-func setupWorkspaceController(v1 fiber.Router, workspaceService services.WorkspaceService, logger *zap.Logger, publisher *watermill.WatermillPublisher, middlewares middlewares.Middleware) error {
-	wsController, err := controller.NewWorkspaceController(workspaceService, logger, publisher)
+func setupWorkspaceController(v1 fiber.Router, workspaceService services.WorkspaceService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+	wsController, err := controller.NewWorkspaceController(workspaceService, logger)
 	if err != nil {
 		return err
 	}
@@ -161,7 +162,7 @@ func setupTeamController(v1 fiber.Router, teamService services.TeamService, logg
 	teamMember := teams.Group(fmt.Sprintf("/:%s/members", constants.ParamTeamID))
 	teamMember.Get("/", teamController.ListMembers)
 	teamMember.Post("/", teamController.AddMember)
-	teamMember.Delete(fmt.Sprintf("/:%s", constants.ParamUid), teamController.RemoveMember)
+	teamMember.Delete(fmt.Sprintf("/:%s", constants.ParamUID), teamController.RemoveMember)
 
 	return nil
 }
@@ -185,7 +186,7 @@ func setupProjectController(v1 fiber.Router, projectService services.ProjectServ
 	projectMembers := wsProjects.Group(fmt.Sprintf("/:%s/members", constants.ParamProjectID))
 	projectMembers.Get("/", projectController.ListMembers)
 	projectMembers.Post("/", projectController.AddMember)
-	projectMembers.Delete(fmt.Sprintf("/:%s", constants.ParamUid), projectController.RemoveMember)
+	projectMembers.Delete(fmt.Sprintf("/:%s", constants.ParamUID), projectController.RemoveMember)
 
 	// 3. Project Teams
 	// /api/v1/projects/:projectId/teams

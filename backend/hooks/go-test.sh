@@ -1,3 +1,2 @@
 #!/bin/bash
-go test -coverprofile coverage.out ./...
-go tool cover -func coverage.out
+cd backend && go test -coverprofile coverage.out ./... && go tool cover -func coverage.out

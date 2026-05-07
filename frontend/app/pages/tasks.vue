@@ -9,7 +9,7 @@ const { tasks, isLoading } = useTasks();
 
 const handleCreateClick = () => {
   // If we don't have a projectId, we might need a project selector or just redirect to projects
-  router.push('/projects');
+  router.push("/projects");
 };
 
 const handleTaskClick = (task: Task) => {

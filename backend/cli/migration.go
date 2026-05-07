@@ -28,7 +28,7 @@ func GetMigrationCommandDef(cfg config.AppConfig) cobra.Command {
 		Short: "It will apply migration(s)",
 		Long:  `It will run all remaining migration(s)`,
 		Args:  cobra.MinimumNArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// Run test db migration
 			createTestingDBMigration(cfg, "UP")
 
@@ -49,7 +49,7 @@ func GetMigrationCommandDef(cfg config.AppConfig) cobra.Command {
 		Short: "It will revert migration(s)",
 		Long:  `It will run all remaining migration(s)`,
 		Args:  cobra.MinimumNArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// Run test db migration
 			createTestingDBMigration(cfg, "DOWN")
 

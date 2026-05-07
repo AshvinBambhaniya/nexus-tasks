@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// UserService defines the interface for user-related business logic
 type UserService interface {
 	Register(email, password, fullName string) (models.User, string, error)
 	Authenticate(email, password string) (string, error)
@@ -27,6 +28,7 @@ type userService struct {
 	config  *config.AppConfig
 }
 
+// NewUserService creates a new user service instance
 func NewUserService(storage models.Storage, logger *zap.Logger, cfg *config.AppConfig) UserService {
 	return &userService{
 		storage: storage,

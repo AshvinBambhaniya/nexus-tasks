@@ -76,7 +76,7 @@ const handleChange = (value: string | null) => {
             <li
               :class="[
                 active ? 'bg-blue-50 text-blue-900' : 'text-gray-900',
-                'relative cursor-default select-none py-2 pr-10 pl-10',
+                'relative cursor-default py-2 pr-10 pl-10 select-none',
               ]"
             >
               <span class="flex items-center gap-2">
@@ -109,7 +109,7 @@ const handleChange = (value: string | null) => {
             <li
               :class="[
                 active ? 'bg-blue-50 text-blue-900' : 'text-gray-900',
-                'relative cursor-default select-none py-2 pr-10 pl-10',
+                'relative cursor-default py-2 pr-10 pl-10 select-none',
               ]"
             >
               <span class="flex items-center gap-2">

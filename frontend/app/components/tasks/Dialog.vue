@@ -256,15 +256,19 @@ const handleAddComment = async () => {
 
           <div class="space-y-2">
             <UiBaseLabel for="assignee">Assignee</UiBaseLabel>
-            <TasksSelectorsAssigneeSelector 
+            <TasksSelectorsAssigneeSelector
               v-model="formData.assignee_id"
-              :members="members" 
+              :members="members"
             />
           </div>
 
           <div class="space-y-2">
             <UiBaseLabel for="due_date">Due Date</UiBaseLabel>
-            <UiBaseInput id="due_date" v-model="formData.due_date" type="date" />
+            <UiBaseInput
+              id="due_date"
+              v-model="formData.due_date"
+              type="date"
+            />
           </div>
         </div>
       </div>

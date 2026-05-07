@@ -14,14 +14,14 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
-// custom schema for postgres database
+// PostgreSQLSchema is a custom schema for postgres database.
 // source: https://github.com/ThreeDotsLabs/watermill-sql/blob/master/pkg/sql/schema_adapter_postgresql.go
-
 type PostgreSQLSchema struct {
 	GenerateMessagesTableName func(topic string) string
 	SubscribeBatchSize        int
 }
 
+// SchemaInitializingQueries returns SQL queries for initializing the database schema.
 func (s PostgreSQLSchema) SchemaInitializingQueries(topic string) []string {
 	createMessagesTable := `
 		CREATE TABLE IF NOT EXISTS ` + s.MessagesTable(topic) + ` (
@@ -51,6 +51,7 @@ func defaultInsertArgs(msgs message.Messages) ([]interface{}, error) {
 	return args, nil
 }
 
+// InsertQuery returns a SQL query for inserting messages.
 func (s PostgreSQLSchema) InsertQuery(topic string, msgs message.Messages) (string, []interface{}, error) {
 	insertQuery := fmt.Sprintf(
 		`INSERT INTO %s (uuid, payload, metadata, transaction_id) VALUES %s`,
@@ -71,7 +72,7 @@ func defaultInsertMarkers(count int) string {
 
 	index := 1
 	for i := 0; i < count; i++ {
-		result.WriteString(fmt.Sprintf("($%d,$%d,$%d,pg_current_xact_id()),", index, index+1, index+2))
+		fmt.Fprintf(&result, "($%d,$%d,$%d,pg_current_xact_id()),", index, index+1, index+2)
 		index += 3
 	}
 
@@ -86,6 +87,7 @@ func (s PostgreSQLSchema) batchSize() int {
 	return s.SubscribeBatchSize
 }
 
+// SelectQuery returns a SQL query for selecting messages.
 func (s PostgreSQLSchema) SelectQuery(topic string, consumerGroup string, offsetsAdapter sql.OffsetsAdapter) (string, []interface{}) {
 	// Query inspired by https://event-driven.io/en/ordering_in_postgres_outbox/
 
@@ -117,6 +119,7 @@ func (s PostgreSQLSchema) SelectQuery(topic string, consumerGroup string, offset
 	return selectQuery, nextOffsetArgs
 }
 
+// UnmarshalMessage unmarshals a database row into a Watermill message.
 func (s PostgreSQLSchema) UnmarshalMessage(row sql.Scanner) (sql.Row, error) {
 	r := sql.Row{}
 	var transactionID int64
@@ -143,6 +146,7 @@ func (s PostgreSQLSchema) UnmarshalMessage(row sql.Scanner) (sql.Row, error) {
 	return r, nil
 }
 
+// MessagesTable returns the name of the messages table for a given topic.
 func (s PostgreSQLSchema) MessagesTable(topic string) string {
 	if s.GenerateMessagesTableName != nil {
 		return s.GenerateMessagesTableName(topic)
@@ -150,12 +154,14 @@ func (s PostgreSQLSchema) MessagesTable(topic string) string {
 	return fmt.Sprintf(`"watermill_%s"`, topic)
 }
 
+// SubscribeIsolationLevel returns the isolation level for subscribing.
 func (s PostgreSQLSchema) SubscribeIsolationLevel() stdSQL.IsolationLevel {
 	// For Postgres Repeatable Read is enough.
 	return stdSQL.LevelSerializable
 }
 
-func PostgresDBConnection(cfg config.Sql) (*stdSQL.DB, error) {
+// PostgresDBConnection creates a new connection to the PostgreSQL database.
+func PostgresDBConnection(cfg config.SQL) (*stdSQL.DB, error) {
 	dbURL := "postgres://" + cfg.Username + ":" + cfg.Password + "@" + cfg.Host + ":" + strconv.Itoa(cfg.Port) + "/" + cfg.Db + "?" + cfg.QueryString
 
 	db, err := stdSQL.Open("postgres", dbURL)

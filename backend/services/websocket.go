@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// WebsocketService defines the interface for websocket-related business logic
 type WebsocketService interface {
 	GetConnectionTopics(userID, workspaceID uuid.UUID) ([]string, error)
 }
@@ -14,10 +15,10 @@ type WebsocketService interface {
 type websocketService struct {
 	workspaceService WorkspaceService
 	projectService   ProjectService
-	teamService      TeamService
 	logger           *zap.Logger
 }
 
+// NewWebsocketService creates a new websocket service instance
 func NewWebsocketService(
 	workspaceService WorkspaceService,
 	projectService ProjectService,
@@ -45,7 +46,7 @@ func (s *websocketService) GetConnectionTopics(userID, workspaceID uuid.UUID) ([
 	projects, err := s.projectService.ListByWorkspaceID(workspaceID)
 	if err == nil {
 		for _, p := range projects {
-			if s.checkProjectAccess(p.ID, userID, workspaceID) == nil {
+			if s.checkProjectAccess(p.ID, userID) == nil {
 				topics = append(topics, fmt.Sprintf("project:%s", p.ID.String()))
 			}
 		}
@@ -54,7 +55,7 @@ func (s *websocketService) GetConnectionTopics(userID, workspaceID uuid.UUID) ([
 	return topics, nil
 }
 
-func (s *websocketService) checkProjectAccess(projectID, userID, workspaceID uuid.UUID) error {
+func (s *websocketService) checkProjectAccess(projectID, userID uuid.UUID) error {
 	// Reuse logic from projectService if possible, or keep it here if it's specific to websocket sub logic
 	// Actually, ProjectService has ValidateProjectAccess
 	return s.projectService.ValidateProjectAccess(projectID, userID, false)

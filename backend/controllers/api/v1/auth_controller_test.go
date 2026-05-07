@@ -19,12 +19,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupAuthTest() (*fiber.App, *mockUserService, *AuthController) {
+func setupAuthTest(t *testing.T) (*fiber.App, *mockUserService, *AuthController) {
 	app := fiber.New()
 	mockSvc := new(mockUserService)
 	logger := zap.NewNop()
 	cfg := &config.AppConfig{JwtExpirationHours: 24}
-	ctrl, _ := NewAuthController(mockSvc, logger, cfg)
+	ctrl, err := NewAuthController(mockSvc, logger, cfg)
+	assert.NoError(t, err)
 	return app, mockSvc, ctrl
 }
 
@@ -53,7 +54,7 @@ func TestAuthController_Register(t *testing.T) {
 		{
 			name:           "invalid_request_body",
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockUserService) {},
+			setupMocks:     func(_ *mockUserService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -62,7 +63,7 @@ func TestAuthController_Register(t *testing.T) {
 				Password: "password123",
 				FullName: "Test User",
 			},
-			setupMocks:     func(m *mockUserService) {},
+			setupMocks:     func(_ *mockUserService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -82,15 +83,18 @@ func TestAuthController_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Post("/register", ctrl.Register)
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/register", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 			mockSvc.AssertExpectations(t)
 		})
@@ -123,39 +127,44 @@ func TestAuthController_Login(t *testing.T) {
 		{
 			name:           "invalid_request_body",
 			reqBody:        "invalid json",
-			setupMocks:     func(m *mockUserService) {},
+			setupMocks:     func(_ *mockUserService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "validation_failure_missing_email",
 			reqBody:        structs.ReqLoginUser{Password: "pwd"},
-			setupMocks:     func(m *mockUserService) {},
+			setupMocks:     func(_ *mockUserService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Post("/login", ctrl.Login)
 			tt.setupMocks(mockSvc)
 
-			body, _ := json.Marshal(tt.reqBody)
+			body, err := json.Marshal(tt.reqBody)
+			assert.NoError(t, err)
 			req := httptest.NewRequest("POST", "/login", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
 	}
 }
 
 func TestAuthController_Logout(t *testing.T) {
-	app, _, ctrl := setupAuthTest()
+	app, _, ctrl := setupAuthTest(t)
 	app.Post("/logout", ctrl.Logout)
 
 	r := httptest.NewRequest("POST", "/logout", nil)
-	resp, _ := app.Test(r)
+	resp, err := app.Test(r)
+	assert.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
@@ -172,7 +181,7 @@ func TestAuthController_Me(t *testing.T) {
 		{
 			name: "success",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, userID.String())
+				c.Locals(constants.ContextUID, userID.String())
 			},
 			setupMocks: func(m *mockUserService) {
 				m.On("GetByID", userID).Return(models.User{ID: userID, Email: "me@test.com"}, nil)
@@ -182,7 +191,7 @@ func TestAuthController_Me(t *testing.T) {
 		{
 			name: "invalid_user_id_in_context",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, "invalid-uuid")
+				c.Locals(constants.ContextUID, "invalid-uuid")
 			},
 			setupMocks: func(m *mockUserService) {
 				m.On("GetByID", userID).Return(models.User{}, nil)
@@ -192,7 +201,7 @@ func TestAuthController_Me(t *testing.T) {
 		{
 			name: "user_not_found",
 			setupContext: func(c *fiber.Ctx) {
-				c.Locals(constants.ContextUid, userID.String())
+				c.Locals(constants.ContextUID, userID.String())
 			},
 			setupMocks: func(m *mockUserService) {
 				m.On("GetByID", userID).Return(models.User{}, errors.New("not found"))
@@ -203,7 +212,7 @@ func TestAuthController_Me(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, mockSvc, ctrl := setupAuthTest()
+			app, mockSvc, ctrl := setupAuthTest(t)
 			app.Get("/me", func(c *fiber.Ctx) error {
 				tt.setupContext(c)
 				return ctrl.Me(c)
@@ -211,7 +220,9 @@ func TestAuthController_Me(t *testing.T) {
 			tt.setupMocks(mockSvc)
 
 			req := httptest.NewRequest("GET", "/me", nil)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
+			defer func() { _ = resp.Body.Close() }()
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})

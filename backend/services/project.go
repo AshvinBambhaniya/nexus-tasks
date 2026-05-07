@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ProjectService defines the interface for project-related business logic
 type ProjectService interface {
 	// Project Management
 	CreateProject(userID, workspaceID uuid.UUID, req structs.ReqCreateProject) (models.Project, error)
@@ -36,6 +37,7 @@ type projectService struct {
 	logger  *zap.Logger
 }
 
+// NewProjectService creates a new project service instance
 func NewProjectService(storage models.Storage, logger *zap.Logger) ProjectService {
 	return &projectService{
 		storage: storage,
@@ -227,7 +229,7 @@ func (s *projectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 	}
 
 	for _, pt := range projectTeams {
-		teamMembers, err := s.storage.Teams().ListMembersByTeamId(pt.TeamID)
+		teamMembers, err := s.storage.Teams().ListMembersByTeamID(pt.TeamID)
 		if err != nil {
 			continue
 		}
@@ -344,9 +346,7 @@ func (s *projectService) ValidateProjectAccess(projectID, userID uuid.UUID, requ
 	// 1. Direct Member
 	member, err := s.storage.Projects().GetMember(projectID, userID)
 	if err == nil {
-		if requireAdmin && member.Role != models.ProjectRoleAdmin {
-			// Check Workspace Admin below
-		} else {
+		if !requireAdmin || member.Role == models.ProjectRoleAdmin {
 			return nil // Authorized
 		}
 	}

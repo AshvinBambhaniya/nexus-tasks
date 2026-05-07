@@ -4,7 +4,7 @@ package utils
 // --- GENERIC ---//
 ////////////////////
 
-// Response is okay
+// ResOK is returned when a request is successful.
 // swagger:response GenericResOk
 type ResOK struct {
 	// in:body
@@ -14,7 +14,7 @@ type ResOK struct {
 	}
 }
 
-// Fail due to user invalid input
+// ResFailBadRequest is returned when a request fails due to invalid user input.
 // swagger:response GenericResFailBadRequest
 type ResFailBadRequest struct {
 	// in: body
@@ -25,7 +25,7 @@ type ResFailBadRequest struct {
 	} `json:"body"`
 }
 
-// Fail due to user invalid input
+// ResForbiddenRequest is returned when a request is forbidden.
 // swagger:response ResForbiddenRequest
 type ResForbiddenRequest struct {
 	// in: body
@@ -36,7 +36,7 @@ type ResForbiddenRequest struct {
 	} `json:"body"`
 }
 
-// Server understand request but refuse to authorize it
+// ResFailConflict is returned when a request fails due to a conflict.
 // swagger:response GenericResFailConflict
 type ResFailConflict struct {
 	// in: body
@@ -47,7 +47,7 @@ type ResFailConflict struct {
 	} `json:"body"`
 }
 
-// Fail due to server understand request but unable to process
+// ResFailUnprocessableEntity is returned when a request is well-formed but unable to be processed.
 // swagger:response GenericResFailUnprocessableEntity
 type ResFailUnprocessableEntity struct {
 	// in: body
@@ -58,7 +58,7 @@ type ResFailUnprocessableEntity struct {
 	} `json:"body"`
 }
 
-// Fail due to resource not exists
+// ResFailNotFound is returned when a requested resource is not found.
 // swagger:response GenericResFailNotFound
 type ResFailNotFound struct {
 	// in: body
@@ -69,7 +69,7 @@ type ResFailNotFound struct {
 	} `json:"body"`
 }
 
-// Unexpected error occurred
+// ResError is returned when an unexpected error occurs.
 // swagger:response GenericResError
 type ResError struct {
 	// in: body

@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func setupWorkspaceTest(t *testing.T) (*workspaceService, *mockWorkspaceRepository, *mockUserRepository, *mockStorage, *mockPublisher) {
+func setupWorkspaceTest(_ *testing.T) (*workspaceService, *mockWorkspaceRepository, *mockUserRepository, *mockStorage, *mockPublisher) {
 	mockWorkspaceRepo := new(mockWorkspaceRepository)
 	mockUserRepo := new(mockUserRepository)
 	mockStor := new(mockStorage)
@@ -23,7 +23,7 @@ func setupWorkspaceTest(t *testing.T) (*workspaceService, *mockWorkspaceReposito
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
 	mockStor.On("Users").Return(mockUserRepo)
 
-	svc := NewWorkspaceService(mockStor, logger, mockPub).(*workspaceService)
+	svc := &workspaceService{storage: mockStor, logger: logger, publisher: mockPub}
 
 	return svc, mockWorkspaceRepo, mockUserRepo, mockStor, mockPub
 }
@@ -69,13 +69,13 @@ func TestWorkspaceService_ListWorkspacesByUserID(t *testing.T) {
 	})
 }
 
-func TestWorkspaceService_ListMembersByWorkspaceId(t *testing.T) {
+func TestWorkspaceService_ListMembersByWorkspaceID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		svc, mw, _, _, _ := setupWorkspaceTest(t)
 		workspaceID := uuid.New()
-		mw.On("ListMembersByWorkspaceId", workspaceID).Return([]models.WorkspaceMemberWithUser{{Email: "test@test.com"}}, nil)
+		mw.On("ListMembersByWorkspaceID", workspaceID).Return([]models.WorkspaceMemberWithUser{{Email: "test@test.com"}}, nil)
 
-		res, err := svc.ListMembersByWorkspaceId(workspaceID)
+		res, err := svc.ListMembersByWorkspaceID(workspaceID)
 		assert.NoError(t, err)
 		assert.Len(t, res, 1)
 		assert.Equal(t, "test@test.com", res[0].Email)

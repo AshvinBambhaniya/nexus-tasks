@@ -1,20 +1,21 @@
+// Package constants defines constants used throughout the application.
 package constants
 
-// variables
+// Cookie constants
 const (
 	CookieUser            = "access_token"
 	WorkspaceTypePersonal = "Personal"
 )
 
-// fiber contexts
+// Fiber context keys
 const (
-	ContextUid             = "userId"
+	ContextUID             = "userId"
 	ContextWorkspaceMember = "workspaceMember"
 )
 
-// params
+// URL parameter keys
 const (
-	ParamUid         = "userId"
+	ParamUID         = "userId"
 	ParamWorkspaceID = "workspaceId"
 	ParamTeamID      = "teamId"
 	ParamProjectID   = "projectId"
@@ -22,16 +23,45 @@ const (
 	ParamCommentID   = "commentId"
 )
 
-// Success messages
-// ...
+// Response property keys
+const (
+	// PropMessage is a key for messages
+	PropMessage = "message"
+	// PropError is a key for errors
+	PropError = "error"
+)
 
 // Fail messages
 // ...
 const (
-	Unauthenticated    = "unauthenticated to access resource"
-	Unauthorized       = "unauthorized to access resource"
-	InvalidCredentials = "invalid credenticals"
+	Unauthenticated = "unauthenticated to access resource"
+	Unauthorized    = "unauthorized to access resource"
+	// #nosec G101
+	InvalidCredentials = "invalid credentials"
 	UserNotExist       = "user does not exists"
+)
+
+// Invalid ID Messages
+const (
+	ErrInvalidUserID       = "invalid user id"
+	ErrInvalidWorkspaceID  = "invalid workspace id"
+	ErrInvalidTeamID       = "invalid team id"
+	ErrInvalidProjectID    = "invalid project id"
+	ErrInvalidTaskID       = "invalid task id"
+	ErrInvalidCommentID    = "invalid comment id"
+	ErrInvalidTargetUserID = "invalid target user id"
+)
+
+// Shared Success Messages
+const (
+	MsgMemberRemoved  = "Member removed"
+	MsgMemberAdded    = "Member added"
+	MsgMemberInvited  = "Member invited"
+	MsgUpdated        = "Updated"
+	MsgTaskDeleted    = "Task deleted"
+	MsgCommentDeleted = "Comment deleted"
+	MsgTeamRemoved    = "Team removed"
+	MsgTeamDeleted    = "Team deleted"
 )
 
 // Error messages
@@ -58,6 +88,7 @@ const (
 	TopicWelcomeMail      = "welcome_mail"
 )
 
+// Query parameters
 const (
 	QueryStatus     = "status"
 	QueryAssigneeID = "assignee_id"

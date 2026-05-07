@@ -50,12 +50,21 @@ func TestParseToken(t *testing.T) {
 	cfg := config.AppConfig{Secret: secret}
 
 	validSub := "user-123"
-	validToken, _ := CreateToken(cfg.Secret, validSub, time.Now().Add(time.Hour))
+	validToken, err := CreateToken(cfg.Secret, validSub, time.Now().Add(time.Hour))
+	if err != nil {
+		t.Fatalf("failed to create valid token: %v", err)
+	}
 
-	expiredToken, _ := CreateToken(cfg.Secret, validSub, time.Now().Add(-time.Hour))
+	expiredToken, err := CreateToken(cfg.Secret, validSub, time.Now().Add(-time.Hour))
+	if err != nil {
+		t.Fatalf("failed to create expired token: %v", err)
+	}
 
 	wrongSecretCfg := config.AppConfig{Secret: "wrong-secret-key-long-enough-for-hs256"}
-	wrongSecretToken, _ := CreateToken(wrongSecretCfg.Secret, validSub, time.Now().Add(time.Hour))
+	wrongSecretToken, err := CreateToken(wrongSecretCfg.Secret, validSub, time.Now().Add(time.Hour))
+	if err != nil {
+		t.Fatalf("failed to create wrong secret token: %v", err)
+	}
 
 	tests := []struct {
 		name    string

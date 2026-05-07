@@ -1,3 +1,4 @@
+// Package middlewares provides HTTP middleware for the application.
 package middlewares
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// SentryMiddleware returns a fiber handler that captures panics and sends them to Sentry.
 func SentryMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		defer func() {
@@ -21,7 +23,11 @@ func SentryMiddleware() fiber.Handler {
 				sentry.CaptureException(err)
 				sentry.Flush(2 * time.Second)
 
-				c.Status(500).JSON(fiber.Map{"error": "internal server error"})
+				if err := c.Status(500).JSON(fiber.Map{"error": "internal server error"}); err != nil {
+					// We use a blank assignment here to satisfy the linter's requirement for checking the error,
+					// as there is no meaningful recovery path if sending the error response itself fails.
+					_ = err
+				}
 			}
 		}()
 

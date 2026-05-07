@@ -1,3 +1,4 @@
+// Package workers provides implementations for background worker tasks.
 package workers
 
 import (

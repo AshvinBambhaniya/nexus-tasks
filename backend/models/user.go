@@ -21,6 +21,7 @@ type User struct {
 	UpdatedAt      string    `json:"updated_at,omitempty" db:"updated_at"`
 }
 
+// UserRepository defines the interface for user-related database operations
 type UserRepository interface {
 	GetByEmail(email string) (User, error)
 	GetByID(id uuid.UUID) (User, error)
@@ -32,14 +33,14 @@ type UserModel struct {
 	db DbExecutor
 }
 
-// InitUserModel Init model
+// InitUserModel initializes the user model
 func InitUserModel(db DbExecutor) UserRepository {
 	return &UserModel{
 		db: db,
 	}
 }
 
-// GetUserByEmail get user by email
+// GetByEmail retrieves a user by their email address
 func (model *UserModel) GetByEmail(email string) (User, error) {
 	user := User{}
 	found, err := model.db.From(UserTable).Where(goqu.Ex{
@@ -57,7 +58,7 @@ func (model *UserModel) GetByEmail(email string) (User, error) {
 	return user, nil
 }
 
-// GetByID get user by id
+// GetByID retrieves a user by their unique ID
 func (model *UserModel) GetByID(id uuid.UUID) (User, error) {
 	user := User{}
 	found, err := model.db.From(UserTable).Where(goqu.Ex{
@@ -75,7 +76,7 @@ func (model *UserModel) GetByID(id uuid.UUID) (User, error) {
 	return user, nil
 }
 
-// CreateUser inserts a new user
+// CreateUser inserts a new user into the database
 func (model *UserModel) CreateUser(user User) (User, error) {
 	var createdUser User
 

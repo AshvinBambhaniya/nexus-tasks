@@ -1,3 +1,4 @@
+// Package cli provides CLI commands for the application.
 package cli
 
 import (
@@ -22,7 +23,7 @@ func GetAPICommandDef(cfg *config.AppConfig, logger *zap.Logger) cobra.Command {
 		Use:   "api",
 		Short: "To start api",
 		Long:  `To start api`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 
 			// Create fiber app
 			app := fiber.New(fiber.Config{})
