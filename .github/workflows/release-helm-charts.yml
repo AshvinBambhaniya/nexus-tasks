@@ -3,7 +3,7 @@ name: Release Charts
 on:
   push:
     branches:
-      - main
+      - feat/helm-deployment-automation
     paths:
       - 'deploy/helm/**'
   workflow_dispatch:
