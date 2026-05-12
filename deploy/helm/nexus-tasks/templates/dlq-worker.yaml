@@ -1,0 +1,62 @@
+{{- if .Values.dlqWorker.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-dlq-worker
+  labels:
+    {{- include "nexus-tasks.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dlq-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "nexus-tasks.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: dlq-worker
+  template:
+    metadata:
+      labels:
+        {{- include "nexus-tasks.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: dlq-worker
+    spec:
+      serviceAccountName: {{ include "nexus-tasks.serviceAccountName" . }}
+      containers:
+        - name: dlq-worker
+          image: "{{ .Values.dlqWorker.image.repository }}:{{ .Values.dlqWorker.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.dlqWorker.image.pullPolicy }}
+          command: ["./nexus-tasks", "dead-letter-queue"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "nexus-tasks.fullname" . }}-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nexus-tasks.fullname" . }}-secret
+                  key: JWT_SECRET
+            {{- if .Values.smtp.enabled }}
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nexus-tasks.fullname" . }}-secret
+                  key: MAIL_PASSWORD
+            {{- end }}
+            {{- if and .Values.redis.enabled .Values.redis.auth.enabled }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nexus-tasks.fullname" . }}-secret
+                  key: REDIS_PASSWORD
+            {{- end }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+            - name: MQ_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

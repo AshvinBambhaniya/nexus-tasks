@@ -1,0 +1,8 @@
+# Artifact Hub Repository Metadata
+# To get a repositoryID and verifiedPublisherID, register the repository at https://artifacthub.io
+# and update these fields.
+
+# repositoryID: ""
+owners:
+  - name: Ashvin Bambhaniya
+    email: ashvinbambhaniya2003@gmail.com

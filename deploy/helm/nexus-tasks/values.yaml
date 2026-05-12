@@ -1,0 +1,150 @@
+# Default values for nexus-tasks.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of replicas for the deployments (API and Frontend).
+replicaCount: 1
+
+# -- Service Account Configuration
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Application Specific Configurations
+config:
+  # -- Application environment (local, production, staging)
+  appEnv: production
+  # -- Enable development mode features
+  isDevelopment: false
+  # -- Enable debug logging
+  debug: false
+  # -- CORS allowed origins (comma-separated)
+  allowedOrigins: "http://localhost:3000,http://nexus-tasks.local"
+  # -- Secret key for JWT signing. MUST be changed in production.
+  jwtSecret: "USE_A_STRONG_RANDOM_SECRET_IN_PRODUCTION"
+
+# -- Backend configuration (API and Migrations)
+backend:
+  name: backend
+  port: 8000
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    # -- Overrides the image tag (defaults to .Chart.AppVersion)
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# -- Worker configuration (Background task processor)
+worker:
+  # -- Enable the background worker component
+  enabled: false
+  name: worker
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# -- DLQ Worker configuration (Dead Letter Queue processor)
+dlqWorker:
+  # -- Enable the Dead Letter Queue worker component
+  enabled: false
+  name: dlq-worker
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# -- Frontend configuration (Web UI)
+frontend:
+  name: frontend
+  port: 80
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-frontend
+    # -- Overrides the image tag (defaults to .Chart.AppVersion)
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# -- Database Configuration (PostgreSQL)
+# Uses the Bitnami PostgreSQL chart.
+# Full options: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+postgresql:
+  # -- Deploy the integrated PostgreSQL sub-chart
+  enabled: true
+  auth:
+    database: nexus_tasks
+    username: postgres
+    password: devpassword
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# -- Message Broker Configuration (Redis)
+# Uses the Bitnami Redis chart for Watermill event-driven messaging.
+# Full options: https://github.com/bitnami/charts/tree/main/bitnami/redis
+redis:
+  # -- Deploy the integrated Redis sub-chart
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+# -- External SMTP configuration (Required for email invitations)
+smtp:
+  enabled: false
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  fromEmail: "noreply@example.com"
+  fromName: "Nexus Tasks"
+  startTLS: "false"
+  sslTLS: "false"
+  useCredentials: "false"
+
+# -- Ingress configuration
+ingress:
+  # -- Enable ingress controller resource
+  enabled: true
+  className: "nginx"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: nexus-tasks.local
+      paths:
+        - path: /api
+          pathType: Prefix
+          serviceName: backend
+        - path: /
+          pathType: Prefix
+          serviceName: frontend
+  # -- Ingress TLS configuration
+  tls: []
+  #  - secretName: nexus-tasks-tls
+  #    hosts:
+  #      - nexus-tasks.local
+
+# -- Compute resources (CPU/Memory) allocated to pods
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# -- Node selection for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity for pod assignment
+affinity: {}

@@ -20,6 +20,7 @@ type AppConfig struct {
 	Port               string `envconfig:"APP_PORT"`
 	Secret             string `envconfig:"JWT_SECRET"`
 	JwtExpirationHours int    `envconfig:"JWT_EXPIRATION_HOURS" default:"24"`
+	AllowedOrigins     string `envconfig:"ALLOWED_ORIGINS" default:"http://localhost:3000"`
 	MQ                 MQConfig
 	DB                 DBConfig
 	Sentry             SentryConfig
