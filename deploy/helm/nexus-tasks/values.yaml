@@ -1,0 +1,129 @@
+# Default values for nexus-tasks.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# Service Account Configuration
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Application Specific Configurations
+config:
+  appEnv: local
+  isDevelopment: "true"
+  debug: "false"
+  jwtSecret: "dev_secret_key_change_me_in_prod"
+
+# Backend configuration (API, Migration, Workers)
+backend:
+  name: backend
+  port: 8000
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    # tag: defaults to .Chart.AppVersion if empty
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# Worker configuration (Shared with Backend image)
+worker:
+  enabled: false
+  name: worker
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    # tag: defaults to .Chart.AppVersion if empty
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# DLQ Worker configuration (Shared with Backend image)
+dlqWorker:
+  enabled: false
+  name: dlq-worker
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-backend
+    # tag: defaults to .Chart.AppVersion if empty
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# Frontend configuration
+frontend:
+  name: frontend
+  port: 80
+  image:
+    repository: ghcr.io/ashvinbambhaniya/nexus-tasks-frontend
+    # tag: defaults to .Chart.AppVersion if empty
+    tag: ""
+    pullPolicy: IfNotPresent
+
+# -- Database Configuration (PostgreSQL)
+# Uses the Bitnami PostgreSQL chart.
+# For full options, see: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+postgresql:
+  auth:
+    database: nexus_tasks
+    username: postgres
+    password: devpassword
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# -- Message Broker Configuration (Redis)
+# Uses the Bitnami Redis chart for Watermill event-driven messaging.
+# For full options, see: https://github.com/bitnami/charts/tree/main/bitnami/redis
+redis:
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+# External SMTP configuration
+smtp:
+  enabled: false
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  fromEmail: "noreply@example.com"
+  fromName: "Nexus Tasks"
+  startTLS: "false"
+  sslTLS: "false"
+  useCredentials: "false"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: nexus-tasks.local
+      paths:
+        - path: /api
+          pathType: Prefix
+          serviceName: backend
+        - path: /
+          pathType: Prefix
+          serviceName: frontend
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

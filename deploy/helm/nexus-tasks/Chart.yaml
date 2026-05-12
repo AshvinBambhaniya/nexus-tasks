@@ -1,0 +1,31 @@
+apiVersion: v2
+name: nexus-tasks
+description: A developer-focused project management platform for personal and team flow.
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+home: https://github.com/AshvinBambhaniya/nexus-tasks
+icon: https://raw.githubusercontent.com/AshvinBambhaniya/nexus-tasks/main/frontend/public/favicon.ico
+keywords:
+  - project-management
+  - kanban
+  - productivity
+  - golang
+  - nuxtjs
+maintainers:
+  - name: Ashvin Bambhaniya
+    email: ashvinbambhaniya2003@gmail.com
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release of the Nexus Tasks Helm chart.
+  artifacthub.io/category: Project Management
+  artifacthub.io/language: golang
+
+dependencies:
+  - name: postgresql
+    version: 18.6.4
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: redis
+    version: 25.5.2
+    repository: oci://registry-1.docker.io/bitnamicharts
