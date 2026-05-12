@@ -6,7 +6,7 @@ export const setUserDataStore = async () => {
   const { setUserData } = useUsersStore();
 
   try {
-    const response = await fetch(apiUrl + "/api/v1/auth/me", {
+    const response = await fetch(apiUrl + "/api/v2/auth/me", {
       method: "GET",
       credentials: "include",
       mode: "cors",

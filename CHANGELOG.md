@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-05-12
+
+### 🚀 Major Migration & Performance Overhaul
+
+This release marks a significant milestone in Nexus Tasks history. We have completely rewritten both our backend and frontend stacks to improve performance, developer experience, and scalability.
+
+#### **Backend Migration: FastAPI to Go (Fiber)**
+
+- **Architecture**: Transitioned from Python/FastAPI to a high-performance **Go** backend using the **Fiber** framework.
+- **Data Access**: Moved to a **Unit of Work** pattern with **Goqu** for atomic and safe database transactions.
+- **Messaging**: Replaced internal task queues with **Watermill** and Redis for robust, event-driven architecture.
+- **Real-time**: Custom WebSocket Hub implementation in Go for lower latency and better resource management.
+
+#### **Frontend Migration: Next.js to Nuxt 4**
+
+- **Framework**: Migrated the entire UI from React/Next.js to **Nuxt 4 (Vue 3)**, leveraging the latest features of the Nuxt Nitro engine.
+- **Styling**: Upgraded to **Tailwind CSS 4** for faster builds and a more modern design system.
+- **State Management**: Adopted **Pinia** for clean, modular reactive state handling.
+
+### ✨ Other Improvements
+
+- **JSend Compliance**: Standardized all API responses following the JSend specification.
+- **Improved Testing**: Comprehensive backend test suite with high coverage across services and controllers.
+- **Unified DX**: Simplified local development with an optimized Docker Compose setup.
+
 ## [1.1.0] - 2026-02-16
 
 ### 🚀 New Features

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/cli/workers"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/cli/workers"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"

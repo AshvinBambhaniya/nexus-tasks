@@ -11,8 +11,8 @@ export const useTeams = () => {
   } = useApi<Team[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams`
-        : "/api/v1/workspaces/0/teams",
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams`
+        : "/api/v2/workspaces/0/teams",
     {
       key: `teams-list-${workspaceStore.activeWorkspaceId}`,
       watch: [() => workspaceStore.activeWorkspaceId],
@@ -23,7 +23,7 @@ export const useTeams = () => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams`,
         {
           method: "POST",
           body: { name, description },
@@ -43,7 +43,7 @@ export const useTeams = () => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`,
         {
           method: "PATCH",
           body: data,
@@ -60,7 +60,7 @@ export const useTeams = () => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`,
         {
           method: "DELETE",
         }
@@ -94,8 +94,8 @@ export const useTeam = (teamId: string) => {
   } = useApi<Team>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`
-        : "/api/v1/workspaces/0/teams/0",
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}`
+        : "/api/v2/workspaces/0/teams/0",
     {
       key: `team-${teamId}`,
     }
@@ -120,8 +120,8 @@ export const useTeamMembers = (teamId: string) => {
   } = useApi<TeamMember[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members`
-        : "/api/v1/workspaces/0/teams/0/members",
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members`
+        : "/api/v2/workspaces/0/teams/0/members",
     {
       key: `team-members-${teamId}`,
     }
@@ -131,7 +131,7 @@ export const useTeamMembers = (teamId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members`,
         {
           method: "POST",
           body: { email, role: "MEMBER" },
@@ -148,7 +148,7 @@ export const useTeamMembers = (teamId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members/${userId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/teams/${teamId}/members/${userId}`,
         {
           method: "DELETE",
         }

@@ -6,9 +6,9 @@ import (
 	"encoding/gob"
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/cli/workers"
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/database"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/cli/workers"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/database"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"

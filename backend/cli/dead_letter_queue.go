@@ -3,9 +3,9 @@ package cli
 import (
 	"go.uber.org/zap"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/cli/workers"
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/cli/workers"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/watermill"
 	"github.com/spf13/cobra"
 )
 

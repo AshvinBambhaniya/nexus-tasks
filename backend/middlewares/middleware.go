@@ -2,8 +2,8 @@
 package middlewares
 
 import (
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
 	"github.com/doug-martin/goqu/v9"
 	"go.uber.org/zap"
 )

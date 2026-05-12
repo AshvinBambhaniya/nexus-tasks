@@ -3,7 +3,7 @@ package structs
 import (
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
 	"github.com/google/uuid"
 )
 

@@ -8,7 +8,7 @@ export const useWorkspaces = () => {
     pending: isLoading,
     error,
     refresh,
-  } = useApi<Workspace[]>("/api/v1/workspaces", {
+  } = useApi<Workspace[]>("/api/v2/workspaces", {
     key: "workspaces-list",
   });
 
@@ -34,7 +34,7 @@ export const useWorkspaces = () => {
 
   const createWorkspace = async (name: string) => {
     try {
-      const response = await useMutation<Workspace>("/api/v1/workspaces/", {
+      const response = await useMutation<Workspace>("/api/v2/workspaces/", {
         method: "POST",
         body: { name },
       });

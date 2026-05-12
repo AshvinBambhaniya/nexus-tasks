@@ -50,7 +50,7 @@ export const useSocket = () => {
     ) {
       // Global refresh for any active useFetch with these keys
       refreshNuxtData(
-        (key) => key.includes("/api/v1/projects/") || key === "my-tasks"
+        (key) => key.includes("/api/v2/projects/") || key === "my-tasks"
       );
     }
   };

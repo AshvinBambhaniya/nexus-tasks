@@ -47,7 +47,7 @@ const handleUpdateProfile = async () => {
   isUpdating.value = true;
   isSuccess.value = false;
   try {
-    const updatedUser = await useMutation<User>("/api/v1/auth/me", {
+    const updatedUser = await useMutation<User>("/api/v2/auth/me", {
       method: "PATCH",
       body: { full_name: fullName.value, email: email.value },
     });

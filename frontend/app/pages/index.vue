@@ -32,7 +32,7 @@ const user = computed(() => userStore.userData);
             <span
               class="mr-2 flex h-2 w-2 animate-pulse rounded-full bg-blue-600"
             />
-            v1.0 is Live • Open Source
+            v2.0 is Live • Open Source
           </div>
           <h1
             class="mb-6 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl"

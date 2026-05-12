@@ -11,7 +11,7 @@ export const useTasks = (projectId?: string) => {
   } = useApi<Task[]>(
     () =>
       projectId && workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`
         : null,
     {
       key: `tasks-list-${projectId}`,
@@ -30,7 +30,7 @@ export const useTasks = (projectId?: string) => {
     if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`,
         {
           method: "POST",
           body: task,
@@ -47,7 +47,7 @@ export const useTasks = (projectId?: string) => {
     if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
         {
           method: "PATCH",
           body: updates,
@@ -64,7 +64,7 @@ export const useTasks = (projectId?: string) => {
     if (!projectId || !workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`,
         {
           method: "DELETE",
         }
@@ -98,8 +98,8 @@ export const useTask = (projectId: string, taskId: string) => {
   } = useApi<Task>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`
-        : `/api/v1/workspaces/0/projects/${projectId}/tasks/${taskId}`,
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`
+        : `/api/v2/workspaces/0/projects/${projectId}/tasks/${taskId}`,
     {
       key: `task-${taskId}`,
     }
@@ -113,8 +113,8 @@ export const useTask = (projectId: string, taskId: string) => {
   } = useApi<Comment[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`
-        : `/api/v1/workspaces/0/projects/${projectId}/tasks/${taskId}/comments`,
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/api/v2/workspaces/0/projects/${projectId}/tasks/${taskId}/comments`,
     {
       key: `task-comments-${taskId}`,
     }
@@ -124,7 +124,7 @@ export const useTask = (projectId: string, taskId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`,
         {
           method: "POST",
           body: { content },
@@ -141,7 +141,7 @@ export const useTask = (projectId: string, taskId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments/${commentId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments/${commentId}`,
         {
           method: "DELETE",
         }

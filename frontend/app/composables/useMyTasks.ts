@@ -6,13 +6,13 @@ export const useMyTasks = () => {
     pending: isLoading,
     error,
     refresh,
-  } = useApi<TaskWithProject[]>("/api/v1/tasks/me", {
+  } = useApi<TaskWithProject[]>("/api/v2/tasks/me", {
     key: "my-tasks",
   });
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
-      await useMutation(`/api/v1/tasks/${taskId}`, {
+      await useMutation(`/api/v2/tasks/${taskId}`, {
         method: "PATCH",
         body: updates,
       });

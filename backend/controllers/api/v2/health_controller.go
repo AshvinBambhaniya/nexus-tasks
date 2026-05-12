@@ -1,11 +1,11 @@
-package v1
+package v2
 
 import (
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/services"
-	"github.com/AshvinBambhaniya/nexus-tasks/utils"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )

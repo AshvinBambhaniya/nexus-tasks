@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
 	"github.com/ThreeDotsLabs/watermill-sql/v2/pkg/sql"
 	"github.com/pkg/errors"
 
