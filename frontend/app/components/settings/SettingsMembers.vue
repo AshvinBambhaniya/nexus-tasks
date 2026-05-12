@@ -26,7 +26,7 @@ const {
 } = useApi<WorkspaceMember[]>(
   () =>
     activeWorkspace.value
-      ? `/api/v1/workspaces/${activeWorkspace.value.id}/members`
+      ? `/api/v2/workspaces/${activeWorkspace.value.id}/members`
       : "",
   {
     key: "workspace-members",
@@ -53,7 +53,7 @@ const handleInvite = async () => {
   isInviting.value = true;
   try {
     await useMutation(
-      `/api/v1/workspaces/${activeWorkspace.value.id}/members`,
+      `/api/v2/workspaces/${activeWorkspace.value.id}/members`,
       {
         method: "POST",
         body: { email: inviteEmail.value },
@@ -77,7 +77,7 @@ const handleRemove = async (userId: string) => {
 
   try {
     await useMutation(
-      `/api/v1/workspaces/${activeWorkspace.value.id}/members/${userId}`,
+      `/api/v2/workspaces/${activeWorkspace.value.id}/members/${userId}`,
       {
         method: "DELETE",
       }

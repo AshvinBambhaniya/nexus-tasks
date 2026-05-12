@@ -8,10 +8,10 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/database"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
-	"github.com/AshvinBambhaniya/nexus-tasks/routes"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/database"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/watermill"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/spf13/cobra"

@@ -6,8 +6,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	helpers "github.com/AshvinBambhaniya/nexus-tasks/helpers/smtp"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	helpers "github.com/AshvinBambhaniya/nexus-tasks/v2/helpers/smtp"
 )
 
 // WelcomeMail implements the Handler interface for sending welcome emails.

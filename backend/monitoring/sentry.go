@@ -4,7 +4,7 @@ package monitoring
 import (
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
 )

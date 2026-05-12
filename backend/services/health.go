@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
 	"go.uber.org/zap"
 )
 

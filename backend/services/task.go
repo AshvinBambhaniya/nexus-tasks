@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/realtime"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

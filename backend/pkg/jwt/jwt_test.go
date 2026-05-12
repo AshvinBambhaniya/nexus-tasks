@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
 	"github.com/stretchr/testify/assert"
 )
 

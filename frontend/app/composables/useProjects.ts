@@ -11,8 +11,8 @@ export const useProjects = () => {
   } = useApi<Project[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects`
-        : "/api/v1/workspaces/0/projects",
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects`
+        : "/api/v2/workspaces/0/projects",
     {
       key: `projects-list-${workspaceStore.activeWorkspaceId}`,
       watch: [() => workspaceStore.activeWorkspaceId],
@@ -23,7 +23,7 @@ export const useProjects = () => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects`,
         {
           method: "POST",
           body: { name, description },
@@ -56,8 +56,8 @@ export const useProject = (id: string) => {
   } = useApi<Project>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${id}`
-        : `/api/v1/workspaces/0/projects/${id}`,
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${id}`
+        : `/api/v2/workspaces/0/projects/${id}`,
     {
       key: `project-${id}`,
     }
@@ -82,8 +82,8 @@ export const useProjectMembers = (projectId: string) => {
   } = useApi<ProjectMember[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`
-        : `/api/v1/workspaces/0/projects/${projectId}/members`,
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`
+        : `/api/v2/workspaces/0/projects/${projectId}/members`,
     {
       key: `project-members-${projectId}`,
     }
@@ -93,7 +93,7 @@ export const useProjectMembers = (projectId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members`,
         {
           method: "POST",
           body: { email, role: "MEMBER" },
@@ -110,7 +110,7 @@ export const useProjectMembers = (projectId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members/${userId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/members/${userId}`,
         {
           method: "DELETE",
         }
@@ -143,8 +143,8 @@ export const useProjectTeams = (projectId: string) => {
   } = useApi<ProjectTeam[]>(
     () =>
       workspaceStore.activeWorkspaceId
-        ? `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`
-        : `/api/v1/workspaces/0/projects/${projectId}/teams`,
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`
+        : `/api/v2/workspaces/0/projects/${projectId}/teams`,
     {
       key: `project-teams-${projectId}`,
     }
@@ -154,7 +154,7 @@ export const useProjectTeams = (projectId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams`,
         {
           method: "POST",
           body: { team_id: teamId },
@@ -171,7 +171,7 @@ export const useProjectTeams = (projectId: string) => {
     if (!workspaceStore.activeWorkspaceId) return;
     try {
       await useMutation(
-        `/api/v1/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams/${teamId}`,
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/teams/${teamId}`,
         {
           method: "DELETE",
         }

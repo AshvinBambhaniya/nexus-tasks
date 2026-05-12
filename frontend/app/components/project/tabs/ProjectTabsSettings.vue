@@ -37,7 +37,7 @@ const handleUpdateGeneral = async () => {
   isUpdating.value = true;
   isSuccess.value = false;
   try {
-    await useMutation(`/api/v1/projects/${props.project.id}`, {
+    await useMutation(`/api/v2/projects/${props.project.id}`, {
       method: "PATCH",
       body: { name: projectName.value, description: projectDescription.value },
     });
@@ -61,7 +61,7 @@ const handleToggleArchive = async () => {
 
   isUpdating.value = true;
   try {
-    await useMutation(`/api/v1/projects/${props.project.id}`, {
+    await useMutation(`/api/v2/projects/${props.project.id}`, {
       method: "PATCH",
       body: { is_archived: !props.project.is_archived },
     });
@@ -89,7 +89,7 @@ const handleDelete = async () => {
 
   isUpdating.value = true;
   try {
-    await useMutation(`/api/v1/projects/${props.project.id}`, {
+    await useMutation(`/api/v2/projects/${props.project.id}`, {
       method: "DELETE",
     });
     await refreshProjects();

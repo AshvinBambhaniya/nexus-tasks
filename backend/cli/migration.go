@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/database"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/database"
 	_ "github.com/go-sql-driver/mysql" // for mysql dialect
 	_ "github.com/lib/pq"              // for postgres dialect
 	migrate "github.com/rubenv/sql-migrate"

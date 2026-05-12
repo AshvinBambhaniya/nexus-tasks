@@ -4,11 +4,11 @@ package main
 import (
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/cli"
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/logger"
-	"github.com/AshvinBambhaniya/nexus-tasks/monitoring"
-	"github.com/AshvinBambhaniya/nexus-tasks/routinewrapper"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/cli"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/logger"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/monitoring"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/routinewrapper"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
 )

@@ -33,7 +33,7 @@ const handleSubmit = async () => {
   isLoading.value = true;
   try {
     if (project) {
-      await useMutation(`/api/v1/projects/${project.id}`, {
+      await useMutation(`/api/v2/projects/${project.id}`, {
         method: "PATCH",
         body: { name: name.value, description: description.value },
       });

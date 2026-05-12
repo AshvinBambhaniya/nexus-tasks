@@ -8,7 +8,7 @@ export const useAuth = () => {
     isLoading.value = true;
     error.value = null;
     try {
-      await useMutation("/api/v1/auth/login", {
+      await useMutation("/api/v2/auth/login", {
         method: "POST",
         body: { email, password },
       });
@@ -28,7 +28,7 @@ export const useAuth = () => {
     isLoading.value = true;
     error.value = null;
     try {
-      await useMutation("/api/v1/auth/register", {
+      await useMutation("/api/v2/auth/register", {
         method: "POST",
         body: { email, password, full_name: fullName },
       });
@@ -42,7 +42,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      await useMutation("/api/v1/auth/logout", { method: "POST" });
+      await useMutation("/api/v2/auth/logout", { method: "POST" });
     } catch (err) {
       console.error("Logout failed", err);
     }

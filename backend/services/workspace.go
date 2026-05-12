@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/cli/workers"
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/cli/workers"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/watermill"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

@@ -26,8 +26,8 @@ const { tasks: myTasks, isLoading: tasksLoading } = useMyTasks();
 const { data: members } = useApi<WorkspaceMember[]>(
   () =>
     activeWorkspace.value
-      ? `/api/v1/workspaces/${activeWorkspace.value.id}/members`
-      : "/api/v1/workspaces/0/members",
+      ? `/api/v2/workspaces/${activeWorkspace.value.id}/members`
+      : "/api/v2/workspaces/0/members",
   {
     key: "workspace-members",
     watch: [activeWorkspace],

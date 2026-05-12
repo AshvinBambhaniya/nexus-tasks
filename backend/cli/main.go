@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,10 @@ func Init(cfg config.AppConfig, logger *zap.Logger) error {
 	workerCmd.PersistentFlags().String("topic", constants.TopicWorkspaceInvites, "topic name(queue name)")
 
 	deadQueueCmd := GetDeadQueueCommandDef(cfg, logger)
-	rootCmd := &cobra.Command{Use: "nexus-tasks"}
+	rootCmd := &cobra.Command{
+		Use:     "nexus-tasks",
+		Version: "2.0.0",
+	}
 	rootCmd.AddCommand(&migrationCmd, &apiCmd, &workerCmd, &deadQueueCmd)
 	return rootCmd.Execute()
 }

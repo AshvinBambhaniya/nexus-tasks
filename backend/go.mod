@@ -1,4 +1,4 @@
-module github.com/AshvinBambhaniya/nexus-tasks
+module github.com/AshvinBambhaniya/nexus-tasks/v2
 
 go 1.26.0
 
@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.4.0
 	github.com/Shopify/sarama v1.38.0
 	github.com/ThreeDotsLabs/watermill v1.5.0
-	github.com/ThreeDotsLabs/watermill-amqp v1.1.4
 	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.3
 	github.com/ThreeDotsLabs/watermill-googlecloud/v2 v2.0.0
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.5.0
@@ -73,7 +72,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
-	github.com/streadway/amqp v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	go.einride.tech/aip v0.83.0 // indirect

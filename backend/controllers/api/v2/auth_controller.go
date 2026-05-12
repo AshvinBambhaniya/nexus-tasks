@@ -1,15 +1,15 @@
-// Package v1 provides the version 1 of the API controllers.
-package v1
+// Package v2 provides the version 1 of the API controllers.
+package v2
 
 import (
 	"net/http"
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/structs"
-	"github.com/AshvinBambhaniya/nexus-tasks/services"
-	"github.com/AshvinBambhaniya/nexus-tasks/utils"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"

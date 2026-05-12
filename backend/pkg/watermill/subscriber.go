@@ -8,8 +8,8 @@ import (
 	"cloud.google.com/go/pubsub/v2/apiv1/pubsubpb"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/database"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/database"
 	"github.com/Shopify/sarama"
 
 	"github.com/ThreeDotsLabs/watermill"

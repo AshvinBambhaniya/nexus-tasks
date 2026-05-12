@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql" // import mysql if it is used
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"

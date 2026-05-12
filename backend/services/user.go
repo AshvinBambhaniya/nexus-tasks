@@ -6,11 +6,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/jwt"
-	"github.com/AshvinBambhaniya/nexus-tasks/utils"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/jwt"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

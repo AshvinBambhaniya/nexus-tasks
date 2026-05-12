@@ -7,14 +7,14 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/config"
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	controller "github.com/AshvinBambhaniya/nexus-tasks/controllers/api/v1"
-	"github.com/AshvinBambhaniya/nexus-tasks/middlewares"
-	"github.com/AshvinBambhaniya/nexus-tasks/models"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/realtime"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/watermill"
-	"github.com/AshvinBambhaniya/nexus-tasks/services"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/config"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	controller "github.com/AshvinBambhaniya/nexus-tasks/v2/controllers/api/v2"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/middlewares"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/realtime"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/watermill"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -54,7 +54,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	healthService := services.NewHealthService(storage, logger)
 
 	router := app.Group("/api")
-	v1 := router.Group("/v1")
+	v2 := router.Group("/v2")
 
 	middlewares := middlewares.NewMiddleware(goqu, config, logger)
 
@@ -63,27 +63,27 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 		return err
 	}
 
-	err = setupAuthController(v1, userService, logger, config, middlewares)
+	err = setupAuthController(v2, userService, logger, config, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupWorkspaceController(v1, workspaceService, logger, middlewares)
+	err = setupWorkspaceController(v2, workspaceService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupTeamController(v1, teamService, logger, middlewares)
+	err = setupTeamController(v2, teamService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupProjectController(v1, projectService, logger, middlewares)
+	err = setupProjectController(v2, projectService, logger, middlewares)
 	if err != nil {
 		return err
 	}
 
-	err = setupTaskController(v1, taskService, commentService, logger, middlewares)
+	err = setupTaskController(v2, taskService, commentService, logger, middlewares)
 	if err != nil {
 		return err
 	}
@@ -110,13 +110,13 @@ func healthCheckController(app *fiber.App, healthService services.HealthService,
 	return nil
 }
 
-func setupAuthController(v1 fiber.Router, userSvc services.UserService, logger *zap.Logger, cfg *config.AppConfig, middlewares middlewares.Middleware) error {
+func setupAuthController(v2 fiber.Router, userSvc services.UserService, logger *zap.Logger, cfg *config.AppConfig, middlewares middlewares.Middleware) error {
 	authController, err := controller.NewAuthController(userSvc, logger, cfg)
 	if err != nil {
 		return err
 	}
 
-	auth := v1.Group("/auth")
+	auth := v2.Group("/auth")
 	auth.Post("/register", authController.Register)
 	auth.Post("/login", authController.Login)
 	auth.Post("/logout", authController.Logout)
@@ -125,17 +125,17 @@ func setupAuthController(v1 fiber.Router, userSvc services.UserService, logger *
 	return nil
 }
 
-func setupWorkspaceController(v1 fiber.Router, workspaceService services.WorkspaceService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+func setupWorkspaceController(v2 fiber.Router, workspaceService services.WorkspaceService, logger *zap.Logger, middlewares middlewares.Middleware) error {
 	wsController, err := controller.NewWorkspaceController(workspaceService, logger)
 	if err != nil {
 		return err
 	}
 
-	ws := v1.Group("/workspaces", middlewares.Authenticated)
+	ws := v2.Group("/workspaces", middlewares.Authenticated)
 	ws.Post("/", wsController.Create)
 	ws.Get("/", wsController.List)
 
-	// /api/v1/workspaces/:workspaceId/members
+	// /api/v2/workspaces/:workspaceId/members
 	wsMember := ws.Group(fmt.Sprintf("/:%s/members", constants.ParamWorkspaceID), middlewares.CheckAccess)
 	wsMember.Get("/", wsController.ListMembers)
 	wsMember.Post("/", wsController.InviteMember)
@@ -144,14 +144,14 @@ func setupWorkspaceController(v1 fiber.Router, workspaceService services.Workspa
 	return nil
 }
 
-func setupTeamController(v1 fiber.Router, teamService services.TeamService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+func setupTeamController(v2 fiber.Router, teamService services.TeamService, logger *zap.Logger, middlewares middlewares.Middleware) error {
 	teamController, err := controller.NewTeamController(teamService, logger)
 	if err != nil {
 		return err
 	}
 
-	// /api/v1/workspaces/:workspaceId/teams
-	teams := v1.Group(fmt.Sprintf("/workspaces/:%s/teams", constants.ParamWorkspaceID), middlewares.Authenticated, middlewares.CheckAccess)
+	// /api/v2/workspaces/:workspaceId/teams
+	teams := v2.Group(fmt.Sprintf("/workspaces/:%s/teams", constants.ParamWorkspaceID), middlewares.Authenticated, middlewares.CheckAccess)
 	teams.Post("/", teamController.Create)
 	teams.Get("/", teamController.List)
 	teams.Get(fmt.Sprintf("/:%s", constants.ParamTeamID), teamController.Get)
@@ -167,29 +167,29 @@ func setupTeamController(v1 fiber.Router, teamService services.TeamService, logg
 	return nil
 }
 
-func setupProjectController(v1 fiber.Router, projectService services.ProjectService, logger *zap.Logger, middleware middlewares.Middleware) error {
+func setupProjectController(v2 fiber.Router, projectService services.ProjectService, logger *zap.Logger, middleware middlewares.Middleware) error {
 	projectController, err := controller.NewProjectController(projectService, logger)
 	if err != nil {
 		return err
 	}
 
 	// 1. Workspace Projects
-	// /api/v1/workspaces/:workspaceId/projects
-	wsProjects := v1.Group(fmt.Sprintf("/workspaces/:%s/projects", constants.ParamWorkspaceID), middleware.Authenticated, middleware.CheckAccess)
+	// /api/v2/workspaces/:workspaceId/projects
+	wsProjects := v2.Group(fmt.Sprintf("/workspaces/:%s/projects", constants.ParamWorkspaceID), middleware.Authenticated, middleware.CheckAccess)
 	wsProjects.Post("/", projectController.Create)
 	wsProjects.Get("/", projectController.List)
 	wsProjects.Get(fmt.Sprintf("/:%s", constants.ParamProjectID), projectController.Get)
 	wsProjects.Patch(fmt.Sprintf("/:%s", constants.ParamProjectID), projectController.Update)
 
 	// 2. Project Members
-	// /api/v1/projects/:projectId/members
+	// /api/v2/projects/:projectId/members
 	projectMembers := wsProjects.Group(fmt.Sprintf("/:%s/members", constants.ParamProjectID))
 	projectMembers.Get("/", projectController.ListMembers)
 	projectMembers.Post("/", projectController.AddMember)
 	projectMembers.Delete(fmt.Sprintf("/:%s", constants.ParamUID), projectController.RemoveMember)
 
 	// 3. Project Teams
-	// /api/v1/projects/:projectId/teams
+	// /api/v2/projects/:projectId/teams
 	projectTeams := wsProjects.Group(fmt.Sprintf("/:%s/teams", constants.ParamProjectID))
 	projectTeams.Get("/", projectController.ListTeams)
 	projectTeams.Post("/", projectController.AddTeam)
@@ -198,15 +198,15 @@ func setupProjectController(v1 fiber.Router, projectService services.ProjectServ
 	return nil
 }
 
-func setupTaskController(v1 fiber.Router, taskService services.TaskService, commentService services.CommentService, logger *zap.Logger, authMiddleware middlewares.Middleware) error {
+func setupTaskController(v2 fiber.Router, taskService services.TaskService, commentService services.CommentService, logger *zap.Logger, authMiddleware middlewares.Middleware) error {
 	taskController, err := controller.NewTaskController(taskService, commentService, logger)
 	if err != nil {
 		return err
 	}
 
 	// 1. Create & List Tasks (Project context)
-	// /api/v1/projects/:projectId/tasks
-	projectTasks := v1.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s/tasks", constants.ParamWorkspaceID, constants.ParamProjectID), authMiddleware.Authenticated)
+	// /api/v2/projects/:projectId/tasks
+	projectTasks := v2.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s/tasks", constants.ParamWorkspaceID, constants.ParamProjectID), authMiddleware.Authenticated)
 	projectTasks.Post("/", taskController.CreateTask)
 	projectTasks.Get("/", taskController.ListProjectTasks)
 
@@ -222,7 +222,7 @@ func setupTaskController(v1 fiber.Router, taskService services.TaskService, comm
 	tasks.Delete(fmt.Sprintf("/comments/:%s", constants.ParamCommentID), taskController.DeleteComment)
 
 	// 3. Global Task Routes
-	v1.Get("/tasks/me", authMiddleware.Authenticated, taskController.ListMyTasks)
+	v2.Get("/tasks/me", authMiddleware.Authenticated, taskController.ListMyTasks)
 
 	return nil
 }

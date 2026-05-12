@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AshvinBambhaniya/nexus-tasks/constants"
-	"github.com/AshvinBambhaniya/nexus-tasks/pkg/jwt"
-	"github.com/AshvinBambhaniya/nexus-tasks/utils"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/jwt"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
 	"github.com/gofiber/fiber/v2"
 	j "github.com/lestrrat-go/jwx/v2/jwt"
 	"go.uber.org/zap"
