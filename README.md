@@ -1,6 +1,7 @@
 # Nexus Tasks
 
 ![License](https://img.shields.io/badge/license-AGPL_v3-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-success)
 ![Status](https://img.shields.io/badge/status-active-success)
 
 Nexus Tasks is a developer-focused project management platform designed to bridge the gap between personal productivity and team collaboration.
@@ -23,7 +24,7 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 - **Kanban & Lists:** Toggle between visual boards and structured lists.
 - **Markdown Editor:** Write tasks and comments using standard Markdown.
 - **Role-Based Access:** Granular permissions (Admin/Member/Viewer) for projects and teams.
-- **Email Notifications:** Asynchronous invitations via background workers.
+- **Modular Background Processing:** Optional background workers for email invitations and system tasks.
 
 ## Tech Stack
 
@@ -140,13 +141,43 @@ Start the development server:
 npm run dev
 ```
 
+### Kubernetes Deployment (Helm)
+
+We provide an industry-standard Helm chart for production-ready deployments.
+
+#### 1. Add the Helm Repository
+
+```bash
+helm repo add nexus-tasks https://AshvinBambhaniya.github.io/nexus-tasks/
+helm repo update
+```
+
+#### 2. Install the Chart
+
+```bash
+# Install with default values
+helm install nexus-tasks nexus-tasks/nexus-tasks
+```
+
+For detailed Kubernetes configuration and custom values, see [deploy/helm/nexus-tasks/README.md](deploy/helm/nexus-tasks/README.md).
+
+### Local Kubernetes Deployment (Development)
+
+If you are developing the Helm chart locally:
+
+```bash
+cd deploy/helm/nexus-tasks
+helm dependency update
+helm install nexus .
+```
+
 ## Contributing
 
 Contributions are welcome! Please read the source code and existing issues before contributing.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+3. Commit your changes using Conventional Commits.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 

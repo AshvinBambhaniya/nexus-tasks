@@ -74,7 +74,7 @@ We use [pre-commit](https://pre-commit.com/) to ensure code quality (formatting,
     ```
 3.  Run the API server:
     ```bash
-    go run cli/main.go api
+    go run app.go api
     ```
 
 ### Frontend (Nuxt 4)

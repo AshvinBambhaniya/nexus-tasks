@@ -30,7 +30,7 @@ func GetAPICommandDef(cfg *config.AppConfig, logger *zap.Logger) cobra.Command {
 
 			app.Use(cors.New(cors.Config{
 				AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin,Authorization,Options",
-				AllowOrigins:     "http://localhost:3000",
+				AllowOrigins:     cfg.AllowedOrigins,
 				AllowCredentials: true,
 				AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 			}))
@@ -55,7 +55,11 @@ func GetAPICommandDef(cfg *config.AppConfig, logger *zap.Logger) cobra.Command {
 			interrupt := make(chan os.Signal, 1)
 			signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 			go func() {
-				if err := app.Listen(cfg.Port); err != nil {
+				port := cfg.Port
+				if port != "" && port[0] != ':' {
+					port = ":" + port
+				}
+				if err := app.Listen(port); err != nil {
 					logger.Panic(err.Error())
 				}
 			}()

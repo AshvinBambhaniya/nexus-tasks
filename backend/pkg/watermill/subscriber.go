@@ -71,6 +71,10 @@ func (ws *Subscriber) InitRouter(cfg config.AppConfig, delayTime, maxRetry int) 
 		return nil, err
 	}
 
+	if pub == nil || pub.publisher == nil {
+		return nil, fmt.Errorf("failed to initialize poison queue publisher: publisher is nil")
+	}
+
 	poq, err := middleware.PoisonQueue(pub.publisher, cfg.MQ.DeadLetterQ)
 	if err != nil {
 		return nil, err

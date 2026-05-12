@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nexus Tasks Helm Chart Values",
+  "type": "object",
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Number of replicas for the deployments (API and Frontend)."
+    },
+    "config": {
+      "type": "object",
+      "title": "Application Configuration",
+      "description": "Core application settings shared across components.",
+      "properties": {
+        "appEnv": {
+          "type": "string",
+          "enum": ["local", "production", "staging"],
+          "default": "local",
+          "description": "Deployment environment."
+        },
+        "debug": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable verbose logging and debug features."
+        },
+        "allowedOrigins": {
+          "type": "string",
+          "description": "CORS allowed origins (comma-separated)."
+        },
+        "jwtSecret": {
+          "type": "string",
+          "description": "Secret key for JWT signing. MUST be changed in production."
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "title": "Backend API",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "default": 8000
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": { "type": "string" },
+            "tag": { "type": "string" },
+            "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+          }
+        }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "title": "Frontend UI",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "default": 80
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": { "type": "string" },
+            "tag": { "type": "string" },
+            "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+          }
+        }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "title": "Database (PostgreSQL)",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true, "description": "Deploy the integrated PostgreSQL sub-chart." }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "title": "Messaging (Redis)",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true, "description": "Deploy the integrated Redis sub-chart." }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "title": "Ingress Networking",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "className": { "type": "string", "default": "nginx" }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "title": "Resource Management",
+      "description": "Compute resources (CPU/Memory) allocated to pods."
+    }
+  }
+}
