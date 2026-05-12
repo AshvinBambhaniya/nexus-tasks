@@ -19,7 +19,6 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: Initial release of the Nexus Tasks Helm chart.
-  artifacthub.io/category: Collaboration
   artifacthub.io/language: golang
   artifacthub.io/links: |
     - name: Github

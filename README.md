@@ -1,10 +1,26 @@
-# Nexus Tasks
+<p align="center">
+  <img src="frontend/public/logo.svg" alt="Nexus Tasks Logo" width="128" />
+</p>
 
-![License](https://img.shields.io/badge/license-AGPL_v3-blue)
-![Version](https://img.shields.io/badge/version-2.0.0-success)
-![Status](https://img.shields.io/badge/status-active-success)
+<h1 align="center">Nexus Tasks</h1>
 
-Nexus Tasks is a developer-focused project management platform designed to bridge the gap between personal productivity and team collaboration.
+<p align="center">
+  <strong>The Developer-Focused Project Management Platform</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/AshvinBambhaniya/nexus-tasks/actions/workflows/backend-ci.yml"><img src="https://github.com/AshvinBambhaniya/nexus-tasks/actions/workflows/backend-ci.yml/badge.svg" alt="Backend CI" /></a>
+  <a href="https://github.com/AshvinBambhaniya/nexus-tasks/actions/workflows/frontend-ci.yml"><img src="https://github.com/AshvinBambhaniya/nexus-tasks/actions/workflows/frontend-ci.yml/badge.svg" alt="Frontend CI" /></a>
+  <a href="https://artifacthub.io/packages/helm/nexus-tasks/nexus-tasks"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/nexus-tasks" alt="Artifact Hub" /></a>
+  <br />
+  <img src="https://img.shields.io/badge/license-AGPL_v3-blue" alt="License" />
+  <img src="https://img.shields.io/badge/version-2.0.0-success" alt="Version" />
+  <img src="https://img.shields.io/badge/status-active-success" alt="Status" />
+</p>
+
+---
+
+Nexus Tasks bridges the gap between personal productivity and team collaboration. It is designed for developers who need speed, simplicity, and a unified context for their entire workflow.
 
 ## Why Nexus Tasks?
 
@@ -177,10 +193,10 @@ Contributions are welcome! Please read the source code and existing issues befor
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes using Conventional Commits.
+3. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/).
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
