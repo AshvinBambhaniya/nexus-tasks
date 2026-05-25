@@ -8,17 +8,21 @@ import {
   Users,
   Kanban,
   Folder,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-vue-next";
 import { useUsersStore } from "~/stores/user";
+import { useUIStore } from "~/stores/ui";
 
 const route = useRoute();
 const { logout } = useAuth();
 const userStore = useUsersStore();
+const uiStore = useUIStore();
 
 const user = computed(() => userStore.userData);
-// We can track global loading in the store if needed,
-// for now we'll assume false after initial layout fetch
 const isLoading = ref(false);
+
+const isCollapsed = computed(() => uiStore.isSidebarCollapsed);
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -48,14 +52,52 @@ const isRouteActive = (href: string) => {
     (href !== "/dashboard" && route.path.startsWith(href))
   );
 };
+
+const toggleSidebar = () => {
+  uiStore.toggleSidebar();
+};
 </script>
 
 <template>
-  <div class="border-border bg-muted/30 flex h-full w-64 flex-col border-r">
-    <div class="p-4">
-      <WorkspaceSwitcher />
+  <aside
+    class="border-border bg-muted/30 relative flex h-full flex-col border-r transition-all duration-300 ease-in-out"
+    :class="isCollapsed ? 'w-20' : 'w-64'"
+  >
+    <!-- User Profile (Top) -->
+    <div class="border-border border-b p-4">
+      <div
+        class="flex items-center"
+        :class="isCollapsed ? 'justify-center' : 'justify-between'"
+      >
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div
+            class="bg-primary text-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold shadow-sm"
+            :title="isCollapsed ? user?.full_name || user?.email : ''"
+          >
+            {{ isLoading ? "..." : userInitial }}
+          </div>
+          <div v-if="!isCollapsed" class="min-w-0">
+            <p class="text-foreground truncate text-sm font-semibold">
+              {{
+                isLoading
+                  ? "Loading..."
+                  : user?.full_name || user?.email?.split("@")[0]
+              }}
+            </p>
+            <p class="text-muted-foreground truncate text-xs">
+              {{ isLoading ? "Please wait" : user?.email }}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Workspace Switcher -->
+    <div class="p-4">
+      <WorkspaceSwitcher :is-collapsed="isCollapsed" />
+    </div>
+
+    <!-- Navigation -->
     <div class="flex-1 space-y-6 overflow-y-auto px-3 py-2">
       <nav class="space-y-1">
         <NuxtLink
@@ -63,48 +105,39 @@ const isRouteActive = (href: string) => {
           :key="item.name"
           :to="item.href"
           class="group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          :class="
+          :class="[
             isRouteActive(item.href)
               ? 'bg-primary/10 text-primary'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          "
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            isCollapsed ? 'justify-center' : '',
+          ]"
+          :title="isCollapsed ? item.name : ''"
         >
           <component
             :is="item.icon"
-            class="mr-3 h-5 w-5 flex-shrink-0 transition-colors"
-            :class="
+            class="h-5 w-5 shrink-0 transition-colors"
+            :class="[
               isRouteActive(item.href)
                 ? 'text-primary'
-                : 'text-muted-foreground/70 group-hover:text-muted-foreground'
-            "
+                : 'text-muted-foreground/70 group-hover:text-muted-foreground',
+              isCollapsed ? '' : 'mr-3',
+            ]"
           />
-          {{ item.name }}
+          <span v-if="!isCollapsed" class="truncate">{{ item.name }}</span>
         </NuxtLink>
       </nav>
     </div>
 
+    <!-- Bottom Actions -->
     <div class="border-border border-t p-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div
-            class="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold"
-          >
-            {{ isLoading ? "..." : userInitial }}
-          </div>
-          <div class="text-sm">
-            <p class="text-foreground font-medium">
-              {{
-                isLoading
-                  ? "Loading..."
-                  : user?.full_name || user?.email?.split("@")[0]
-              }}
-            </p>
-            <p class="text-muted-foreground text-xs">
-              {{ isLoading ? "Please wait" : user?.email }}
-            </p>
-          </div>
-        </div>
-        <div class="flex items-center gap-1">
+      <div
+        class="flex items-center"
+        :class="isCollapsed ? 'flex-col gap-4' : 'justify-between'"
+      >
+        <div
+          class="flex items-center gap-1"
+          :class="isCollapsed ? 'flex-col' : ''"
+        >
           <LayoutThemeToggle />
           <button
             class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-md p-1.5 transition-colors"
@@ -114,7 +147,17 @@ const isRouteActive = (href: string) => {
             <LogOut class="h-4 w-4" />
           </button>
         </div>
+
+        <!-- Toggle Button (Desktop Only) -->
+        <button
+          class="text-muted-foreground hover:bg-muted hover:text-foreground hidden rounded-md p-1.5 transition-colors lg:block"
+          :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          @click="toggleSidebar"
+        >
+          <ChevronLeft v-if="!isCollapsed" class="h-4 w-4" />
+          <ChevronRight v-else class="h-4 w-4" />
+        </button>
       </div>
     </div>
-  </div>
+  </aside>
 </template>
