@@ -2,6 +2,12 @@
 import { ChevronsUpDown, Check, Building2, User } from "lucide-vue-next";
 import { WorkspaceType } from "~/types";
 
+interface Props {
+  isCollapsed?: boolean;
+}
+
+const { isCollapsed = false } = defineProps<Props>();
+
 const { workspaces, activeWorkspace, isLoading } = useWorkspaces();
 const workspaceStore = useWorkspaceStore();
 
@@ -29,25 +35,34 @@ const handleSelect = (id: string) => {
         class="border-border bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
         :class="{
           'ring-ring ring-offset-background ring-2 ring-offset-1': isOpen,
+          'justify-center px-2': isCollapsed,
         }"
+        :title="isCollapsed ? activeWorkspace?.name : ''"
         @click="isOpen = !isOpen"
       >
-        <span class="flex items-center gap-2 truncate">
+        <span
+          class="flex items-center gap-2 truncate"
+          :class="{ 'justify-center': isCollapsed }"
+        >
           <User
             v-if="activeWorkspace?.type === WorkspaceType.PERSONAL"
-            class="text-muted-foreground h-4 w-4"
+            class="text-muted-foreground h-4 w-4 shrink-0"
           />
-          <Building2 v-else class="text-muted-foreground h-4 w-4" />
-          <span class="text-card-foreground truncate">
+          <Building2 v-else class="text-muted-foreground h-4 w-4 shrink-0" />
+          <span v-if="!isCollapsed" class="text-card-foreground truncate">
             {{ activeWorkspace?.name || "Select Workspace" }}
           </span>
         </span>
-        <ChevronsUpDown class="text-muted-foreground/70 h-4 w-4 shrink-0" />
+        <ChevronsUpDown
+          v-if="!isCollapsed"
+          class="text-muted-foreground/70 h-4 w-4 shrink-0"
+        />
       </button>
 
       <div
         v-if="isOpen"
-        class="border-border bg-card absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-md border shadow-lg"
+        class="border-border bg-card absolute top-full left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-lg"
+        :class="isCollapsed ? 'w-48' : 'w-full'"
       >
         <div class="max-h-[300px] overflow-auto p-1">
           <div
