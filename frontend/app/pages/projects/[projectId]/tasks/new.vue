@@ -46,13 +46,13 @@ const handleSubmit = async () => {
   <div class="mx-auto max-w-4xl space-y-6 pb-20">
     <NuxtLink
       :to="`/projects/${projectId}`"
-      class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+      class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
     >
       <ArrowLeft class="h-4 w-4" /> Back to project
     </NuxtLink>
 
     <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold text-gray-900">Create New Task</h1>
+      <h1 class="text-foreground text-3xl font-bold">Create New Task</h1>
     </div>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -91,7 +91,7 @@ const handleSubmit = async () => {
             </UiBaseButton>
             <UiBaseButton
               type="submit"
-              class-name="bg-blue-600 px-8 text-white hover:bg-blue-700"
+              class-name="bg-primary px-8 text-primary-foreground hover:bg-primary/90"
               :disabled="isSaving || !formData.title.trim()"
             >
               <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
@@ -103,7 +103,7 @@ const handleSubmit = async () => {
       </div>
 
       <!-- Sidebar -->
-      <div class="space-y-6 lg:border-l lg:border-gray-100 lg:pl-8">
+      <div class="lg:border-border space-y-6 lg:border-l lg:pl-8">
         <div class="space-y-4">
           <div class="space-y-2">
             <UiBaseLabel>Status</UiBaseLabel>

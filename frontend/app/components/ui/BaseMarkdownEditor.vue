@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import VueMarkdown from "vue-markdown-render";
+import { cn } from "~/utils/cn";
 
 interface Props {
   modelValue: string;
@@ -29,21 +30,21 @@ const onInput = (event: Event) => {
   <div
     :class="
       cn(
-        'flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20',
+        'border-border bg-card focus-within:border-ring focus-within:ring-ring/20 flex flex-col overflow-hidden rounded-md border shadow-sm transition-all focus-within:ring-2',
         className
       )
     "
   >
     <!-- Header Tabs -->
-    <div class="flex items-center border-b border-gray-200 bg-white px-1">
+    <div class="border-border bg-card flex items-center border-b px-1">
       <button
         type="button"
         :class="
           cn(
             '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-all',
             tab === 'write'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'text-muted-foreground hover:border-border hover:text-foreground border-transparent'
           )
         "
         @click="tab = 'write'"
@@ -56,8 +57,8 @@ const onInput = (event: Event) => {
           cn(
             '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-all',
             tab === 'preview'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'text-muted-foreground hover:border-border hover:text-foreground border-transparent'
           )
         "
         @click="tab = 'preview'"
@@ -73,17 +74,19 @@ const onInput = (event: Event) => {
           :value="modelValue"
           :placeholder="placeholder"
           :disabled="disabled"
-          class="min-h-[200px] w-full resize-y rounded-none border-0 px-4 py-3 font-sans text-sm focus:ring-0 focus:outline-none"
+          class="text-foreground min-h-[200px] w-full resize-y rounded-none border-0 bg-transparent px-4 py-3 font-sans text-sm focus:ring-0 focus:outline-none"
           @input="onInput"
         />
       </div>
       <VueMarkdown
         v-else-if="modelValue"
         :source="modelValue"
-        class="prose prose-sm min-h-[200px] max-w-none bg-gray-50/30 p-4"
+        class="prose prose-sm bg-muted/30 min-h-[200px] max-w-none p-4"
       />
-      <div v-else class="min-h-[200px] bg-gray-50/30 p-4">
-        <span class="text-sm text-gray-400 italic"> Nothing to preview </span>
+      <div v-else class="bg-muted/30 min-h-[200px] p-4">
+        <span class="text-muted-foreground text-sm italic">
+          Nothing to preview
+        </span>
       </div>
     </div>
   </div>

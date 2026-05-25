@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { cn } from "~/utils/cn";
+
 interface Props {
   for?: string;
   className?: string;
@@ -12,7 +14,7 @@ const { for: htmlFor = "", className = "" } = defineProps<Props>();
     :for="htmlFor"
     :class="
       cn(
-        'text-sm leading-none font-medium text-gray-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+        'text-foreground text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
         className
       )
     "

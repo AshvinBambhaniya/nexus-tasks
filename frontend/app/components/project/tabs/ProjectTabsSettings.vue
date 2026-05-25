@@ -109,20 +109,20 @@ const handleDelete = async () => {
     <!-- General Settings -->
     <section>
       <div class="mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">General Settings</h2>
-        <p class="text-sm text-gray-500">
+        <h2 class="text-foreground text-lg font-semibold">General Settings</h2>
+        <p class="text-muted-foreground text-sm">
           Update project name and description.
         </p>
       </div>
 
       <UiBaseCard
-        class="border-gray-100 shadow-sm transition-shadow hover:shadow-md"
+        class="border-border shadow-sm transition-shadow hover:shadow-md"
       >
         <form class="space-y-6 p-8" @submit.prevent="handleUpdateGeneral">
           <div class="space-y-2">
             <UiBaseLabel
               for="projectName"
-              class="text-xs font-bold tracking-wide text-gray-500 uppercase"
+              class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
               >Project Name</UiBaseLabel
             >
             <UiBaseInput
@@ -130,14 +130,14 @@ const handleDelete = async () => {
               v-model="projectName"
               required
               placeholder="E.g., Marketing Campaign 2024"
-              class="transition-all focus:ring-2 focus:ring-blue-100"
+              class="focus:ring-primary/10 transition-all focus:ring-2"
             />
           </div>
 
           <div class="space-y-2">
             <UiBaseLabel
               for="projectDesc"
-              class="text-xs font-bold tracking-wide text-gray-500 uppercase"
+              class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
               >Description</UiBaseLabel
             >
             <UiBaseTextArea
@@ -145,12 +145,12 @@ const handleDelete = async () => {
               v-model="projectDescription"
               placeholder="What is this project about?"
               :rows="4"
-              class="transition-all focus:ring-2 focus:ring-blue-100"
+              class="focus:ring-primary/10 transition-all focus:ring-2"
             />
           </div>
 
           <div
-            class="flex items-center justify-end border-t border-gray-50 pt-6"
+            class="border-border flex items-center justify-end border-t pt-6"
           >
             <UiBaseButton
               type="submit"
@@ -158,7 +158,10 @@ const handleDelete = async () => {
               class="min-w-[140px] shadow-sm active:scale-95"
             >
               <Loader2 v-if="isUpdating" class="mr-2 h-4 w-4 animate-spin" />
-              <Check v-else-if="isSuccess" class="mr-2 h-4 w-4 text-white" />
+              <Check
+                v-else-if="isSuccess"
+                class="text-primary-foreground mr-2 h-4 w-4"
+              />
               {{
                 isUpdating
                   ? "Saving..."
@@ -175,21 +178,21 @@ const handleDelete = async () => {
     <!-- Archive Section -->
     <section>
       <div class="mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">Project Lifecycle</h2>
-        <p class="text-sm text-gray-500">
+        <h2 class="text-foreground text-lg font-semibold">Project Lifecycle</h2>
+        <p class="text-muted-foreground text-sm">
           Archive or restore this project from your active view.
         </p>
       </div>
 
-      <UiBaseCard class="border-gray-100 shadow-sm">
+      <UiBaseCard class="border-border shadow-sm">
         <div
           class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
         >
           <div class="space-y-1 text-center sm:text-left">
-            <h3 class="font-bold text-gray-900">
+            <h3 class="text-card-foreground font-bold">
               {{ project.is_archived ? "Restore Project" : "Archive Project" }}
             </h3>
-            <p class="text-sm text-gray-500">
+            <p class="text-muted-foreground text-sm">
               {{
                 project.is_archived
                   ? "Move this project back to the active list to continue working on it."
@@ -200,11 +203,11 @@ const handleDelete = async () => {
           <UiBaseButton
             variant="outline"
             :disabled="isUpdating"
-            class="min-w-[160px] border-gray-200 transition-all hover:bg-gray-50 active:scale-95"
+            class="border-border hover:bg-muted min-w-[160px] transition-all active:scale-95"
             @click="handleToggleArchive"
           >
             <RefreshCw v-if="project.is_archived" class="mr-2 h-4 w-4" />
-            <Archive v-else class="mr-2 h-4 w-4 text-amber-600" />
+            <Archive v-else class="mr-2 h-4 w-4 text-orange-500" />
             {{ project.is_archived ? "Restore Project" : "Archive Project" }}
           </UiBaseButton>
         </div>
@@ -214,19 +217,19 @@ const handleDelete = async () => {
     <!-- Danger Zone -->
     <section>
       <div class="mb-4 flex items-center gap-2">
-        <AlertTriangle class="h-5 w-5 text-red-600" />
-        <h2 class="text-lg font-semibold text-red-900">Danger Zone</h2>
+        <AlertTriangle class="text-destructive h-5 w-5" />
+        <h2 class="text-destructive text-lg font-semibold">Danger Zone</h2>
       </div>
 
       <div
-        class="overflow-hidden rounded-xl border border-red-100 bg-red-50/20 shadow-sm ring-1 ring-red-100/50"
+        class="border-destructive/20 bg-destructive/10 ring-destructive/20 overflow-hidden rounded-xl border shadow-sm ring-1"
       >
         <div
           class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
         >
           <div class="space-y-1 text-center sm:text-left">
-            <h3 class="font-bold text-red-900">Delete this project</h3>
-            <p class="text-sm text-red-700 opacity-80">
+            <h3 class="text-destructive font-bold">Delete this project</h3>
+            <p class="text-destructive/80 text-sm">
               Once you delete a project, there is no going back. Please be
               certain.
             </p>
@@ -234,7 +237,7 @@ const handleDelete = async () => {
           <UiBaseButton
             variant="destructive"
             :disabled="isUpdating"
-            class="min-w-[160px] bg-red-600 shadow-md shadow-red-200 hover:bg-red-700 active:scale-95"
+            class="shadow-destructive/20 min-w-[160px] shadow-md active:scale-95"
             @click="handleDelete"
           >
             <Trash2 class="mr-2 h-4 w-4" /> Delete Project

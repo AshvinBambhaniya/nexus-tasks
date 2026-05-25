@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import draggable from "vuedraggable";
+import { cn } from "~/utils/cn";
 import type { TaskStatus, Task } from "~/types";
 
 interface Props {
@@ -9,7 +10,12 @@ interface Props {
   color?: string;
 }
 
-const { id, title, tasks, color = "bg-gray-400" } = defineProps<Props>();
+const {
+  id,
+  title,
+  tasks,
+  color = "bg-muted-foreground",
+} = defineProps<Props>();
 
 const emit = defineEmits(["task-move", "task-click"]);
 
@@ -37,15 +43,17 @@ const handleChange = (evt: {
 
 <template>
   <div
-    class="flex h-full w-80 min-w-[20rem] flex-col rounded-lg border border-gray-200 bg-gray-50/50"
+    class="border-border bg-muted/50 flex h-full w-80 min-w-[20rem] flex-col rounded-lg border"
   >
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-gray-100 p-3">
+    <div
+      class="border-border/50 flex items-center justify-between border-b p-3"
+    >
       <div class="flex items-center gap-2">
         <div :class="cn('h-2.5 w-2.5 rounded-full', color)" />
-        <h3 class="text-sm font-semibold text-gray-900">{{ title }}</h3>
+        <h3 class="text-foreground text-sm font-semibold">{{ title }}</h3>
         <span
-          class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-500"
+          class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium"
         >
           {{ tasks.length }}
         </span>
@@ -70,7 +78,7 @@ const handleChange = (evt: {
         <template #footer>
           <div
             v-if="tasks.length === 0"
-            class="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-xs text-gray-400"
+            class="border-border text-muted-foreground flex h-24 items-center justify-center rounded-lg border-2 border-dashed text-xs"
           >
             Empty
           </div>

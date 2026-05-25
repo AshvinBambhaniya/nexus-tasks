@@ -21,44 +21,45 @@ onMounted(async () => {
 
 <template>
   <header
-    class="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md"
+    class="border-border bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-md"
   >
     <div
       class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8"
     >
       <NuxtLink to="/" class="flex items-center gap-2">
         <div
-          class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md shadow-blue-200"
+          class="bg-primary text-primary-foreground shadow-primary/20 flex h-8 w-8 items-center justify-center rounded-lg shadow-md"
         >
           <CheckSquare class="h-5 w-5" />
         </div>
-        <span class="text-xl font-bold tracking-tight text-gray-900">
+        <span class="text-foreground text-xl font-bold tracking-tight">
           {{ APP_NAME }}
         </span>
       </NuxtLink>
 
       <nav
-        class="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex"
+        class="text-muted-foreground hidden items-center gap-8 text-sm font-medium md:flex"
       >
-        <NuxtLink to="/#features" class="transition-colors hover:text-blue-600">
+        <NuxtLink to="/#features" class="hover:text-primary transition-colors">
           Features
         </NuxtLink>
         <NuxtLink
           to="/#tech-stack"
-          class="transition-colors hover:text-blue-600"
+          class="hover:text-primary transition-colors"
         >
           Tech Stack
         </NuxtLink>
         <NuxtLink
           :to="GITHUB_REPO_URL"
           target="_blank"
-          class="transition-colors hover:text-blue-600"
+          class="hover:text-primary transition-colors"
         >
           GitHub
         </NuxtLink>
       </nav>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 sm:gap-4">
+        <LayoutThemeToggle />
         <template v-if="isLoading">
           <UiBaseButton disabled variant="ghost" size="sm">
             Loading...
@@ -66,7 +67,7 @@ onMounted(async () => {
         </template>
         <template v-else-if="user">
           <NuxtLink to="/dashboard">
-            <UiBaseButton class="font-semibold shadow-md shadow-blue-100">
+            <UiBaseButton class="shadow-primary/10 font-semibold shadow-md">
               Go to Dashboard
             </UiBaseButton>
           </NuxtLink>
@@ -75,13 +76,13 @@ onMounted(async () => {
           <NuxtLink to="/login" class="hidden sm:block">
             <UiBaseButton
               variant="ghost"
-              class="font-medium text-gray-600 hover:text-gray-900"
+              class="text-muted-foreground hover:text-foreground font-medium"
             >
               Log in
             </UiBaseButton>
           </NuxtLink>
           <NuxtLink to="/register">
-            <UiBaseButton class="font-semibold shadow-md shadow-blue-100">
+            <UiBaseButton class="shadow-primary/10 font-semibold shadow-md">
               Get Started
             </UiBaseButton>
           </NuxtLink>

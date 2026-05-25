@@ -14,13 +14,13 @@ const projects = computed(() => team.value?.projects || []);
 
 <template>
   <div v-if="isLoading" class="flex justify-center p-12">
-    <Loader2 class="h-8 w-8 animate-spin text-gray-400" />
+    <Loader2 class="text-muted-foreground/70 h-8 w-8 animate-spin" />
   </div>
   <div
     v-else-if="projects.length === 0"
-    class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-12 text-center text-gray-500"
+    class="border-border bg-muted text-muted-foreground flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center"
   >
-    <Folder class="mb-3 h-10 w-10 text-gray-300" />
+    <Folder class="text-muted-foreground/30 mb-3 h-10 w-10" />
     <p>No projects assigned to this team yet.</p>
   </div>
   <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -31,31 +31,31 @@ const projects = computed(() => team.value?.projects || []);
       class="group"
     >
       <UiBaseCard
-        class="cursor-pointer border-gray-200 p-5 transition-shadow group-hover:border-indigo-200 hover:shadow-md"
+        class="border-border group-hover:border-primary/30 cursor-pointer p-5 transition-shadow hover:shadow-md"
       >
         <div class="mb-3 flex items-center justify-between">
           <div
-            class="rounded-lg bg-indigo-50 p-2 text-indigo-600 transition-colors group-hover:bg-indigo-100"
+            class="bg-primary/10 text-primary group-hover:bg-primary/20 rounded-lg p-2 transition-colors"
           >
             <Folder class="h-5 w-5" />
           </div>
           <ArrowRight
-            class="h-4 w-4 transform text-gray-300 transition-colors group-hover:translate-x-1 group-hover:text-indigo-500"
+            class="text-muted-foreground/30 group-hover:text-primary h-4 w-4 transform transition-colors group-hover:translate-x-1"
           />
         </div>
         <h3
-          class="truncate font-semibold text-gray-900 transition-colors group-hover:text-indigo-700"
+          class="text-foreground group-hover:text-primary truncate font-semibold transition-colors"
         >
           {{ project.name }}
         </h3>
         <p
           v-if="project.description"
-          class="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-500"
+          class="text-muted-foreground mt-1 line-clamp-2 text-sm leading-relaxed"
         >
           {{ project.description }}
         </p>
         <div
-          class="mt-4 border-t border-gray-50 pt-4 text-[10px] tracking-wider text-gray-400 uppercase"
+          class="border-border text-muted-foreground/70 mt-4 border-t pt-4 text-[10px] tracking-wider uppercase"
         >
           Created {{ format(new Date(project.created_at), "MMM d, yyyy") }}
         </div>

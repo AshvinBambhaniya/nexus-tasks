@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format } from "date-fns";
 import { TaskStatus, TaskPriority, type Task } from "~/types";
+import { cn } from "~/utils/cn";
 
 interface Props {
   tasks?: Task[];
@@ -21,28 +22,27 @@ const statusVariants: Record<
 };
 
 const priorityColors: Record<TaskPriority, string> = {
-  [TaskPriority.P0]: "text-red-600 bg-red-50 border-red-200",
-  [TaskPriority.P1]: "text-orange-600 bg-orange-50 border-orange-200",
-  [TaskPriority.P2]: "text-blue-600 bg-blue-50 border-blue-100",
-  [TaskPriority.P3]: "text-gray-600 bg-gray-50 border-gray-100",
+  [TaskPriority.P0]: "text-destructive bg-destructive/10 border-destructive/20",
+  [TaskPriority.P1]: "text-orange-500 bg-orange-500/10 border-orange-500/20",
+  [TaskPriority.P2]: "text-primary bg-primary/10 border-primary/20",
+  [TaskPriority.P3]: "text-muted-foreground bg-muted border-border",
 };
 </script>
 
 <template>
   <div
     v-if="tasks.length === 0"
-    class="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-gray-500"
+    class="border-border bg-muted text-muted-foreground flex h-64 items-center justify-center rounded-lg border border-dashed"
   >
     No tasks found. Create one to get started!
   </div>
 
-  <div
-    v-else
-    class="overflow-hidden rounded-md border border-gray-200 bg-white"
-  >
+  <div v-else class="border-border bg-card overflow-hidden rounded-md border">
     <div class="overflow-x-auto">
       <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50 text-xs font-semibold text-gray-700 uppercase">
+        <thead
+          class="bg-muted text-foreground/80 text-xs font-semibold uppercase"
+        >
           <tr>
             <th class="px-4 py-3">Title</th>
             <th class="px-4 py-3">Status</th>
@@ -51,15 +51,17 @@ const priorityColors: Record<TaskPriority, string> = {
             <th class="px-4 py-3 text-right">Created</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200">
+        <tbody class="divide-border divide-y">
           <tr
             v-for="task in tasks"
             :key="task.id"
-            class="group cursor-pointer transition-colors hover:bg-gray-50"
+            class="group hover:bg-muted cursor-pointer transition-colors"
             @click="emit('task-click', task)"
           >
-            <td class="px-4 py-3 font-semibold text-gray-900">
-              <span class="mr-1.5 text-gray-400">#{{ task.number }}</span>
+            <td class="text-foreground px-4 py-3 font-semibold">
+              <span class="text-muted-foreground/70 mr-1.5"
+                >#{{ task.number }}</span
+              >
               {{ task.title }}
             </td>
             <td class="px-4 py-3">
@@ -79,11 +81,11 @@ const priorityColors: Record<TaskPriority, string> = {
                 {{ task.priority }}
               </span>
             </td>
-            <td class="px-4 py-3 text-gray-500">
+            <td class="text-muted-foreground px-4 py-3">
               <template
                 v-if="task.status === TaskStatus.DONE && task.completed_at"
               >
-                <span class="font-medium text-green-600">
+                <span class="font-medium text-green-600 dark:text-green-500">
                   {{ format(new Date(task.completed_at), "MMM d, yyyy") }}
                 </span>
               </template>
@@ -91,10 +93,10 @@ const priorityColors: Record<TaskPriority, string> = {
                 {{ format(new Date(task.due_date), "MMM d, yyyy") }}
               </template>
               <template v-else>
-                <span class="text-gray-300">-</span>
+                <span class="text-muted-foreground/30">-</span>
               </template>
             </td>
-            <td class="px-4 py-3 text-right text-gray-500">
+            <td class="text-muted-foreground px-4 py-3 text-right">
               {{ new Date(task.created_at).toLocaleDateString() }}
             </td>
           </tr>

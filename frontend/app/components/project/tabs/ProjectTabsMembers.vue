@@ -78,16 +78,20 @@ const availableTeams = computed(() =>
 <template>
   <div class="space-y-8">
     <UiBaseCard>
-      <div class="border-b border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900">Project Members</h3>
-        <p class="text-sm text-gray-500">
+      <div class="border-border border-b p-6">
+        <h3 class="text-card-foreground text-lg font-semibold">
+          Project Members
+        </h3>
+        <p class="text-muted-foreground text-sm">
           All users with access to this project, including team members.
         </p>
       </div>
       <div class="space-y-6 p-6">
         <form class="flex gap-3" @submit.prevent="handleInvite">
           <div class="relative flex-1">
-            <Mail class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+            <Mail
+              class="text-muted-foreground/60 absolute top-2.5 left-3 h-4 w-4"
+            />
             <UiBaseInput
               v-model="inviteEmail"
               type="email"
@@ -109,24 +113,26 @@ const availableTeams = computed(() =>
         </form>
 
         <div v-if="isLoading" class="flex justify-center p-8">
-          <Loader2 class="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 class="text-muted-foreground/60 h-6 w-6 animate-spin" />
         </div>
-        <div v-else class="divide-y divide-gray-100">
+        <div v-else class="divide-border divide-y">
           <div
             v-for="member in members"
             :key="member.user_id"
-            class="flex items-center justify-between rounded-lg p-4 transition-colors hover:bg-gray-50"
+            class="hover:bg-muted flex items-center justify-between rounded-lg p-4 transition-colors"
           >
             <div class="flex items-center gap-3">
               <UiBaseAvatar
                 :fallback="member.email[0].toUpperCase()"
-                class-name="h-9 w-9 bg-blue-100 text-xs text-blue-700"
+                class-name="h-9 w-9 bg-primary/10 text-xs text-primary"
               />
               <div>
-                <div class="text-sm font-medium text-gray-900">
+                <div class="text-card-foreground text-sm font-medium">
                   {{ member.email }}
                 </div>
-                <div class="flex items-center gap-2 text-xs text-gray-500">
+                <div
+                  class="text-muted-foreground flex items-center gap-2 text-xs"
+                >
                   {{ member.is_direct ? "Direct Member" : "via Team" }}
                 </div>
               </div>
@@ -143,7 +149,7 @@ const availableTeams = computed(() =>
                 v-if="member.is_direct"
                 variant="ghost"
                 size="sm"
-                class-name="h-8 w-8 p-0 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                class-name="h-8 w-8 p-0 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
                 title="Remove direct access"
                 @click="handleRemoveMember(member.user_id)"
               >
@@ -153,7 +159,7 @@ const availableTeams = computed(() =>
           </div>
           <div
             v-if="members.length === 0"
-            class="py-6 text-center text-sm text-gray-500"
+            class="text-muted-foreground py-6 text-center text-sm"
           >
             No members found.
           </div>
@@ -162,19 +168,21 @@ const availableTeams = computed(() =>
     </UiBaseCard>
 
     <UiBaseCard>
-      <div class="border-b border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900">Teams</h3>
-        <p class="text-sm text-gray-500">
+      <div class="border-border border-b p-6">
+        <h3 class="text-card-foreground text-lg font-semibold">Teams</h3>
+        <p class="text-muted-foreground text-sm">
           Workspace teams with access to this project.
         </p>
       </div>
       <div class="space-y-6 p-6">
         <form class="flex gap-3" @submit.prevent="handleLinkTeam">
           <div class="relative flex-1">
-            <Users class="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+            <Users
+              class="text-muted-foreground/60 absolute top-2.5 left-3 h-4 w-4"
+            />
             <select
               v-model="selectedTeamId"
-              class="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 pl-9 text-sm ring-offset-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              class="border-border bg-background ring-offset-background focus-visible:ring-primary flex h-10 w-full rounded-md border px-3 py-2 pl-9 text-sm focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               required
             >
               <option value="" disabled>Select a team to link...</option>
@@ -198,28 +206,28 @@ const availableTeams = computed(() =>
         </form>
 
         <div v-if="isLoading" class="flex justify-center p-8">
-          <Loader2 class="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 class="text-muted-foreground/60 h-6 w-6 animate-spin" />
         </div>
-        <div v-else class="divide-y divide-gray-100">
+        <div v-else class="divide-border divide-y">
           <div
             v-for="team in projectTeams"
             :key="team.team_id"
-            class="flex items-center justify-between rounded-lg p-4 transition-colors hover:bg-gray-50"
+            class="hover:bg-muted flex items-center justify-between rounded-lg p-4 transition-colors"
           >
             <div class="flex items-center gap-3">
               <div
-                class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700"
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500"
               >
                 <Users class="h-4 w-4" />
               </div>
-              <div class="text-sm font-medium text-gray-900">
+              <div class="text-card-foreground text-sm font-medium">
                 {{ team.team_name }}
               </div>
             </div>
             <UiBaseButton
               variant="ghost"
               size="sm"
-              class-name="h-8 w-8 p-0 text-gray-400 hover:bg-red-50 hover:text-red-600"
+              class-name="h-8 w-8 p-0 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
               @click="handleUnlinkTeam(team.team_id)"
             >
               <Trash2 class="h-4 w-4" />
@@ -227,7 +235,7 @@ const availableTeams = computed(() =>
           </div>
           <div
             v-if="projectTeams.length === 0"
-            class="py-6 text-center text-sm text-gray-500"
+            class="text-muted-foreground py-6 text-center text-sm"
           >
             No teams linked.
           </div>

@@ -20,7 +20,9 @@ const handleTaskClick = (task: Task) => {
 <template>
   <div class="flex h-full flex-col space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900">All Tasks</h1>
+      <h1 class="text-foreground text-2xl font-bold tracking-tight">
+        All Tasks
+      </h1>
       <UiBaseButton @click="handleCreateClick">
         <Plus class="mr-2 h-4 w-4" /> Create Task
       </UiBaseButton>
@@ -28,7 +30,7 @@ const handleTaskClick = (task: Task) => {
 
     <div v-if="isLoading" class="flex h-64 items-center justify-center">
       <div
-        class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"
+        class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"
       />
     </div>
     <div v-else class="flex-1 overflow-hidden">

@@ -61,9 +61,9 @@ const handleDelete = async () => {
 <template>
   <div class="max-w-3xl space-y-8">
     <UiBaseCard>
-      <div class="border-b border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900">General Settings</h3>
-        <p class="text-sm text-gray-500">Update your team details.</p>
+      <div class="border-border border-b p-6">
+        <h3 class="text-foreground text-lg font-semibold">General Settings</h3>
+        <p class="text-muted-foreground text-sm">Update your team details.</p>
       </div>
       <div class="p-6">
         <form class="space-y-4" @submit.prevent="handleSave">
@@ -99,13 +99,15 @@ const handleDelete = async () => {
       </div>
     </UiBaseCard>
 
-    <div class="rounded-lg border border-red-100 bg-red-50/30 p-6">
-      <h3 class="text-lg font-medium text-red-900">Danger Zone</h3>
-      <p class="text-sm text-red-700">Irreversible actions for this team.</p>
+    <div class="border-destructive/20 bg-destructive/10 rounded-lg border p-6">
+      <h3 class="text-destructive text-lg font-medium">Danger Zone</h3>
+      <p class="text-destructive/80 text-sm">
+        Irreversible actions for this team.
+      </p>
       <div class="mt-4 flex items-center justify-between">
         <div>
-          <h4 class="font-medium text-gray-900">Delete Team</h4>
-          <p class="text-sm text-gray-500">
+          <h4 class="text-foreground font-medium">Delete Team</h4>
+          <p class="text-muted-foreground text-sm">
             Permanently remove this team and its memberships.
           </p>
         </div>

@@ -139,9 +139,9 @@ const authorName = computed(() => {
 
 <template>
   <div v-if="isLoading" class="flex h-full items-center justify-center">
-    <Loader2 class="h-8 w-8 animate-spin text-blue-500" />
+    <Loader2 class="text-primary h-8 w-8 animate-spin" />
   </div>
-  <div v-else-if="!task" class="p-8 text-center text-gray-500">
+  <div v-else-if="!task" class="text-muted-foreground p-8 text-center">
     Task not found
   </div>
   <div v-else class="mx-auto max-w-6xl space-y-6 pb-20">
@@ -149,7 +149,7 @@ const authorName = computed(() => {
     <div class="space-y-4">
       <NuxtLink
         :to="`/projects/${projectId}`"
-        class="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+        class="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1 text-sm"
       >
         <ArrowLeft class="h-4 w-4" /> Back to project
       </NuxtLink>
@@ -171,15 +171,17 @@ const authorName = computed(() => {
           </div>
           <h1
             v-else
-            class="group flex items-center gap-2 text-3xl font-bold text-gray-900"
+            class="group text-foreground flex items-center gap-2 text-3xl font-bold"
           >
             {{ task.title }}
-            <span class="font-normal text-gray-400">#{{ task.number }}</span>
+            <span class="text-muted-foreground/70 font-normal"
+              >#{{ task.number }}</span
+            >
             <button
-              class="rounded p-1 opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-100"
+              class="hover:bg-muted rounded p-1 opacity-0 transition-all group-hover:opacity-100"
               @click="isEditingTitle = true"
             >
-              <Settings2 class="h-4 w-4 text-gray-500" />
+              <Settings2 class="text-muted-foreground h-4 w-4" />
             </button>
           </h1>
 
@@ -217,7 +219,7 @@ const authorName = computed(() => {
         </div>
 
         <div
-          class="flex flex-wrap items-center gap-3 border-b border-gray-200 pb-6"
+          class="border-border flex flex-wrap items-center gap-3 border-b pb-6"
         >
           <UiBaseBadge
             :class="
@@ -225,7 +227,7 @@ const authorName = computed(() => {
                 'flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors',
                 task.status === TaskStatus.DONE
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  : 'bg-primary/10 text-primary hover:bg-primary/20'
               )
             "
           >
@@ -233,10 +235,10 @@ const authorName = computed(() => {
             {{ task.status.replace("_", " ") }}
           </UiBaseBadge>
           <span
-            class="flex items-center gap-1.5 text-sm font-medium text-gray-500"
+            class="text-muted-foreground flex items-center gap-1.5 text-sm font-medium"
           >
             <UserIcon class="h-4 w-4" />
-            <span class="font-semibold text-gray-900">
+            <span class="text-foreground font-semibold">
               {{ authorName }}
             </span>
             opened this task
@@ -254,25 +256,25 @@ const authorName = computed(() => {
         <div class="flex gap-4">
           <UiBaseAvatar
             :fallback="authorName[0].toUpperCase()"
-            class-name="mt-1 h-10 w-10 border border-gray-100 shadow-sm"
+            class-name="mt-1 h-10 w-10 border border-border shadow-sm"
           />
           <div class="flex-1">
             <div
-              class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+              class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
             >
               <div
-                class="flex items-center justify-between border-b border-gray-200 bg-gray-50/50 px-4 py-2"
+                class="border-border bg-muted/50 flex items-center justify-between border-b px-4 py-2"
               >
-                <span class="text-sm font-semibold text-gray-700">
+                <span class="text-foreground/80 text-sm font-semibold">
                   Description
                 </span>
               </div>
               <VueMarkdown
                 v-if="task.description"
                 :source="task.description"
-                class="prose prose-sm prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 max-w-none p-4"
+                class="prose dark:prose-invert prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border max-w-none p-4"
               />
-              <div v-else class="p-4 text-gray-400 italic">
+              <div v-else class="text-muted-foreground/70 p-4 italic">
                 No description provided.
               </div>
             </div>
@@ -281,7 +283,7 @@ const authorName = computed(() => {
 
         <!-- Comments List -->
         <div
-          class="relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-[1.25rem] before:w-0.5 before:bg-gray-100"
+          class="before:bg-border relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-[1.25rem] before:w-0.5"
         >
           <TasksCommentItem
             v-for="comment in comments"
@@ -293,23 +295,23 @@ const authorName = computed(() => {
         </div>
 
         <!-- New Comment Box -->
-        <div class="flex gap-4 border-t border-gray-200 pt-8">
+        <div class="border-border flex gap-4 border-t pt-8">
           <UiBaseAvatar
             :fallback="userStore.userData?.email?.[0].toUpperCase() || '?'"
-            class-name="mt-1 h-10 w-10 border border-gray-100 shadow-sm"
+            class-name="mt-1 h-10 w-10 border border-border shadow-sm"
           />
           <div class="flex-1">
             <form class="space-y-4" @submit.prevent="handleSubmitComment">
               <UiBaseMarkdownEditor
                 v-model="commentContent"
                 placeholder="Add a comment..."
-                class-name="border-gray-200 shadow-sm"
+                class-name="border-border shadow-sm"
               />
               <div class="flex justify-end">
                 <UiBaseButton
                   type="submit"
                   :disabled="isSubmittingComment || !commentContent.trim()"
-                  class-name="bg-blue-600 px-6 text-white hover:bg-blue-700"
+                  class-name="bg-primary px-6 text-primary-foreground hover:bg-primary/90"
                 >
                   <Loader2
                     v-if="isSubmittingComment"
@@ -327,9 +329,9 @@ const authorName = computed(() => {
       <!-- Sidebar Controls -->
       <div class="space-y-8 lg:col-span-1">
         <div class="space-y-6">
-          <div class="space-y-2 border-b border-gray-100 pb-4">
+          <div class="border-border space-y-2 border-b pb-4">
             <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
             >
               Due Date
             </UiBaseLabel>
@@ -340,9 +342,9 @@ const authorName = computed(() => {
             />
           </div>
 
-          <div class="space-y-2 border-b border-gray-100 pb-4">
+          <div class="border-border space-y-2 border-b pb-4">
             <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
             >
               Assignee
             </UiBaseLabel>
@@ -353,9 +355,9 @@ const authorName = computed(() => {
             />
           </div>
 
-          <div class="space-y-2 border-b border-gray-100 pb-4">
+          <div class="border-border space-y-2 border-b pb-4">
             <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
             >
               Status
             </UiBaseLabel>
@@ -367,22 +369,22 @@ const authorName = computed(() => {
 
           <div
             v-if="task.completed_at"
-            class="space-y-2 border-b border-gray-100 pb-4"
+            class="border-border space-y-2 border-b pb-4"
           >
             <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
             >
               Completed On
             </UiBaseLabel>
-            <div class="flex items-center gap-2 text-sm text-gray-700">
+            <div class="text-foreground/80 flex items-center gap-2 text-sm">
               <CheckCircle2 class="h-4 w-4 text-green-600" />
               {{ new Date(task.completed_at).toLocaleDateString() }}
             </div>
           </div>
 
-          <div class="space-y-2 border-b border-gray-100 pb-4">
+          <div class="border-border space-y-2 border-b pb-4">
             <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-gray-500 uppercase"
+              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
             >
               Priority
             </UiBaseLabel>

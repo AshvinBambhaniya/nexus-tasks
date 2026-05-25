@@ -5,7 +5,18 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
-  modules: ["@pinia/nuxt", "pinia-plugin-persistedstate/nuxt", "@nuxt/eslint"],
+  modules: [
+    "@pinia/nuxt",
+    "pinia-plugin-persistedstate/nuxt",
+    "@nuxt/eslint",
+    "@nuxtjs/color-mode",
+  ],
+
+  colorMode: {
+    classSuffix: "",
+    preference: "system",
+    fallback: "light",
+  },
 
   css: ["~/assets/css/main.css"],
 

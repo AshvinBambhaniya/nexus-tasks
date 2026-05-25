@@ -93,15 +93,17 @@ const handleRemove = async (userId: string) => {
   <div>
     <div
       v-if="!activeWorkspace"
-      class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-16 text-center"
+      class="border-border bg-muted/50 flex flex-col items-center justify-center rounded-xl border border-dashed p-16 text-center"
     >
       <div
-        class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-100"
+        class="bg-card ring-border mb-4 flex h-16 w-16 items-center justify-center rounded-full shadow-sm ring-1"
       >
-        <UserIcon class="h-8 w-8 text-gray-400" />
+        <UserIcon class="text-muted-foreground/60 h-8 w-8" />
       </div>
-      <h3 class="text-lg font-bold text-gray-900">No Workspace Selected</h3>
-      <p class="mt-1 max-w-xs text-sm text-pretty text-gray-500">
+      <h3 class="text-card-foreground text-lg font-bold">
+        No Workspace Selected
+      </h3>
+      <p class="text-muted-foreground mt-1 max-w-xs text-sm text-pretty">
         Select a workspace from the dashboard to manage its members and
         permissions.
       </p>
@@ -114,16 +116,16 @@ const handleRemove = async (userId: string) => {
       <!-- Invite Section -->
       <section>
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">
+          <h2 class="text-foreground text-lg font-semibold">
             Invite New Members
           </h2>
-          <p class="text-sm text-gray-500">
+          <p class="text-muted-foreground text-sm">
             Expand your team by inviting collaborators to this workspace.
           </p>
         </div>
 
         <UiBaseCard
-          class="border-gray-100 shadow-sm transition-shadow hover:shadow-md"
+          class="border-border shadow-sm transition-shadow hover:shadow-md"
         >
           <div class="p-8">
             <form
@@ -132,14 +134,14 @@ const handleRemove = async (userId: string) => {
             >
               <div class="relative flex-1">
                 <Mail
-                  class="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  class="text-muted-foreground/60 absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2"
                 />
                 <UiBaseInput
                   v-model="inviteEmail"
                   placeholder="colleague@company.com"
                   type="email"
                   required
-                  class="h-11 pl-10.5 transition-all focus:ring-2 focus:ring-blue-100"
+                  class="focus:ring-primary/10 h-11 pl-10.5 transition-all focus:ring-2"
                 />
               </div>
               <UiBaseButton
@@ -153,7 +155,7 @@ const handleRemove = async (userId: string) => {
               </UiBaseButton>
             </form>
             <div
-              class="mt-4 flex items-center gap-2 text-[11px] font-medium text-gray-400"
+              class="text-muted-foreground/60 mt-4 flex items-center gap-2 text-[11px] font-medium"
             >
               <Shield class="h-3 w-3" />
               <span>Invited members will join as "Member" by default.</span>
@@ -166,30 +168,30 @@ const handleRemove = async (userId: string) => {
       <section>
         <div class="mb-4 flex items-end justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">
+            <h2 class="text-foreground text-lg font-semibold">
               Workspace Members
             </h2>
-            <p class="text-sm text-gray-500">
+            <p class="text-muted-foreground text-sm">
               A list of all users with access to this environment.
             </p>
           </div>
           <div
-            class="rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-600"
+            class="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-bold"
           >
             {{ members?.length || 0 }} Total
           </div>
         </div>
 
-        <UiBaseCard class="overflow-hidden border-gray-100 shadow-sm">
-          <div class="border-b border-gray-50 bg-gray-50/30 p-4">
+        <UiBaseCard class="border-border overflow-hidden shadow-sm">
+          <div class="border-border bg-muted/30 border-b p-4">
             <div class="relative max-w-md">
               <Search
-                class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                class="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
               />
               <UiBaseInput
                 v-model="searchQuery"
                 placeholder="Filter members..."
-                class="h-9 border-none bg-white pl-9 shadow-sm focus:ring-1 focus:ring-blue-100"
+                class="bg-card focus:ring-primary/10 h-9 border-none pl-9 shadow-sm focus:ring-1"
               />
             </div>
           </div>
@@ -198,17 +200,17 @@ const handleRemove = async (userId: string) => {
             v-if="isLoading"
             class="flex flex-col items-center justify-center p-20"
           >
-            <Loader2 class="h-10 w-10 animate-spin text-blue-600/20" />
-            <p class="mt-4 text-sm font-medium text-gray-400">
+            <Loader2 class="text-primary/20 h-10 w-10 animate-spin" />
+            <p class="text-muted-foreground/60 mt-4 text-sm font-medium">
               Loading directory...
             </p>
           </div>
 
-          <div v-else class="divide-y divide-gray-50">
+          <div v-else class="divide-border divide-y">
             <div
               v-for="member in filteredMembers"
               :key="member.user_id"
-              class="group flex items-center justify-between p-6 transition-all hover:bg-blue-50/20"
+              class="group hover:bg-primary/5 flex items-center justify-between p-6 transition-all"
             >
               <div class="flex items-center gap-5">
                 <div class="relative">
@@ -217,28 +219,28 @@ const handleRemove = async (userId: string) => {
                       (member.user.full_name ||
                         member.user.email)[0].toUpperCase()
                     "
-                    class="h-12 w-12 border border-gray-100 bg-white font-bold text-blue-600 shadow-sm ring-2 ring-transparent transition-all group-hover:ring-blue-100"
+                    class="border-border bg-card text-primary group-hover:ring-primary/20 h-12 w-12 border font-bold shadow-sm ring-2 ring-transparent transition-all"
                   />
                   <div
                     v-if="member.role === 'ADMIN'"
-                    class="absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white ring-2 ring-white"
+                    class="bg-primary text-primary-foreground ring-card absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full ring-2"
                   >
                     <Shield class="h-3 w-3" />
                   </div>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="font-bold text-gray-900">{{
+                    <span class="text-card-foreground font-bold">{{
                       member.user.full_name || member.user.email.split("@")[0]
                     }}</span>
                     <UiBaseBadge
                       v-if="member.user.id === userStore.userData?.id"
-                      class="bg-gray-100 text-[9px] font-black text-gray-500 uppercase"
+                      class="bg-muted text-muted-foreground text-[9px] font-black uppercase"
                       >You</UiBaseBadge
                     >
                   </div>
                   <div
-                    class="text-sm text-gray-500 transition-colors group-hover:text-blue-600/70"
+                    class="text-muted-foreground group-hover:text-primary/70 text-sm transition-colors"
                   >
                     {{ member.user.email }}
                   </div>
@@ -251,8 +253,8 @@ const handleRemove = async (userId: string) => {
                   :class="[
                     'h-6 px-2.5 text-[10px] font-bold tracking-wider uppercase ring-1',
                     member.role === 'ADMIN'
-                      ? 'bg-blue-600 ring-blue-700'
-                      : 'bg-white text-gray-500 ring-gray-100',
+                      ? 'bg-primary ring-primary-foreground/20'
+                      : 'bg-card text-muted-foreground ring-border',
                   ]"
                 >
                   {{ member.role.toLowerCase() }}
@@ -266,7 +268,7 @@ const handleRemove = async (userId: string) => {
                     "
                     variant="ghost"
                     size="sm"
-                    class="h-9 w-9 rounded-full p-0 text-gray-300 transition-all hover:bg-red-50 hover:text-red-600 active:scale-90"
+                    class="text-muted/60 hover:bg-destructive/10 hover:text-destructive h-9 w-9 rounded-full p-0 transition-all active:scale-90"
                     title="Remove from workspace"
                     @click="handleRemove(member.user_id)"
                   >
@@ -280,11 +282,11 @@ const handleRemove = async (userId: string) => {
               v-if="!filteredMembers || filteredMembers.length === 0"
               class="flex flex-col items-center justify-center p-20 text-center"
             >
-              <div class="mb-4 rounded-full bg-gray-50 p-4">
-                <Search class="h-8 w-8 text-gray-200" />
+              <div class="bg-muted mb-4 rounded-full p-4">
+                <Search class="text-muted h-8 w-8" />
               </div>
-              <h3 class="font-medium text-gray-900">No members found</h3>
-              <p class="mt-1 text-sm text-gray-500">
+              <h3 class="text-card-foreground font-medium">No members found</h3>
+              <p class="text-muted-foreground mt-1 text-sm">
                 Try adjusting your search or inviting new team members.
               </p>
             </div>

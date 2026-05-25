@@ -40,7 +40,7 @@ const handleChange = (value: string | null) => {
   >
     <div class="relative mt-1">
       <ListboxButton
-        class="relative w-full cursor-default rounded-md border border-gray-200 bg-white py-2 pr-10 pl-3 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:text-sm"
+        class="border-border bg-background focus-visible:ring-ring relative w-full cursor-default rounded-md border py-2 pr-10 pl-3 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:text-sm"
       >
         <span class="flex items-center gap-2 truncate">
           <UiBaseAvatar
@@ -48,7 +48,7 @@ const handleChange = (value: string | null) => {
             :fallback="selected.email[0].toUpperCase() || '?'"
             class-name="h-5 w-5"
           />
-          <UserIcon v-else class="h-4 w-4 text-gray-400" />
+          <UserIcon v-else class="text-muted-foreground/70 h-4 w-4" />
           <span class="block truncate">
             {{ selected ? selected.email : "Unassigned" }}
           </span>
@@ -56,7 +56,10 @@ const handleChange = (value: string | null) => {
         <span
           class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
         >
-          <ChevronsUpDown class="h-4 w-4 text-gray-400" aria-hidden="true" />
+          <ChevronsUpDown
+            class="text-muted-foreground/70 h-4 w-4"
+            aria-hidden="true"
+          />
         </span>
       </ListboxButton>
 
@@ -66,7 +69,7 @@ const handleChange = (value: string | null) => {
         leave-to="opacity-0"
       >
         <ListboxOptions
-          class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
+          class="bg-popover ring-border absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 focus:outline-none sm:text-sm"
         >
           <ListboxOption
             v-slot="{ active, selected: isSelected }"
@@ -75,12 +78,12 @@ const handleChange = (value: string | null) => {
           >
             <li
               :class="[
-                active ? 'bg-blue-50 text-blue-900' : 'text-gray-900',
+                active ? 'bg-accent text-accent-foreground' : 'text-foreground',
                 'relative cursor-default py-2 pr-10 pl-10 select-none',
               ]"
             >
               <span class="flex items-center gap-2">
-                <UserIcon class="h-4 w-4 text-gray-400" />
+                <UserIcon class="text-muted-foreground/70 h-4 w-4" />
                 <span
                   :class="[
                     !isSelected ? 'font-medium' : 'font-normal',
@@ -92,7 +95,7 @@ const handleChange = (value: string | null) => {
               </span>
               <span
                 v-if="!modelValue"
-                class="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600"
+                class="text-primary absolute inset-y-0 left-0 flex items-center pl-3"
               >
                 <Check class="h-4 w-4" aria-hidden="true" />
               </span>
@@ -108,7 +111,7 @@ const handleChange = (value: string | null) => {
           >
             <li
               :class="[
-                active ? 'bg-blue-50 text-blue-900' : 'text-gray-900',
+                active ? 'bg-accent text-accent-foreground' : 'text-foreground',
                 'relative cursor-default py-2 pr-10 pl-10 select-none',
               ]"
             >
@@ -128,7 +131,7 @@ const handleChange = (value: string | null) => {
               </span>
               <span
                 v-if="isSelected"
-                class="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600"
+                class="text-primary absolute inset-y-0 left-0 flex items-center pl-3"
               >
                 <Check class="h-4 w-4" aria-hidden="true" />
               </span>

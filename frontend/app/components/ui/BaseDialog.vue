@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 import { X } from "lucide-vue-next";
+import { cn } from "~/utils/cn";
 
 interface Props {
   isOpen?: boolean;
@@ -62,20 +63,22 @@ const onClose = () => {
             <DialogPanel
               :class="
                 cn(
-                  'relative w-full max-w-lg transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all',
+                  'bg-card relative w-full max-w-lg transform overflow-hidden rounded-lg text-left shadow-xl transition-all',
                   className
                 )
               "
             >
-              <div class="flex items-center justify-between border-b px-6 py-4">
+              <div
+                class="border-border flex items-center justify-between border-b px-6 py-4"
+              >
                 <div class="space-y-1">
                   <DialogTitle
                     as="h2"
-                    class="text-lg font-semibold text-gray-900"
+                    class="text-card-foreground text-lg font-semibold"
                   >
                     {{ title }}
                   </DialogTitle>
-                  <p v-if="description" class="text-sm text-gray-500">
+                  <p v-if="description" class="text-muted-foreground text-sm">
                     {{ description }}
                   </p>
                 </div>

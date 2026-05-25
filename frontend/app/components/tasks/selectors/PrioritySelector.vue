@@ -15,6 +15,7 @@ import {
   AlertOctagon,
 } from "lucide-vue-next";
 import { TaskPriority } from "~/types";
+import { cn } from "~/utils/cn";
 
 interface Props {
   modelValue: TaskPriority;
@@ -27,26 +28,26 @@ const priorityConfig = {
   [TaskPriority.P0]: {
     label: "Critical",
     icon: AlertOctagon,
-    color: "text-red-600",
-    bg: "bg-red-50",
+    color: "text-destructive",
+    bg: "bg-destructive/10",
   },
   [TaskPriority.P1]: {
     label: "High",
     icon: SignalHigh,
     color: "text-orange-500",
-    bg: "bg-orange-50",
+    bg: "bg-orange-500/10",
   },
   [TaskPriority.P2]: {
     label: "Medium",
     icon: SignalMedium,
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-primary",
+    bg: "bg-primary/10",
   },
   [TaskPriority.P3]: {
     label: "Low",
     icon: SignalLow,
-    color: "text-gray-400",
-    bg: "bg-gray-50",
+    color: "text-muted-foreground/70",
+    bg: "bg-muted",
   },
 };
 
@@ -62,13 +63,15 @@ const handleChange = (value: TaskPriority) => {
   <Listbox :model-value="modelValue" @update:model-value="handleChange">
     <div class="relative mt-1">
       <ListboxButton
-        class="flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        class="border-border bg-background ring-offset-background hover:bg-muted focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors focus:ring-2 focus:outline-none"
       >
         <div class="flex items-center gap-2">
           <component :is="current.icon" :class="cn('h-4 w-4', current.color)" />
-          <span class="font-medium text-gray-700">{{ current.label }}</span>
+          <span class="text-foreground/80 font-medium">{{
+            current.label
+          }}</span>
         </div>
-        <ChevronDown class="h-4 w-4 text-gray-400" />
+        <ChevronDown class="text-muted-foreground/70 h-4 w-4" />
       </ListboxButton>
 
       <TransitionRoot
@@ -77,7 +80,7 @@ const handleChange = (value: TaskPriority) => {
         leave-to="opacity-0"
       >
         <ListboxOptions
-          class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white p-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
+          class="bg-popover ring-border absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md p-1 text-base shadow-lg ring-1 focus:outline-none sm:text-sm"
         >
           <ListboxOption
             v-for="(config, key) in priorityConfig"
@@ -88,8 +91,8 @@ const handleChange = (value: TaskPriority) => {
           >
             <li
               :class="[
-                active ? 'bg-gray-100' : '',
-                isSelected ? 'bg-gray-50' : '',
+                active ? 'bg-accent' : '',
+                isSelected ? 'bg-muted' : '',
                 'relative flex cursor-default items-center justify-between rounded-sm px-2 py-1.5 transition-colors select-none',
               ]"
             >
@@ -101,13 +104,13 @@ const handleChange = (value: TaskPriority) => {
                 <span
                   :class="[
                     isSelected ? 'font-medium' : 'font-normal',
-                    'text-gray-700',
+                    'text-foreground/80',
                   ]"
                 >
                   {{ config.label }}
                 </span>
               </div>
-              <span v-if="isSelected" class="text-blue-600">
+              <span v-if="isSelected" class="text-primary">
                 <Check class="h-4 w-4" aria-hidden="true" />
               </span>
             </li>
