@@ -21,11 +21,11 @@ const tabs: { id: TabType; label: string }[] = [
 
 <template>
   <div v-if="isLoading" class="flex h-full items-center justify-center">
-    <Loader2 class="h-8 w-8 animate-spin text-gray-400" />
+    <Loader2 class="text-muted-foreground/70 h-8 w-8 animate-spin" />
   </div>
   <div
     v-else-if="!project"
-    class="flex h-full items-center justify-center text-gray-500"
+    class="text-muted-foreground flex h-full items-center justify-center"
   >
     Project not found.
   </div>
@@ -33,7 +33,7 @@ const tabs: { id: TabType; label: string }[] = [
     <!-- Header -->
     <div>
       <div class="mb-1 flex items-center gap-2">
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+        <h1 class="text-foreground text-2xl font-bold tracking-tight">
           {{ project.name }}
         </h1>
         <span
@@ -43,20 +43,23 @@ const tabs: { id: TabType; label: string }[] = [
           Archived
         </span>
       </div>
-      <p v-if="project.description" class="max-w-2xl text-sm text-gray-500">
+      <p
+        v-if="project.description"
+        class="text-muted-foreground max-w-2xl text-sm"
+      >
         {{ project.description }}
       </p>
 
       <!-- Tab Navigation -->
-      <div class="mt-6 flex gap-6 border-b border-gray-200">
+      <div class="border-border mt-6 flex gap-6 border-b">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           class="border-b-2 pb-3 text-sm font-medium transition-colors"
           :class="
             activeTab === tab.id
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'text-muted-foreground hover:border-border hover:text-foreground/80 border-transparent'
           "
           @click="activeTab = tab.id"
         >

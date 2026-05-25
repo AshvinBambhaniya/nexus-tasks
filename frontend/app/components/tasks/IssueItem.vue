@@ -28,17 +28,20 @@ const statusIcons = {
 };
 
 const statusColors = {
-  [TaskStatus.BACKLOG]: "text-gray-400",
-  [TaskStatus.TODO]: "text-blue-500",
-  [TaskStatus.IN_PROGRESS]: "text-purple-500",
-  [TaskStatus.DONE]: "text-green-500",
+  [TaskStatus.BACKLOG]: "text-muted-foreground",
+  [TaskStatus.TODO]: "text-blue-500 dark:text-blue-400",
+  [TaskStatus.IN_PROGRESS]: "text-purple-500 dark:text-purple-400",
+  [TaskStatus.DONE]: "text-green-500 dark:text-green-400",
 };
 
 const priorityColors = {
-  [TaskPriority.P0]: "text-red-600 bg-red-50 border-red-100",
-  [TaskPriority.P1]: "text-orange-600 bg-orange-50 border-orange-100",
-  [TaskPriority.P2]: "text-blue-600 bg-blue-50 border-blue-100",
-  [TaskPriority.P3]: "text-gray-500 bg-gray-50 border-gray-100",
+  [TaskPriority.P0]:
+    "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50",
+  [TaskPriority.P1]:
+    "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50",
+  [TaskPriority.P2]:
+    "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50",
+  [TaskPriority.P3]: "text-muted-foreground bg-muted border-border",
 };
 
 const icon = computed(() => statusIcons[task.status] || Circle);
@@ -46,7 +49,7 @@ const icon = computed(() => statusIcons[task.status] || Circle);
 
 <template>
   <div
-    class="group flex cursor-pointer items-start gap-3 border-b border-gray-100 p-4 transition-colors last:border-0 hover:bg-gray-50"
+    class="group border-border hover:bg-muted/50 flex cursor-pointer items-start gap-3 border-b p-4 transition-colors last:border-0"
     @click="emit('click', task)"
   >
     <div :class="cn('mt-1 shrink-0', statusColors[task.status])">
@@ -57,7 +60,7 @@ const icon = computed(() => statusIcons[task.status] || Circle);
       <div class="flex flex-wrap items-center gap-2">
         <NuxtLink
           :to="`/projects/${projectId}/tasks/${task.id}`"
-          class="font-bold text-gray-900 transition-colors hover:text-blue-600"
+          class="text-foreground hover:text-primary font-bold transition-colors"
           @click.stop
         >
           {{ task.title }}
@@ -75,13 +78,17 @@ const icon = computed(() => statusIcons[task.status] || Circle);
         </UiBaseBadge>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+      <div
+        class="text-muted-foreground flex flex-wrap items-center gap-2 text-xs"
+      >
         <span>#{{ task.number }}</span>
         <span>
           opened {{ formatDistanceToNow(new Date(task.created_at)) }} ago
         </span>
         <template v-if="task.status === TaskStatus.DONE && task.completed_at">
-          <div class="flex items-center gap-1 font-medium text-green-600">
+          <div
+            class="flex items-center gap-1 font-medium text-green-600 dark:text-green-400"
+          >
             <CheckCircle2 class="h-3 w-3" />
             <span>{{ format(new Date(task.completed_at), "MMM d") }}</span>
           </div>
@@ -94,8 +101,8 @@ const icon = computed(() => statusIcons[task.status] || Circle);
                 isPast(new Date(task.due_date)) &&
                   !isToday(new Date(task.due_date)) &&
                   task.status !== TaskStatus.DONE
-                  ? 'font-medium text-red-600'
-                  : 'text-gray-500'
+                  ? 'font-medium text-red-600 dark:text-red-400'
+                  : 'text-muted-foreground'
               )
             "
           >
@@ -108,14 +115,14 @@ const icon = computed(() => statusIcons[task.status] || Circle);
             :fallback="task.assignee.email[0].toUpperCase()"
             class-name="h-4 w-4 text-[8px]"
           />
-          <span class="cursor-pointer hover:text-blue-600">
+          <span class="hover:text-primary cursor-pointer">
             {{ task.assignee.email.split("@")[0] }}
           </span>
         </div>
       </div>
     </div>
 
-    <div class="flex shrink-0 items-center gap-4 text-gray-400">
+    <div class="text-muted-foreground/70 flex shrink-0 items-center gap-4">
       <div
         v-if="(task.comment_count ?? 0) > 0"
         class="flex items-center gap-1 text-xs"

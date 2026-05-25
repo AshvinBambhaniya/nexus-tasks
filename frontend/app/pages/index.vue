@@ -27,26 +27,28 @@ const user = computed(() => userStore.userData);
       >
         <div class="mx-auto max-w-4xl">
           <div
-            class="mb-8 inline-flex items-center rounded-full border border-blue-100 bg-blue-50/50 px-3 py-1 text-sm font-medium text-blue-600 backdrop-blur-sm"
+            class="border-primary/10 bg-primary/5 text-primary mb-8 inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium backdrop-blur-sm"
           >
             <span
-              class="mr-2 flex h-2 w-2 animate-pulse rounded-full bg-blue-600"
+              class="bg-primary mr-2 flex h-2 w-2 animate-pulse rounded-full"
             />
             v2.0 is Live • Open Source
           </div>
           <h1
-            class="mb-6 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl"
+            class="text-foreground mb-6 text-4xl font-extrabold tracking-tight sm:text-6xl"
           >
             The Task Manager for <br class="hidden sm:block" />
-            <span class="text-blue-600">Developers in Flow</span>
+            <span class="text-primary">Developers in Flow</span>
           </h1>
           <p
-            class="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-600"
+            class="text-muted-foreground mx-auto mb-10 max-w-2xl text-lg leading-relaxed"
           >
             Stop fighting complex workflows. Nexus Tasks bridges your
-            <strong class="font-semibold text-gray-900">personal focus</strong>
+            <strong class="text-foreground font-semibold"
+              >personal focus</strong
+            >
             with
-            <strong class="font-semibold text-gray-900"
+            <strong class="text-foreground font-semibold"
               >team collaboration</strong
             >
             in a clean, high-performance interface built for speed.
@@ -57,14 +59,20 @@ const user = computed(() => userStore.userData);
           >
             <template v-if="user">
               <NuxtLink to="/dashboard">
-                <UiBaseButton size="lg" class="h-12 px-8 text-base">
+                <UiBaseButton
+                  size="lg"
+                  class="shadow-primary/20 h-12 px-8 text-base shadow-lg"
+                >
                   Launch Workspace <ArrowRight class="ml-2 h-4 w-4" />
                 </UiBaseButton>
               </NuxtLink>
             </template>
             <template v-else>
               <NuxtLink to="/register">
-                <UiBaseButton size="lg" class="h-12 px-8 text-base">
+                <UiBaseButton
+                  size="lg"
+                  class="shadow-primary/20 h-12 px-8 text-base shadow-lg"
+                >
                   Start Building Free <ArrowRight class="ml-2 h-4 w-4" />
                 </UiBaseButton>
               </NuxtLink>
@@ -73,7 +81,7 @@ const user = computed(() => userStore.userData);
               <UiBaseButton
                 variant="outline"
                 size="lg"
-                class="h-12 border-slate-200 bg-white px-8 text-base text-slate-700 hover:text-slate-900"
+                class="h-12 px-8 text-base"
               >
                 <Github class="mr-2 h-4 w-4" /> Star on GitHub
               </UiBaseButton>
@@ -86,24 +94,24 @@ const user = computed(() => userStore.userData);
             class="flex flex-wrap justify-center gap-3 opacity-80"
           >
             <div
-              class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
+              class="border-border bg-card text-muted-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm"
             >
-              <Code2 class="h-4 w-4 text-gray-400" /> Nuxt 4
+              <Code2 class="text-primary h-4 w-4" /> Nuxt 4
             </div>
             <div
-              class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
+              class="border-border bg-card text-muted-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm"
             >
-              <Terminal class="h-4 w-4 text-gray-400" /> Golang Fiber
+              <Terminal class="text-primary h-4 w-4" /> Golang Fiber
             </div>
             <div
-              class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
+              class="border-border bg-card text-muted-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm"
             >
-              <GitBranch class="h-4 w-4 text-gray-400" /> TypeScript
+              <GitBranch class="text-primary h-4 w-4" /> TypeScript
             </div>
             <div
-              class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
+              class="border-border bg-card text-muted-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm"
             >
-              <Cpu class="h-4 w-4 text-gray-400" /> Real-time WebSockets
+              <Cpu class="text-primary h-4 w-4" /> Real-time WebSockets
             </div>
           </div>
         </div>
@@ -114,27 +122,27 @@ const user = computed(() => userStore.userData);
         class="pointer-events-none absolute top-0 left-1/2 -z-10 h-full w-full -translate-x-1/2 overflow-hidden"
       >
         <div
-          class="animate-blob absolute top-[-10%] left-[10%] h-[500px] w-[500px] rounded-full bg-blue-100/50 opacity-60 mix-blend-multiply blur-[100px] filter"
+          class="animate-blob bg-primary/10 dark:bg-primary/5 absolute top-[-10%] left-[10%] h-[500px] w-[500px] rounded-full opacity-60 mix-blend-multiply blur-[100px] filter dark:mix-blend-lighten"
         />
         <div
-          class="animate-blob animation-delay-2000 absolute top-[-10%] right-[10%] h-[500px] w-[500px] rounded-full bg-indigo-100/50 opacity-60 mix-blend-multiply blur-[100px] filter"
+          class="animate-blob animation-delay-2000 absolute top-[-10%] right-[10%] h-[500px] w-[500px] rounded-full bg-indigo-500/10 opacity-60 mix-blend-multiply blur-[100px] filter dark:bg-indigo-500/5 dark:mix-blend-lighten"
         />
         <div
-          class="animate-blob animation-delay-4000 absolute bottom-[-20%] left-[30%] h-[600px] w-[600px] rounded-full bg-sky-100/50 opacity-60 mix-blend-multiply blur-[100px] filter"
+          class="animate-blob animation-delay-4000 absolute bottom-[-20%] left-[30%] h-[600px] w-[600px] rounded-full bg-sky-400/10 opacity-60 mix-blend-multiply blur-[100px] filter dark:bg-sky-400/5 dark:mix-blend-lighten"
         />
       </div>
     </section>
 
     <!-- Features Grid -->
-    <section id="features" class="border-t border-gray-100 bg-gray-50/50 py-24">
+    <section id="features" class="border-border bg-muted/30 border-t py-24">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-16 max-w-3xl text-center">
           <h2
-            class="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            class="text-foreground mb-4 text-3xl font-bold tracking-tight sm:text-4xl"
           >
             Designed for the way you code
           </h2>
-          <p class="text-lg text-gray-600">
+          <p class="text-muted-foreground text-lg">
             Nexus Tasks cuts through the enterprise bloat to give you exactly
             what you need: clarity, speed, and structure.
           </p>
@@ -142,98 +150,102 @@ const user = computed(() => userStore.userData);
 
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <Layout class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
               Hybrid Workspaces
             </h3>
-            <p class="leading-relaxed text-gray-500">
+            <p class="text-muted-foreground leading-relaxed">
               Keep your personal side-projects and team sprints in one place.
               Switch contexts instantly without logging out.
             </p>
           </div>
 
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <Code2 class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
               Markdown Native
             </h3>
-            <p class="leading-relaxed text-gray-500">
+            <p class="text-muted-foreground leading-relaxed">
               Write task descriptions and comments using standard Markdown. Code
               blocks, lists, and formatting just work.
             </p>
           </div>
 
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <Zap class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">Real-time Sync</h3>
-            <p class="leading-relaxed text-gray-500">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
+              Real-time Sync
+            </h3>
+            <p class="text-muted-foreground leading-relaxed">
               Collaborate without refreshing. See comments, status changes, and
               new tasks appear instantly via WebSockets.
             </p>
           </div>
 
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <GitBranch class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
               GitHub-style Workflow
             </h3>
-            <p class="leading-relaxed text-gray-500">
+            <p class="text-muted-foreground leading-relaxed">
               Manage tasks with a familiar flow: Open, In Progress, Done. Track
               history and discussions linearly.
             </p>
           </div>
 
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <Users class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">Team Alignment</h3>
-            <p class="leading-relaxed text-gray-500">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
+              Team Alignment
+            </h3>
+            <p class="text-muted-foreground leading-relaxed">
               Organize members into Teams. Assign projects to specific groups
               and manage access with minimal friction.
             </p>
           </div>
 
           <div
-            class="group flex flex-col items-start rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+            class="group border-border bg-card hover:border-primary/30 flex flex-col items-start rounded-2xl border p-8 text-left shadow-sm transition-all duration-200 hover:shadow-md"
           >
             <div
-              class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+              class="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground mb-6 flex h-12 w-12 items-center justify-center rounded-xl transition-colors"
             >
               <Shield class="h-6 w-6" />
             </div>
-            <h3 class="mb-3 text-xl font-bold text-gray-900">
+            <h3 class="text-foreground mb-3 text-xl font-bold">
               Production Ready
             </h3>
-            <p class="leading-relaxed text-gray-500">
+            <p class="text-muted-foreground leading-relaxed">
               Built with a high-performance Golang backend and Type-Safe Nuxt
               frontend. Secure, scalable, and self-hostable.
             </p>
@@ -243,18 +255,18 @@ const user = computed(() => userStore.userData);
     </section>
 
     <!-- Call to Action -->
-    <section class="bg-white py-24">
+    <section class="bg-background py-24">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          class="relative overflow-hidden rounded-3xl bg-gray-900 px-6 py-16 text-center shadow-2xl sm:px-12 sm:py-20"
+          class="bg-foreground relative overflow-hidden rounded-3xl px-6 py-16 text-center shadow-2xl sm:px-12 sm:py-20"
         >
           <div class="relative z-10 mx-auto max-w-2xl">
             <h2
-              class="mb-6 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+              class="text-background mb-6 text-3xl font-bold tracking-tight sm:text-4xl"
             >
               Ready to regain your focus?
             </h2>
-            <p class="mb-10 text-lg text-gray-300">
+            <p class="text-muted-foreground mb-10 text-lg opacity-80">
               Join the community of developers building better software with
               less friction. Open source and free to get started.
             </p>
@@ -284,7 +296,7 @@ const user = computed(() => userStore.userData);
             />
             <defs>
               <radialGradient id="gradient">
-                <stop stop-color="#4F46E5" />
+                <stop stop-color="var(--color-primary)" />
                 <stop offset="1" stop-color="#80CAFF" />
               </radialGradient>
             </defs>

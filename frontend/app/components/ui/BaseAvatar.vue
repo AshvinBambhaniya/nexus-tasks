@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { cn } from "~/utils/cn";
+
 interface Props {
   src?: string;
   alt?: string;
@@ -13,7 +15,7 @@ const { src = "", alt = "", fallback, className = "" } = defineProps<Props>();
   <div
     :class="
       cn(
-        'relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100',
+        'bg-muted relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full',
         className
       )
     "
@@ -26,7 +28,7 @@ const { src = "", alt = "", fallback, className = "" } = defineProps<Props>();
     />
     <div
       v-else
-      class="flex h-full w-full items-center justify-center bg-blue-100 text-[10px] font-medium text-blue-600"
+      class="bg-primary/10 text-primary flex h-full w-full items-center justify-center text-[10px] font-medium"
     >
       {{ fallback }}
     </div>

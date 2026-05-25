@@ -4,9 +4,9 @@ useSocket();
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-white">
+  <div class="bg-background flex h-screen overflow-hidden">
     <LayoutSidebar />
-    <main class="flex-1 overflow-y-auto bg-white p-8">
+    <main class="flex-1 overflow-y-auto p-8">
       <slot />
     </main>
     <LayoutCommandPalette />

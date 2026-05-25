@@ -115,16 +115,16 @@ const handleSelect = (item: NavItem | Workspace) => {
           leave-to="opacity-0 scale-95"
         >
           <DialogPanel
-            class="mx-auto max-w-2xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5 transition-all"
+            class="divide-border bg-card ring-border mx-auto max-w-2xl transform divide-y overflow-hidden rounded-xl shadow-2xl ring-1 transition-all"
           >
             <Combobox @update:model-value="handleSelect">
               <div class="relative">
                 <Search
-                  class="pointer-events-none absolute top-3.5 left-4 h-5 w-5 text-gray-400"
+                  class="text-muted-foreground pointer-events-none absolute top-3.5 left-4 h-5 w-5"
                   aria-hidden="true"
                 />
                 <ComboboxInput
-                  class="h-12 w-full border-0 bg-transparent pr-4 pl-11 text-gray-900 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                  class="text-card-foreground placeholder:text-muted-foreground h-12 w-full border-0 bg-transparent pr-4 pl-11 outline-none focus:ring-0 sm:text-sm"
                   placeholder="Search..."
                   @change="query = $event.target.value"
                 />
@@ -135,12 +135,12 @@ const handleSelect = (item: NavItem | Workspace) => {
                   filteredNavigation.length > 0 || filteredWorkspaces.length > 0
                 "
                 static
-                class="max-h-80 scroll-py-2 divide-y divide-gray-100 overflow-y-auto"
+                class="divide-border max-h-80 scroll-py-2 divide-y overflow-y-auto"
               >
                 <li class="p-2">
                   <h2
                     v-if="filteredNavigation.length > 0"
-                    class="mt-4 mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                    class="text-muted-foreground mt-4 mb-2 px-3 text-xs font-semibold tracking-wider uppercase"
                   >
                     Navigation
                   </h2>
@@ -154,14 +154,18 @@ const handleSelect = (item: NavItem | Workspace) => {
                     <div
                       :class="[
                         'flex cursor-default items-center rounded-md px-3 py-2 transition-colors select-none',
-                        active ? 'bg-blue-600 text-white' : 'text-gray-700',
+                        active
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-card-foreground',
                       ]"
                     >
                       <component
                         :is="item.icon"
                         :class="[
                           'h-5 w-5 flex-none',
-                          active ? 'text-white' : 'text-gray-400',
+                          active
+                            ? 'text-primary-foreground'
+                            : 'text-muted-foreground',
                         ]"
                         aria-hidden="true"
                       />
@@ -174,7 +178,7 @@ const handleSelect = (item: NavItem | Workspace) => {
 
                 <li v-if="filteredWorkspaces.length > 0" class="p-2">
                   <h2
-                    class="mt-4 mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                    class="text-muted-foreground mt-4 mb-2 px-3 text-xs font-semibold tracking-wider uppercase"
                   >
                     Workspaces
                   </h2>
@@ -188,13 +192,17 @@ const handleSelect = (item: NavItem | Workspace) => {
                     <div
                       :class="[
                         'flex cursor-default items-center rounded-md px-3 py-2 transition-colors select-none',
-                        active ? 'bg-blue-600 text-white' : 'text-gray-700',
+                        active
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-card-foreground',
                       ]"
                     >
                       <Building2
                         :class="[
                           'h-5 w-5 flex-none',
-                          active ? 'text-white' : 'text-gray-400',
+                          active
+                            ? 'text-primary-foreground'
+                            : 'text-muted-foreground',
                         ]"
                         aria-hidden="true"
                       />
@@ -215,10 +223,10 @@ const handleSelect = (item: NavItem | Workspace) => {
                 class="px-6 py-14 text-center sm:px-14"
               >
                 <Search
-                  class="mx-auto h-6 w-6 text-gray-400"
+                  class="text-muted-foreground mx-auto h-6 w-6"
                   aria-hidden="true"
                 />
-                <p class="mt-4 text-sm text-gray-900">
+                <p class="text-card-foreground mt-4 text-sm">
                   No results found for "{{ query }}".
                 </p>
               </div>

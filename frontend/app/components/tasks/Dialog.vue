@@ -182,10 +182,10 @@ const handleAddComment = async () => {
         </form>
 
         <!-- Comments Section -->
-        <div v-if="task" class="border-t border-gray-100 pt-8">
+        <div v-if="task" class="border-border border-t pt-8">
           <div class="mb-6 flex items-center gap-2">
-            <MessageSquare class="h-5 w-5 text-gray-400" />
-            <h3 class="text-lg font-semibold text-gray-900">Activity</h3>
+            <MessageSquare class="text-muted-foreground/60 h-5 w-5" />
+            <h3 class="text-foreground text-lg font-semibold">Activity</h3>
           </div>
 
           <div class="space-y-6">
@@ -193,14 +193,14 @@ const handleAddComment = async () => {
             <div class="flex gap-4">
               <UiBaseAvatar
                 :fallback="userStore.userData?.email?.[0].toUpperCase() || '?'"
-                class-name="mt-1 h-10 w-10 border border-gray-100 shadow-sm"
+                class-name="mt-1 h-10 w-10 border border-border shadow-sm"
               />
               <div class="flex-1 space-y-3">
                 <UiBaseTextArea
                   v-model="newComment"
                   placeholder="Write a comment... (Markdown supported)"
                   :rows="3"
-                  class-name="bg-gray-50 focus:bg-white transition-colors"
+                  class-name="bg-muted focus:bg-card transition-colors"
                   :disabled="isCommenting"
                 />
                 <div class="flex justify-end">
@@ -226,7 +226,7 @@ const handleAddComment = async () => {
               v-if="detailsLoading && comments.length === 0"
               class="flex justify-center py-8"
             >
-              <Loader2 class="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 class="text-muted-foreground/60 h-6 w-6 animate-spin" />
             </div>
             <div v-else class="space-y-8">
               <TasksCommentItem
@@ -242,7 +242,7 @@ const handleAddComment = async () => {
       </div>
 
       <!-- Sidebar: Meta Information -->
-      <div class="space-y-6 lg:border-l lg:border-gray-100 lg:pl-8">
+      <div class="lg:border-border space-y-6 lg:border-l lg:pl-8">
         <div class="space-y-4">
           <div class="space-y-2">
             <UiBaseLabel for="status">Status</UiBaseLabel>

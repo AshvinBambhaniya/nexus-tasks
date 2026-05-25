@@ -22,35 +22,37 @@ const handleSelect = (id: string) => {
 <template>
   <div ref="dropdownRef" class="relative w-full">
     <template v-if="isLoading">
-      <div class="h-10 w-full animate-pulse rounded bg-gray-200" />
+      <div class="bg-muted h-10 w-full animate-pulse rounded" />
     </template>
     <template v-else>
       <button
-        class="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50"
-        :class="{ 'ring-2 ring-blue-500 ring-offset-1': isOpen }"
+        class="border-border bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
+        :class="{
+          'ring-ring ring-offset-background ring-2 ring-offset-1': isOpen,
+        }"
         @click="isOpen = !isOpen"
       >
         <span class="flex items-center gap-2 truncate">
           <User
             v-if="activeWorkspace?.type === WorkspaceType.PERSONAL"
-            class="h-4 w-4 text-gray-500"
+            class="text-muted-foreground h-4 w-4"
           />
-          <Building2 v-else class="h-4 w-4 text-gray-500" />
-          <span class="truncate text-gray-900">
+          <Building2 v-else class="text-muted-foreground h-4 w-4" />
+          <span class="text-card-foreground truncate">
             {{ activeWorkspace?.name || "Select Workspace" }}
           </span>
         </span>
-        <ChevronsUpDown class="h-4 w-4 shrink-0 text-gray-400" />
+        <ChevronsUpDown class="text-muted-foreground/70 h-4 w-4 shrink-0" />
       </button>
 
       <div
         v-if="isOpen"
-        class="absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg"
+        class="border-border bg-card absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-md border shadow-lg"
       >
         <div class="max-h-[300px] overflow-auto p-1">
           <div
             v-if="workspaces.length === 0"
-            class="px-2 py-2 text-center text-sm text-gray-500"
+            class="text-muted-foreground px-2 py-2 text-center text-sm"
           >
             No workspaces found.
           </div>
@@ -58,11 +60,11 @@ const handleSelect = (id: string) => {
             <button
               v-for="workspace in workspaces"
               :key="workspace.id"
-              class="relative flex w-full cursor-pointer items-center rounded-sm px-2 py-2 text-sm outline-none select-none hover:bg-blue-50 hover:text-blue-600"
+              class="hover:bg-primary/10 hover:text-primary relative flex w-full cursor-pointer items-center rounded-sm px-2 py-2 text-sm outline-none select-none"
               :class="
                 activeWorkspace?.id === workspace.id
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground'
               "
               @click="handleSelect(workspace.id)"
             >
@@ -78,14 +80,14 @@ const handleSelect = (id: string) => {
               </span>
               <Check
                 v-if="activeWorkspace?.id === workspace.id"
-                class="ml-auto h-4 w-4 text-blue-600"
+                class="text-primary ml-auto h-4 w-4"
               />
             </button>
           </template>
         </div>
-        <div class="border-t border-gray-100 p-1">
+        <div class="border-border/50 border-t p-1">
           <button
-            class="flex w-full cursor-pointer items-center rounded-sm px-2 py-2 text-sm text-gray-500 hover:bg-gray-100"
+            class="text-muted-foreground hover:bg-muted flex w-full cursor-pointer items-center rounded-sm px-2 py-2 text-sm"
             @click="
               isOpen = false;
               isDialogOpen = true;

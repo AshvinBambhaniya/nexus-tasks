@@ -25,13 +25,14 @@ const {
 } = defineProps<Props>();
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white shadow-md shadow-blue-100 hover:bg-blue-700",
-  ghost: "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-  outline:
-    "border border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:bg-gray-50",
-  white: "bg-white text-gray-900 hover:bg-gray-100 shadow-md",
+  primary: "bg-primary text-primary-foreground shadow-md hover:opacity-90",
+  ghost:
+    "font-medium text-muted-foreground hover:text-foreground hover:bg-muted",
+  outline: "border border-input bg-transparent text-foreground hover:bg-muted",
+  white:
+    "bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700 shadow-md",
   destructive:
-    "bg-red-600 text-white shadow-md shadow-red-100 hover:bg-red-700",
+    "bg-destructive text-destructive-foreground shadow-md hover:opacity-90",
 };
 
 const sizes: Record<ButtonSize, string> = {

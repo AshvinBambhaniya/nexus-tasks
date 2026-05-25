@@ -19,20 +19,18 @@ const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
   <div
     class="animate-in fade-in flex h-full flex-col space-y-6 overflow-hidden duration-500"
   >
-    <div
-      class="flex items-center justify-between border-b border-gray-100 pb-6"
-    >
+    <div class="border-border flex items-center justify-between border-b pb-6">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 class="text-foreground text-3xl font-bold tracking-tight">
           My Boards
         </h1>
-        <p class="mt-1 text-gray-500">
+        <p class="text-muted-foreground mt-1">
           Visual kanban of all your active tasks.
         </p>
       </div>
       <div class="flex items-center gap-3">
         <div
-          class="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1.5 text-xs font-bold tracking-tighter text-gray-500 uppercase"
+          class="border-border bg-muted/50 text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-bold tracking-tighter uppercase"
         >
           <Kanban class="h-3.5 w-3.5" />
           Cross-Project View
@@ -42,8 +40,10 @@ const handleTaskMove = async (taskId: string, newStatus: TaskStatus) => {
 
     <div v-if="isLoading" class="flex flex-1 items-center justify-center">
       <div class="flex flex-col items-center gap-4">
-        <Loader2 class="h-10 w-10 animate-spin text-blue-600/20" />
-        <p class="text-sm font-medium text-gray-400">Building your boards...</p>
+        <Loader2 class="text-primary/20 h-10 w-10 animate-spin" />
+        <p class="text-muted-foreground/70 text-sm font-medium">
+          Building your boards...
+        </p>
       </div>
     </div>
 

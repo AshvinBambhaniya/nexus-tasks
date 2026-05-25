@@ -28,20 +28,23 @@ const error = computed(() => validationError.value || authError.value);
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+  <div class="bg-background flex min-h-screen items-center justify-center px-4">
+    <div class="absolute top-4 right-4">
+      <LayoutThemeToggle />
+    </div>
     <div
-      class="w-full max-w-md space-y-8 rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+      class="border-border bg-card w-full max-w-md space-y-8 rounded-xl border p-8 shadow-sm"
     >
       <div class="flex flex-col items-center text-center">
         <div
-          class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100"
+          class="bg-primary/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full"
         >
-          <CheckSquare class="h-6 w-6 text-blue-600" />
+          <CheckSquare class="text-primary h-6 w-6" />
         </div>
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">
+        <h2 class="text-card-foreground text-2xl font-bold tracking-tight">
           Create an account
         </h2>
-        <p class="mt-2 text-sm text-gray-500">
+        <p class="text-muted-foreground mt-2 text-sm">
           Enter your details below to get started
         </p>
       </div>
@@ -100,7 +103,7 @@ const error = computed(() => validationError.value || authError.value);
 
         <div
           v-if="error"
-          class="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600"
+          class="border-destructive/50 bg-destructive/10 text-destructive rounded-md border p-3 text-sm font-medium"
         >
           {{ error }}
         </div>
@@ -111,10 +114,10 @@ const error = computed(() => validationError.value || authError.value);
       </form>
 
       <div class="text-center text-sm">
-        <span class="text-gray-500">Already have an account? </span>
+        <span class="text-muted-foreground">Already have an account? </span>
         <NuxtLink
           to="/login"
-          class="font-medium text-blue-600 hover:text-blue-500 hover:underline"
+          class="text-primary hover:text-primary/80 font-medium hover:underline"
         >
           Log in
         </NuxtLink>

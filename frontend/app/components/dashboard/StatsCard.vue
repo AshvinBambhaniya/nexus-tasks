@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Component } from "vue";
+import { cn } from "~/utils/cn";
 
 type StatsColor = "blue" | "indigo" | "orange" | "green";
 
@@ -22,25 +23,30 @@ const {
 } = defineProps<Props>();
 
 const colors: Record<StatsColor, string> = {
-  blue: "bg-blue-50 text-blue-600",
-  indigo: "bg-indigo-50 text-indigo-600",
-  orange: "bg-orange-50 text-orange-600",
-  green: "bg-green-50 text-green-600",
+  blue: "bg-primary/10 text-primary",
+  indigo: "bg-indigo-500/10 text-indigo-500",
+  orange: "bg-orange-500/10 text-orange-500",
+  green: "bg-emerald-500/10 text-emerald-500",
 };
 </script>
 
 <template>
-  <UiBaseCard class="border-gray-200 p-5 shadow-sm">
+  <UiBaseCard class="border-border p-5 shadow-sm">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm font-medium text-gray-500">{{ title }}</p>
+        <p class="text-muted-foreground text-sm font-medium">{{ title }}</p>
         <template v-if="isLoading">
-          <div class="mt-1 h-8 w-16 animate-pulse rounded bg-gray-100" />
+          <div class="bg-muted mt-1 h-8 w-16 animate-pulse rounded" />
         </template>
         <template v-else>
           <div class="mt-1 flex items-baseline gap-2">
-            <span class="text-2xl font-bold text-gray-900">{{ value }}</span>
-            <span v-if="label" class="text-xs font-normal text-gray-500">
+            <span class="text-card-foreground text-2xl font-bold">{{
+              value
+            }}</span>
+            <span
+              v-if="label"
+              class="text-muted-foreground text-xs font-normal"
+            >
               {{ label }}
             </span>
           </div>

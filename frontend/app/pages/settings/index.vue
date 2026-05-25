@@ -36,9 +36,11 @@ const comingSoonTabs = [
   <div
     class="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-6xl duration-500"
   >
-    <div class="mb-8 border-b border-gray-100 pb-6">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>
-      <p class="mt-2 text-gray-500">
+    <div class="border-border mb-8 border-b pb-6">
+      <h1 class="text-foreground text-3xl font-bold tracking-tight">
+        Settings
+      </h1>
+      <p class="text-muted-foreground mt-2">
         Manage your personal preferences and workspace configuration.
       </p>
     </div>
@@ -48,7 +50,7 @@ const comingSoonTabs = [
       <aside class="w-full shrink-0 lg:w-72">
         <nav class="space-y-1">
           <div
-            class="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase"
+            class="text-muted-foreground/70 mb-2 px-3 text-xs font-semibold tracking-wider uppercase"
           >
             Account & Workspace
           </div>
@@ -58,8 +60,8 @@ const comingSoonTabs = [
             :class="[
               'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
               activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+                ? 'bg-primary text-primary-foreground shadow-primary/20 shadow-md'
+                : 'text-foreground/80 hover:bg-muted hover:text-foreground',
             ]"
             @click="activeTab = tab.id"
           >
@@ -68,15 +70,15 @@ const comingSoonTabs = [
               :class="[
                 'h-5 w-5 shrink-0 transition-colors',
                 activeTab === tab.id
-                  ? 'text-white'
-                  : 'text-gray-400 group-hover:text-gray-600',
+                  ? 'text-primary-foreground'
+                  : 'text-muted-foreground/70 group-hover:text-foreground/80',
               ]"
             />
             <div class="text-left">
               <div>{{ tab.label }}</div>
               <div
                 v-if="activeTab !== tab.id"
-                class="text-[11px] font-normal text-gray-400"
+                class="text-muted-foreground/70 text-[11px] font-normal"
               >
                 {{ tab.description }}
               </div>
@@ -84,19 +86,19 @@ const comingSoonTabs = [
           </button>
 
           <div
-            class="mt-8 mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase"
+            class="text-muted-foreground/70 mt-8 mb-2 px-3 text-xs font-semibold tracking-wider uppercase"
           >
             Preferences
           </div>
           <div
             v-for="tab in comingSoonTabs"
             :key="tab.label"
-            class="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 opacity-60"
+            class="text-muted-foreground/70 flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-60"
           >
             <component :is="tab.icon" class="h-5 w-5 shrink-0" />
             <span>{{ tab.label }}</span>
             <span
-              class="ml-auto text-[10px] font-bold tracking-tighter text-gray-300 uppercase italic"
+              class="text-muted-foreground/50 ml-auto text-[10px] font-bold tracking-tighter uppercase italic"
             >
               Soon
             </span>
