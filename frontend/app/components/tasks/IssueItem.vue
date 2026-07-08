@@ -5,9 +5,12 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  Calendar,
+  ChevronsUp,
+  ChevronUp,
+  Minus,
+  ChevronDown,
 } from "lucide-vue-next";
-import { formatDistanceToNow, format, isPast, isToday } from "date-fns";
+import { format, isPast, isToday } from "date-fns";
 import { cn } from "~/utils/cn";
 import { TaskStatus, TaskPriority, type Task } from "~/types";
 
@@ -29,111 +32,152 @@ const statusIcons = {
 
 const statusColors = {
   [TaskStatus.BACKLOG]: "text-muted-foreground",
-  [TaskStatus.TODO]: "text-blue-500 dark:text-blue-400",
-  [TaskStatus.IN_PROGRESS]: "text-purple-500 dark:text-purple-400",
-  [TaskStatus.DONE]: "text-green-500 dark:text-green-400",
+  [TaskStatus.TODO]: "text-blue-500",
+  [TaskStatus.IN_PROGRESS]: "text-purple-500",
+  [TaskStatus.DONE]: "text-green-500",
+};
+
+const statusLabels = {
+  [TaskStatus.BACKLOG]: "Backlog",
+  [TaskStatus.TODO]: "To Do",
+  [TaskStatus.IN_PROGRESS]: "In Progress",
+  [TaskStatus.DONE]: "Done",
+};
+
+const priorityIcons = {
+  [TaskPriority.P0]: ChevronsUp,
+  [TaskPriority.P1]: ChevronUp,
+  [TaskPriority.P2]: Minus,
+  [TaskPriority.P3]: ChevronDown,
 };
 
 const priorityColors = {
-  [TaskPriority.P0]:
-    "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50",
-  [TaskPriority.P1]:
-    "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50",
-  [TaskPriority.P2]:
-    "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50",
-  [TaskPriority.P3]: "text-muted-foreground bg-muted border-border",
+  [TaskPriority.P0]: "text-red-500",
+  [TaskPriority.P1]: "text-orange-500",
+  [TaskPriority.P2]: "text-blue-500",
+  [TaskPriority.P3]: "text-muted-foreground",
 };
 
-const icon = computed(() => statusIcons[task.status] || Circle);
+const priorityLabels = {
+  [TaskPriority.P0]: "Urgent",
+  [TaskPriority.P1]: "High",
+  [TaskPriority.P2]: "Medium",
+  [TaskPriority.P3]: "Low",
+};
+
+const statusIcon = computed(() => statusIcons[task.status] || Circle);
+const priorityIcon = computed(() => priorityIcons[task.priority] || Minus);
 </script>
 
 <template>
-  <div
-    class="group border-border hover:bg-muted/50 flex cursor-pointer items-start gap-3 border-b p-4 transition-colors last:border-0"
+  <tr
+    class="group hover:bg-muted/50 cursor-pointer transition-colors"
     @click="emit('click', task)"
   >
-    <div :class="cn('mt-1 shrink-0', statusColors[task.status])">
-      <component :is="icon" class="h-5 w-5" />
-    </div>
+    <!-- Checkbox -->
+    <td class="px-4 py-3" @click.stop>
+      <input
+        type="checkbox"
+        class="border-border text-primary focus:ring-primary/20 bg-background h-3.5 w-3.5 cursor-pointer rounded"
+      />
+    </td>
 
-    <div class="min-w-0 flex-1 space-y-1">
-      <div class="flex flex-wrap items-center gap-2">
+    <!-- ID -->
+    <td class="text-muted-foreground px-2 py-3 font-mono text-xs">
+      PROJ-{{ task.number }}
+    </td>
+
+    <!-- Title -->
+    <td class="px-2 py-3">
+      <div class="flex items-center gap-2">
         <NuxtLink
           :to="`/projects/${projectId}/tasks/${task.id}`"
-          class="text-foreground hover:text-primary font-bold transition-colors"
+          class="text-foreground hover:text-primary text-sm font-medium transition-colors"
           @click.stop
         >
           {{ task.title }}
         </NuxtLink>
-        <UiBaseBadge
-          variant="outline"
+        <div
+          v-if="(task.comment_count ?? 0) > 0"
+          class="text-muted-foreground bg-muted border-border flex items-center gap-1 rounded-full border px-1.5 text-[10px]"
+        >
+          <MessageSquare class="h-2.5 w-2.5" />
+          {{ task.comment_count }}
+        </div>
+      </div>
+    </td>
+
+    <!-- Assignee -->
+    <td class="px-2 py-3">
+      <div v-if="task.assignee" class="flex items-center gap-2">
+        <UiBaseAvatar
+          :fallback="task.assignee.email[0].toUpperCase()"
+          class-name="h-5 w-5 text-[10px]"
+        />
+        <span
+          class="text-muted-foreground group-hover:text-foreground max-w-[80px] truncate text-xs transition-colors"
+        >
+          {{ task.assignee.email.split("@")[0] }}
+        </span>
+      </div>
+      <div v-else class="text-muted-foreground/50 text-xs">Unassigned</div>
+    </td>
+
+    <!-- Status -->
+    <td class="px-2 py-3">
+      <div class="flex items-center gap-1.5 text-xs">
+        <component
+          :is="statusIcon"
+          :class="cn('h-3.5 w-3.5', statusColors[task.status])"
+        />
+        <span
+          class="text-muted-foreground group-hover:text-foreground transition-colors"
+          >{{ statusLabels[task.status] }}</span
+        >
+      </div>
+    </td>
+
+    <!-- Priority -->
+    <td class="px-2 py-3">
+      <div class="flex items-center gap-1.5 text-xs">
+        <component
+          :is="priorityIcon"
+          :class="cn('h-3.5 w-3.5', priorityColors[task.priority])"
+        />
+        <span
+          class="text-muted-foreground group-hover:text-foreground transition-colors"
+          >{{ priorityLabels[task.priority] }}</span
+        >
+      </div>
+    </td>
+
+    <!-- Due Date -->
+    <td class="px-2 py-3 pr-6 text-right">
+      <template v-if="task.status === TaskStatus.DONE && task.completed_at">
+        <div
+          class="flex items-center justify-end gap-1.5 text-xs font-medium text-green-500"
+        >
+          <CheckCircle2 class="h-3.5 w-3.5" />
+          <span>{{ format(new Date(task.completed_at), "MMM d") }}</span>
+        </div>
+      </template>
+      <template v-else-if="task.due_date">
+        <div
           :class="
             cn(
-              'h-5 px-1.5 text-[10px] font-bold uppercase',
-              priorityColors[task.priority]
+              'flex items-center justify-end gap-1.5 text-xs transition-colors',
+              isPast(new Date(task.due_date)) &&
+                !isToday(new Date(task.due_date)) &&
+                task.status !== TaskStatus.DONE
+                ? 'font-medium text-red-500'
+                : 'text-muted-foreground group-hover:text-foreground'
             )
           "
         >
-          {{ task.priority }}
-        </UiBaseBadge>
-      </div>
-
-      <div
-        class="text-muted-foreground flex flex-wrap items-center gap-2 text-xs"
-      >
-        <span>#{{ task.number }}</span>
-        <span>
-          opened {{ formatDistanceToNow(new Date(task.created_at)) }} ago
-        </span>
-        <template v-if="task.status === TaskStatus.DONE && task.completed_at">
-          <div
-            class="flex items-center gap-1 font-medium text-green-600 dark:text-green-400"
-          >
-            <CheckCircle2 class="h-3 w-3" />
-            <span>{{ format(new Date(task.completed_at), "MMM d") }}</span>
-          </div>
-        </template>
-        <template v-else-if="task.due_date">
-          <div
-            :class="
-              cn(
-                'flex items-center gap-1',
-                isPast(new Date(task.due_date)) &&
-                  !isToday(new Date(task.due_date)) &&
-                  task.status !== TaskStatus.DONE
-                  ? 'font-medium text-red-600 dark:text-red-400'
-                  : 'text-muted-foreground'
-              )
-            "
-          >
-            <Calendar class="h-3 w-3" />
-            <span>{{ format(new Date(task.due_date), "MMM d") }}</span>
-          </div>
-        </template>
-        <div v-if="task.assignee" class="flex items-center gap-1">
-          <UiBaseAvatar
-            :fallback="task.assignee.email[0].toUpperCase()"
-            class-name="h-4 w-4 text-[8px]"
-          />
-          <span class="hover:text-primary cursor-pointer">
-            {{ task.assignee.email.split("@")[0] }}
-          </span>
+          <span>{{ format(new Date(task.due_date), "MMM d") }}</span>
         </div>
-      </div>
-    </div>
-
-    <div class="text-muted-foreground/70 flex shrink-0 items-center gap-4">
-      <div
-        v-if="(task.comment_count ?? 0) > 0"
-        class="flex items-center gap-1 text-xs"
-      >
-        <MessageSquare class="h-3.5 w-3.5" />
-        <span>{{ task.comment_count }}</span>
-      </div>
-      <div class="hidden items-center gap-1 text-xs group-hover:flex">
-        <MessageSquare class="h-3.5 w-3.5" />
-        <span>Details</span>
-      </div>
-    </div>
-  </div>
+      </template>
+      <span v-else class="text-muted-foreground/50 text-xs">-</span>
+    </td>
+  </tr>
 </template>

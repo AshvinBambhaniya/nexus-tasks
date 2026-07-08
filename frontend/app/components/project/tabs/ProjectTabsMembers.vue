@@ -6,7 +6,10 @@ import {
   Link as LinkIcon,
   Mail,
   Loader2,
+  Shield,
+  User,
 } from "lucide-vue-next";
+import { cn } from "~/utils/cn";
 
 interface Props {
   projectId: string;
@@ -76,171 +79,233 @@ const availableTeams = computed(() =>
 </script>
 
 <template>
-  <div class="space-y-8">
-    <UiBaseCard>
-      <div class="border-border border-b p-6">
-        <h3 class="text-card-foreground text-lg font-semibold">
-          Project Members
-        </h3>
-        <p class="text-muted-foreground text-sm">
-          All users with access to this project, including team members.
-        </p>
-      </div>
-      <div class="space-y-6 p-6">
-        <form class="flex gap-3" @submit.prevent="handleInvite">
-          <div class="relative flex-1">
+  <div class="mx-auto max-w-5xl space-y-8">
+    <!-- Project Members Section -->
+    <div class="space-y-4">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h3 class="text-foreground text-lg font-semibold tracking-tight">
+            Project Members
+          </h3>
+          <p class="text-muted-foreground text-sm">
+            Manage who has access to this project and their permission levels.
+          </p>
+        </div>
+        <form class="flex items-center gap-2" @submit.prevent="handleInvite">
+          <div class="relative w-full sm:w-64">
             <Mail
-              class="text-muted-foreground/60 absolute top-2.5 left-3 h-4 w-4"
+              class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
             />
-            <UiBaseInput
+            <input
               v-model="inviteEmail"
               type="email"
-              placeholder="name@example.com"
+              placeholder="Email address"
               required
-              class-name="pl-9"
+              class="bg-background border-border focus:ring-primary focus:border-primary h-9 w-full rounded-md border pr-3 pl-9 text-sm transition-all focus:ring-1 focus:outline-none disabled:opacity-50"
               :disabled="isInviting"
             />
           </div>
-          <UiBaseButton type="submit" :disabled="isInviting">
-            <template v-if="isInviting">
-              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-            </template>
+          <button
+            type="submit"
+            :disabled="isInviting"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 min-w-[90px] items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <Loader2 v-if="isInviting" class="h-4 w-4 animate-spin" />
             <template v-else>
-              <UserPlus class="mr-2 h-4 w-4" />
+              <UserPlus class="h-4 w-4" />
+              Add
             </template>
-            Add
-          </UiBaseButton>
+          </button>
         </form>
+      </div>
 
+      <div
+        class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
+      >
         <div v-if="isLoading" class="flex justify-center p-8">
-          <Loader2 class="text-muted-foreground/60 h-6 w-6 animate-spin" />
+          <Loader2 class="text-muted-foreground/50 h-6 w-6 animate-spin" />
+        </div>
+        <div
+          v-else-if="members.length === 0"
+          class="flex flex-col items-center justify-center px-4 py-12 text-center"
+        >
+          <div
+            class="bg-muted/50 border-border mb-3 flex h-12 w-12 items-center justify-center rounded-full border"
+          >
+            <Users class="text-muted-foreground h-5 w-5" />
+          </div>
+          <p class="text-foreground text-sm font-medium">No members yet</p>
+          <p class="text-muted-foreground mt-1 text-xs">
+            Add members using their email address above.
+          </p>
         </div>
         <div v-else class="divide-border divide-y">
           <div
             v-for="member in members"
             :key="member.user_id"
-            class="hover:bg-muted flex items-center justify-between rounded-lg p-4 transition-colors"
+            class="hover:bg-muted/30 group flex items-center justify-between p-4 transition-colors"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
               <UiBaseAvatar
                 :fallback="member.email[0].toUpperCase()"
-                class-name="h-9 w-9 bg-primary/10 text-xs text-primary"
+                class-name="h-10 w-10 bg-primary/10 text-primary text-sm font-medium border border-primary/20"
               />
-              <div>
-                <div class="text-card-foreground text-sm font-medium">
-                  {{ member.email }}
-                </div>
-                <div
-                  class="text-muted-foreground flex items-center gap-2 text-xs"
+              <div class="flex flex-col">
+                <span class="text-foreground text-sm font-medium">{{
+                  member.email
+                }}</span>
+                <span
+                  class="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs"
                 >
+                  <component
+                    :is="member.is_direct ? User : Users"
+                    class="h-3 w-3"
+                  />
                   {{ member.is_direct ? "Direct Member" : "via Team" }}
-                </div>
+                </span>
               </div>
             </div>
 
-            <div class="flex items-center gap-3">
-              <UiBaseBadge
-                :variant="member.role === 'ADMIN' ? 'default' : 'secondary'"
-                class-name="h-5 text-[10px]"
+            <div class="flex items-center gap-4">
+              <span
+                :class="
+                  cn(
+                    'rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                    member.role === 'ADMIN'
+                      ? 'bg-primary/10 text-primary border-primary/20'
+                      : 'bg-muted text-muted-foreground border-border'
+                  )
+                "
               >
+                <Shield
+                  v-if="member.role === 'ADMIN'"
+                  class="mr-1 mb-0.5 inline h-3 w-3"
+                />
                 {{ member.role }}
-              </UiBaseBadge>
-              <UiBaseButton
-                v-if="member.is_direct"
-                variant="ghost"
-                size="sm"
-                class-name="h-8 w-8 p-0 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
-                title="Remove direct access"
-                @click="handleRemoveMember(member.user_id)"
-              >
-                <Trash2 class="h-4 w-4" />
-              </UiBaseButton>
+              </span>
+
+              <div class="flex w-8 justify-end">
+                <button
+                  v-if="member.is_direct"
+                  class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 opacity-0 transition-all group-hover:opacity-100 focus:opacity-100"
+                  title="Remove direct access"
+                  @click="handleRemoveMember(member.user_id)"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </div>
-          <div
-            v-if="members.length === 0"
-            class="text-muted-foreground py-6 text-center text-sm"
-          >
-            No members found.
           </div>
         </div>
       </div>
-    </UiBaseCard>
+    </div>
 
-    <UiBaseCard>
-      <div class="border-border border-b p-6">
-        <h3 class="text-card-foreground text-lg font-semibold">Teams</h3>
-        <p class="text-muted-foreground text-sm">
-          Workspace teams with access to this project.
-        </p>
-      </div>
-      <div class="space-y-6 p-6">
-        <form class="flex gap-3" @submit.prevent="handleLinkTeam">
-          <div class="relative flex-1">
+    <!-- Linked Teams Section -->
+    <div class="border-border space-y-4 border-t pt-4">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h3 class="text-foreground text-lg font-semibold tracking-tight">
+            Linked Teams
+          </h3>
+          <p class="text-muted-foreground text-sm">
+            Grant project access to entire workspace teams.
+          </p>
+        </div>
+        <form class="flex items-center gap-2" @submit.prevent="handleLinkTeam">
+          <div class="relative w-full sm:w-64">
             <Users
-              class="text-muted-foreground/60 absolute top-2.5 left-3 h-4 w-4"
+              class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
             />
             <select
               v-model="selectedTeamId"
-              class="border-border bg-background ring-offset-background focus-visible:ring-primary flex h-10 w-full rounded-md border px-3 py-2 pl-9 text-sm focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              class="bg-background border-border focus:ring-primary focus:border-primary h-9 w-full appearance-none rounded-md border pr-8 pl-9 text-sm transition-all focus:ring-1 focus:outline-none disabled:opacity-50"
               required
+              :disabled="availableTeams.length === 0"
             >
               <option value="" disabled>Select a team to link...</option>
               <option v-for="t in availableTeams" :key="t.id" :value="t.id">
                 {{ t.name }}
               </option>
             </select>
+            <!-- Custom chevron for select -->
+            <svg
+              class="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
           </div>
-          <UiBaseButton
+          <button
             type="submit"
             :disabled="isLinking || availableTeams.length === 0"
+            class="bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border flex h-9 min-w-[90px] items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium transition-colors disabled:opacity-50"
           >
-            <template v-if="isLinking">
-              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-            </template>
+            <Loader2 v-if="isLinking" class="h-4 w-4 animate-spin" />
             <template v-else>
-              <LinkIcon class="mr-2 h-4 w-4" />
+              <LinkIcon class="h-4 w-4" />
+              Link
             </template>
-            Link Team
-          </UiBaseButton>
+          </button>
         </form>
+      </div>
 
+      <div
+        class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
+      >
         <div v-if="isLoading" class="flex justify-center p-8">
-          <Loader2 class="text-muted-foreground/60 h-6 w-6 animate-spin" />
+          <Loader2 class="text-muted-foreground/50 h-6 w-6 animate-spin" />
+        </div>
+        <div
+          v-else-if="projectTeams.length === 0"
+          class="flex flex-col items-center justify-center px-4 py-12 text-center"
+        >
+          <div
+            class="bg-muted/50 border-border mb-3 flex h-12 w-12 items-center justify-center rounded-full border"
+          >
+            <LinkIcon class="text-muted-foreground h-5 w-5" />
+          </div>
+          <p class="text-foreground text-sm font-medium">No linked teams</p>
+          <p class="text-muted-foreground mt-1 text-xs">
+            Link a workspace team to give all its members access.
+          </p>
         </div>
         <div v-else class="divide-border divide-y">
           <div
             v-for="team in projectTeams"
             :key="team.team_id"
-            class="hover:bg-muted flex items-center justify-between rounded-lg p-4 transition-colors"
+            class="hover:bg-muted/30 group flex items-center justify-between p-4 transition-colors"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
               <div
-                class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500"
+                class="flex h-10 w-10 items-center justify-center rounded-md border border-indigo-500/20 bg-indigo-500/10 text-indigo-500"
               >
-                <Users class="h-4 w-4" />
+                <Users class="h-5 w-5" />
               </div>
-              <div class="text-card-foreground text-sm font-medium">
-                {{ team.team_name }}
-              </div>
+              <span class="text-foreground text-sm font-medium">{{
+                team.team_name
+              }}</span>
             </div>
-            <UiBaseButton
-              variant="ghost"
-              size="sm"
-              class-name="h-8 w-8 p-0 text-muted-foreground/60 hover:bg-destructive/10 hover:text-destructive"
-              @click="handleUnlinkTeam(team.team_id)"
-            >
-              <Trash2 class="h-4 w-4" />
-            </UiBaseButton>
-          </div>
-          <div
-            v-if="projectTeams.length === 0"
-            class="text-muted-foreground py-6 text-center text-sm"
-          >
-            No teams linked.
+
+            <div class="flex w-8 justify-end">
+              <button
+                class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 opacity-0 transition-all group-hover:opacity-100 focus:opacity-100"
+                title="Unlink team"
+                @click="handleUnlinkTeam(team.team_id)"
+              >
+                <Trash2 class="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </UiBaseCard>
+    </div>
   </div>
 </template>

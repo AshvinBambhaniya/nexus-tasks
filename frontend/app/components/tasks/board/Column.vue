@@ -1,21 +1,15 @@
 <script setup lang="ts">
 import draggable from "vuedraggable";
-import { cn } from "~/utils/cn";
+import { Plus, MoreHorizontal } from "lucide-vue-next";
 import type { TaskStatus, Task } from "~/types";
 
 interface Props {
   id: TaskStatus;
   title: string;
   tasks: Task[];
-  color?: string;
 }
 
-const {
-  id,
-  title,
-  tasks,
-  color = "bg-muted-foreground",
-} = defineProps<Props>();
+const { id, title, tasks } = defineProps<Props>();
 
 const emit = defineEmits(["task-move", "task-click"]);
 
@@ -43,31 +37,42 @@ const handleChange = (evt: {
 
 <template>
   <div
-    class="border-border bg-muted/50 flex h-full w-80 min-w-[20rem] flex-col rounded-lg border"
+    class="bg-muted/30 hover:border-border/50 flex h-full w-80 min-w-[20rem] flex-col rounded-xl border border-transparent transition-colors"
   >
     <!-- Header -->
-    <div
-      class="border-border/50 flex items-center justify-between border-b p-3"
-    >
+    <div class="flex items-center justify-between p-3.5 pb-2">
       <div class="flex items-center gap-2">
-        <div :class="cn('h-2.5 w-2.5 rounded-full', color)" />
-        <h3 class="text-foreground text-sm font-semibold">{{ title }}</h3>
-        <span
-          class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium"
+        <h3
+          class="text-foreground flex items-center gap-2 text-xs font-bold tracking-wider uppercase"
         >
+          {{ title }}
+        </h3>
+        <span class="text-muted-foreground text-xs font-medium">
           {{ tasks.length }}
         </span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button
+          class="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1 transition-colors"
+        >
+          <Plus class="h-4 w-4" />
+        </button>
+        <button
+          class="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1 transition-colors"
+        >
+          <MoreHorizontal class="h-4 w-4" />
+        </button>
       </div>
     </div>
 
     <!-- Content -->
-    <div class="flex-1 overflow-y-auto p-2">
+    <div class="flex-1 overflow-y-auto px-3 pb-3">
       <draggable
         v-model="internalTasks"
         group="tasks"
         item-key="id"
-        class="h-full space-y-2"
-        ghost-class="opacity-50"
+        class="h-full min-h-[150px] space-y-3 pt-2"
+        ghost-class="opacity-40"
         drag-class="cursor-grabbing"
         @change="handleChange"
       >
@@ -78,9 +83,9 @@ const handleChange = (evt: {
         <template #footer>
           <div
             v-if="tasks.length === 0"
-            class="border-border text-muted-foreground flex h-24 items-center justify-center rounded-lg border-2 border-dashed text-xs"
+            class="text-muted-foreground/50 border-border/50 flex h-24 items-center justify-center rounded-lg border border-dashed text-xs"
           >
-            Empty
+            Drop tasks here
           </div>
         </template>
       </draggable>
