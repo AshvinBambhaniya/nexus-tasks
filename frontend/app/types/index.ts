@@ -166,14 +166,14 @@ export interface ApiError {
 export enum NotificationEntityType {
   TASK = "TASK",
   COMMENT = "COMMENT",
-  PROJECT = "PROJECT"
+  PROJECT = "PROJECT",
 }
 
 export enum NotificationType {
   ASSIGNED = "ASSIGNED",
   MENTIONED = "MENTIONED",
   STATUS_CHANGED = "STATUS_CHANGED",
-  COMMENT_ADDED = "COMMENT_ADDED"
+  COMMENT_ADDED = "COMMENT_ADDED",
 }
 
 export interface Notification {
@@ -189,4 +189,21 @@ export interface Notification {
   is_cleared: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// API Key Types
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  name: string;
+  token_prefix: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateApiKeyResponse {
+  raw_token: string;
+  key: ApiKey;
 }

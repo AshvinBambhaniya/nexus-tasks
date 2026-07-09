@@ -24,6 +24,9 @@ func setupTaskTest(_ *testing.T) (*taskService, *mockTaskRepository, *mockProjec
 	mockStor.On("Tasks").Return(mockTaskRepo)
 	mockStor.On("Projects").Return(mockProjectRepo)
 	mockStor.On("Workspaces").Return(mockWorkspaceRepo)
+	mockNotifRepo := new(mockNotificationRepository)
+	mockStor.On("Notifications").Return(mockNotifRepo)
+	mockNotifRepo.On("Create", mock.Anything).Return(nil)
 
 	svc := &taskService{
 		storage: mockStor,
@@ -43,6 +46,7 @@ func TestTaskService_CreateTask(t *testing.T) {
 		dueDate := time.Now().Add(24 * time.Hour)
 
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
+		mt.On("GetNextTaskNumber", projectID).Return(1, nil)
 		mt.On("Create", mock.Anything).Return(models.Task{ID: taskID, Title: "Bug", DueDate: &dueDate}, nil)
 		mh.On("Broadcast", mock.Anything, mock.Anything).Return()
 
@@ -96,6 +100,7 @@ func TestTaskService_CreateTask(t *testing.T) {
 		projectID := uuid.New()
 
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
+		mt.On("GetNextTaskNumber", projectID).Return(1, nil)
 		mt.On("Create", mock.Anything).Return(models.Task{}, errors.New("db error"))
 
 		_, err := svc.CreateTask(userID, projectID, structs.ReqCreateTask{Title: "Fail"})
@@ -111,7 +116,7 @@ func TestTaskService_ListProjectTasks(t *testing.T) {
 		userID := uuid.New()
 
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
-		mt.On("ListByProjectID", projectID, mock.Anything, mock.Anything).Return([]models.Task{{Title: "T1"}}, nil)
+		mt.On("ListByProjectID", projectID, mock.Anything, mock.Anything).Return([]models.TaskWithAssignee{{Task: models.Task{Title: "T1"}}}, nil)
 
 		res, err := svc.ListProjectTasks(userID, projectID, nil, nil)
 		assert.NoError(t, err)
@@ -144,7 +149,7 @@ func TestTaskService_GetTask(t *testing.T) {
 		userID := uuid.New()
 		projectID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 
 		res, err := svc.GetTask(userID, taskID)
@@ -162,7 +167,7 @@ func TestTaskService_GetTask(t *testing.T) {
 		projectID := uuid.New()
 		workspaceID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, errors.New("not member"))
 		mp.On("GetByID", projectID).Return(models.Project{WorkspaceID: workspaceID}, nil)
 		mw.On("GetMember", workspaceID, userID).Return(models.WorkspaceMember{Role: models.WorkspaceRoleMember}, nil)
@@ -175,7 +180,7 @@ func TestTaskService_GetTask(t *testing.T) {
 
 	t.Run("task not found", func(t *testing.T) {
 		svc, mt, _, _, _, _ := setupTaskTest(t)
-		mt.On("GetByID", mock.Anything).Return(models.Task{}, errors.New("not found"))
+		mt.On("GetByID", mock.Anything).Return(models.TaskWithAssignee{}, errors.New("not found"))
 
 		_, err := svc.GetTask(uuid.New(), uuid.New())
 		assert.Error(t, err)
@@ -191,7 +196,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		assigneeID := uuid.New()
 		dueDate := time.Now().Add(48 * time.Hour)
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID, Status: "TODO"}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID, Status: "TODO"}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 
 		// Validate assignee
@@ -221,7 +226,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		taskID := uuid.New()
 		userID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{}, errors.New("not found"))
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{}, errors.New("not found"))
 
 		_, err := svc.UpdateTask(userID, taskID, structs.ReqUpdateTask{Title: "X"})
 		assert.Error(t, err)
@@ -238,7 +243,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		projectID := uuid.New()
 		workspaceID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, errors.New("not member"))
 		mp.On("GetByID", projectID).Return(models.Project{WorkspaceID: workspaceID}, nil)
 		mw.On("GetMember", workspaceID, userID).Return(models.WorkspaceMember{Role: models.WorkspaceRoleMember}, nil)
@@ -256,7 +261,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		projectID := uuid.New()
 		assigneeID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 		// Assignee check fails
 		mp.On("GetMember", projectID, assigneeID).Return(models.ProjectMember{}, errors.New("not found"))
@@ -273,7 +278,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		userID := uuid.New()
 		projectID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 		mt.On("Update", mock.Anything).Return(models.Task{}, errors.New("db error"))
 
@@ -289,7 +294,7 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		projectID := uuid.New()
 		completedAt := time.Now()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID, Status: "DONE", CompletedAt: &completedAt}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID, Status: "DONE", CompletedAt: &completedAt}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 		mt.On("Update", mock.MatchedBy(func(t models.Task) bool {
 			return t.Status == "TODO" && t.CompletedAt == nil
@@ -310,7 +315,7 @@ func TestTaskService_DeleteTask(t *testing.T) {
 		projectID := uuid.New()
 		userID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 		mt.On("Delete", taskID).Return(nil)
 		mh.On("Broadcast", mock.Anything, mock.Anything).Return()
@@ -324,7 +329,7 @@ func TestTaskService_DeleteTask(t *testing.T) {
 		taskID := uuid.New()
 		userID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{}, errors.New("not found"))
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{}, errors.New("not found"))
 
 		err := svc.DeleteTask(userID, taskID)
 		assert.Error(t, err)
@@ -341,7 +346,7 @@ func TestTaskService_DeleteTask(t *testing.T) {
 		projectID := uuid.New()
 		workspaceID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, errors.New("not member"))
 		mp.On("GetByID", projectID).Return(models.Project{WorkspaceID: workspaceID}, nil)
 		mw.On("GetMember", workspaceID, userID).Return(models.WorkspaceMember{Role: models.WorkspaceRoleMember}, nil)
@@ -358,7 +363,7 @@ func TestTaskService_DeleteTask(t *testing.T) {
 		userID := uuid.New()
 		projectID := uuid.New()
 
-		mt.On("GetByID", taskID).Return(models.Task{ID: taskID, ProjectID: projectID}, nil)
+		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
 		mp.On("GetMember", projectID, userID).Return(models.ProjectMember{}, nil)
 		mt.On("Delete", taskID).Return(errors.New("db error"))
 
@@ -373,7 +378,7 @@ func TestTaskService_ListMyTasks(t *testing.T) {
 		svc, mt, _, _, _, _ := setupTaskTest(t)
 		userID := uuid.New()
 
-		mt.On("ListByAssigneeID", userID).Return([]models.Task{{Title: "My Task"}}, nil)
+		mt.On("ListByAssigneeID", userID).Return([]models.TaskWithAssignee{{Task: models.Task{Title: "My Task"}}}, nil)
 
 		res, err := svc.ListMyTasks(userID)
 		assert.NoError(t, err)
@@ -471,5 +476,53 @@ func TestTaskService_InternalHelpers(t *testing.T) {
 		err := svc.internalValidateAssignee(ms, projectID, assigneeID)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "assignee must be a member")
+	})
+}
+
+func TestTaskService_DispatchUpdateNotifications(t *testing.T) {
+	t.Run("dispatch assignee and status done notifications", func(t *testing.T) {
+		mockNotifRepo := new(mockNotificationRepository)
+		mockStor := new(mockStorage)
+		mockStor.On("Notifications").Return(mockNotifRepo)
+
+		svc := &taskService{
+			storage: mockStor,
+			logger:  zap.NewNop(),
+		}
+
+		actorID := uuid.New()
+		authorID := uuid.New()
+		assigneeID := uuid.New()
+		taskID := uuid.New()
+
+		oldTask := models.TaskWithAssignee{
+			Task: models.Task{
+				ID:       taskID,
+				AuthorID: &authorID,
+			},
+		}
+		updatedTask := models.Task{
+			ID:    taskID,
+			Title: "Done Task",
+		}
+
+		req := structs.ReqUpdateTask{
+			AssigneeID: &assigneeID,
+			Status:     models.TaskStatusDone,
+		}
+
+		// Expect assignee notification
+		mockNotifRepo.On("Create", mock.MatchedBy(func(n *models.Notification) bool {
+			return n.UserID == assigneeID && n.Type == models.NotificationTypeAssigned
+		})).Return(nil)
+
+		// Expect author notification for status DONE
+		mockNotifRepo.On("Create", mock.MatchedBy(func(n *models.Notification) bool {
+			return n.UserID == authorID && n.Type == models.NotificationTypeStatusChanged
+		})).Return(nil)
+
+		svc.dispatchUpdateNotifications(mockStor, actorID, oldTask, updatedTask, true, true, req)
+
+		mockNotifRepo.AssertExpectations(t)
 	})
 }

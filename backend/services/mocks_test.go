@@ -63,7 +63,12 @@ func (m *mockStorage) Notifications() models.NotificationRepository {
 	return getMockArg[models.NotificationRepository](args, 0)
 }
 
-func (m *mockStorage) Atomic(ctx context.Context, fn func(models.Storage) error) error {
+func (m *mockStorage) APIKeys() models.APIKeyRepository {
+	args := m.Called()
+	return getMockArg[models.APIKeyRepository](args, 0)
+}
+
+func (m *mockStorage) Atomic(_ context.Context, fn func(models.Storage) error) error {
 	// For testing, we usually just execute the function with the mock itself
 	return fn(m)
 }
@@ -447,5 +452,34 @@ type mockPublisher struct {
 
 func (m *mockPublisher) Publish(topic string, handle workers.Handler) error {
 	args := m.Called(topic, handle)
+	return args.Error(0)
+}
+
+type mockNotificationRepository struct {
+	mock.Mock
+}
+
+func (m *mockNotificationRepository) Create(n *models.Notification) error {
+	args := m.Called(n)
+	return args.Error(0)
+}
+
+func (m *mockNotificationRepository) GetInbox(userID uuid.UUID) ([]models.Notification, error) {
+	args := m.Called(userID)
+	return getMockArg[[]models.Notification](args, 0), args.Error(1)
+}
+
+func (m *mockNotificationRepository) MarkAsRead(id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(id, userID)
+	return args.Error(0)
+}
+
+func (m *mockNotificationRepository) MarkAsCleared(id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(id, userID)
+	return args.Error(0)
+}
+
+func (m *mockNotificationRepository) ClearAll(userID uuid.UUID) error {
+	args := m.Called(userID)
 	return args.Error(0)
 }

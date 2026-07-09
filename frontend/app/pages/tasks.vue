@@ -18,7 +18,7 @@ const searchQuery = ref("");
 const filteredTasks = computed(() => {
   if (!searchQuery.value.trim()) return tasks.value;
   const q = searchQuery.value.toLowerCase();
-  return tasks.value.filter(t => t.title.toLowerCase().includes(q));
+  return tasks.value.filter((t) => t.title.toLowerCase().includes(q));
 });
 
 const handleTaskClick = (task: Task) => {
@@ -28,7 +28,8 @@ const handleTaskClick = (task: Task) => {
 };
 
 const handleToggleStatus = async (task: Task) => {
-  const newStatus = task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+  const newStatus =
+    task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
   const originalStatus = task.status;
 
   // Optimistic update
@@ -52,13 +53,13 @@ const handleToggleStatus = async (task: Task) => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col px-8 py-6 w-full max-w-6xl mx-auto">
-    <h1 class="text-2xl font-semibold text-foreground mb-2">My Tasks</h1>
+  <div class="mx-auto flex h-full w-full max-w-6xl flex-col px-8 py-6">
+    <h1 class="text-foreground mb-2 text-2xl font-semibold">My Tasks</h1>
 
-    <TasksToolbar v-model:searchQuery="searchQuery" />
+    <TasksToolbar v-model:search-query="searchQuery" />
 
     <div v-if="isLoading" class="flex flex-1 items-center justify-center">
-      <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+      <Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
     </div>
 
     <div v-else class="flex-1 overflow-y-auto pb-10">

@@ -21,6 +21,9 @@ func setupCommentTest(_ *testing.T) (*commentService, *mockCommentRepository, *m
 
 	mockStor.On("Comments").Return(mockCommentRepo)
 	mockStor.On("Tasks").Return(mockTaskRepo)
+	mockNotifRepo := new(mockNotificationRepository)
+	mockStor.On("Notifications").Return(mockNotifRepo)
+	mockNotifRepo.On("Create", mock.Anything).Return(nil)
 
 	svc := &commentService{storage: mockStor, projectService: mockProjSvc, logger: logger}
 
@@ -88,7 +91,7 @@ func TestCommentService_ListTaskComments(t *testing.T) {
 		projectID := uuid.New()
 
 		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID, ProjectID: projectID}}, nil)
-		mps.On("ValidateProjectAccess", projectID, userID, true).Return(nil)
+		mps.On("ValidateProjectAccess", projectID, userID, false).Return(nil)
 		mc.On("ListByTaskID", taskID).Return([]models.CommentWithAuthor{{Comment: models.Comment{Content: "C1"}}}, nil)
 
 		res, err := svc.ListTaskComments(userID, taskID)
@@ -112,7 +115,7 @@ func TestCommentService_ListTaskComments(t *testing.T) {
 		userID := uuid.New()
 
 		mt.On("GetByID", taskID).Return(models.TaskWithAssignee{Task: models.Task{ProjectID: projectID}}, nil)
-		mps.On("ValidateProjectAccess", projectID, userID, true).Return(errors.New("no access"))
+		mps.On("ValidateProjectAccess", projectID, userID, false).Return(errors.New("no access"))
 
 		_, err := svc.ListCommentsForTasks(userID, projectID, []uuid.UUID{taskID})
 		assert.Error(t, err)
@@ -150,5 +153,63 @@ func TestCommentService_DeleteComment(t *testing.T) {
 		err := svc.DeleteComment(uuid.New(), uuid.New())
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "comment not found")
+	})
+}
+
+func TestCommentService_DispatchNotifications(t *testing.T) {
+	t.Run("dispatch mentioned, author, and assignee notifications", func(t *testing.T) {
+		mockNotifRepo := new(mockNotificationRepository)
+		mockStor := new(mockStorage)
+		mockProjSvc := new(mockProjectService)
+		mockStor.On("Notifications").Return(mockNotifRepo)
+
+		svc := &commentService{
+			storage:        mockStor,
+			projectService: mockProjSvc,
+			logger:         zap.NewNop(),
+		}
+
+		actorID := uuid.New()
+		authorID := uuid.New()
+		assigneeID := uuid.New()
+		mentionedID := uuid.New()
+		projectID := uuid.New()
+		taskID := uuid.New()
+
+		task := models.TaskWithAssignee{
+			Task: models.Task{
+				ID:         taskID,
+				ProjectID:  projectID,
+				Title:      "Test Task",
+				AuthorID:   &authorID,
+				AssigneeID: &assigneeID,
+			},
+		}
+
+		req := structs.ReqCreateComment{
+			Content:          "Hello",
+			MentionedUserIDs: []uuid.UUID{mentionedID, actorID}, // actor should be ignored
+		}
+
+		mockProjSvc.On("ValidateProjectAccess", projectID, mentionedID, false).Return(nil)
+
+		// Expect mentioned notification
+		mockNotifRepo.On("Create", mock.MatchedBy(func(n *models.Notification) bool {
+			return n.UserID == mentionedID && n.Type == models.NotificationTypeMentioned
+		})).Return(nil)
+
+		// Expect author notification
+		mockNotifRepo.On("Create", mock.MatchedBy(func(n *models.Notification) bool {
+			return n.UserID == authorID && n.Type == models.NotificationTypeCommentAdded
+		})).Return(nil)
+
+		// Expect assignee notification
+		mockNotifRepo.On("Create", mock.MatchedBy(func(n *models.Notification) bool {
+			return n.UserID == assigneeID && n.Type == models.NotificationTypeCommentAdded
+		})).Return(nil)
+
+		svc.dispatchCommentNotifications(mockStor, actorID, task, req)
+
+		mockNotifRepo.AssertExpectations(t)
 	})
 }

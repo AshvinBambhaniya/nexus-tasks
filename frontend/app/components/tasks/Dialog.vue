@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Loader2, MessageSquare, Send } from "lucide-vue-next";
+import { Loader2, MessageSquare } from "lucide-vue-next";
 import { TaskStatus, TaskPriority, type Task } from "~/types";
-import { useUsersStore } from "~/stores/user";
+import RichTextEditor from "~/components/ui/RichTextEditor.vue";
 
 interface Props {
   isOpen?: boolean;
@@ -12,8 +12,6 @@ interface Props {
 const { isOpen = false, task = null, projectId = "" } = defineProps<Props>();
 
 const emit = defineEmits(["close"]);
-import { useUsersStore } from "~/stores/user";
-import RichTextEditor from "~/components/ui/RichTextEditor.vue";
 const currentUserId = computed(() => userStore.userData?.id);
 
 const activeProjectId = computed(() => projectId || task?.project_id || "");
@@ -31,7 +29,6 @@ const {
 } = useTask(activeProjectId.value, taskId.value);
 
 const isSaving = ref(false);
-const newComment = ref("");
 const isCommenting = ref(false);
 
 const formData = ref({
@@ -102,7 +99,10 @@ const handleDelete = async () => {
   }
 };
 
-const handleAddComment = async (content: string, mentionedUserIds: string[]) => {
+const handleAddComment = async (
+  content: string,
+  mentionedUserIds: string[]
+) => {
   isCommenting.value = true;
   try {
     await createComment(content, mentionedUserIds);
@@ -193,13 +193,12 @@ const handleAddComment = async (content: string, mentionedUserIds: string[]) => 
                 :fallback="userStore.userData?.email?.[0]?.toUpperCase() || '?'"
                 class-name="mt-1 h-10 w-10 border border-border shadow-sm"
               />
-              <div class="flex-1 w-full max-w-full">
+              <div class="w-full max-w-full flex-1">
                 <RichTextEditor
                   :project-id="activeProjectId"
                   :is-submitting="isCommenting"
                   @submit="handleAddComment"
                 />
-              </div>
               </div>
             </div>
 

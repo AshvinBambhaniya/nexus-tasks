@@ -93,8 +93,8 @@ export const useMyTasks = () => {
     pending: isLoading,
     error,
     refresh,
-  } = useApi<Task[]>('/api/v2/tasks/me', {
-    key: 'my-tasks-list',
+  } = useApi<Task[]>("/api/v2/tasks/me", {
+    key: "my-tasks-list",
   });
 
   return {
@@ -115,9 +115,9 @@ export const useTask = (projectId: string, taskId: string) => {
     refresh: refreshTask,
   } = useApi<Task>(
     () =>
-        projectId
-          ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || '0'}/projects/${projectId}/tasks/${taskId}`
-          : `/api/v2/tasks/${taskId}`,
+      projectId
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}`
+        : `/api/v2/tasks/${taskId}`,
     {
       key: `task-${taskId}`,
     }
@@ -130,18 +130,21 @@ export const useTask = (projectId: string, taskId: string) => {
     refresh: refreshComments,
   } = useApi<Comment[]>(
     () =>
-        projectId
-          ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || '0'}/projects/${projectId}/tasks/${taskId}/comments`
-          : `/api/v2/tasks/${taskId}/comments`,
+      projectId
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/api/v2/tasks/${taskId}/comments`,
     {
       key: `task-comments-${taskId}`,
     }
   );
 
-  const createComment = async (content: string, mentionedUserIds: string[] = []) => {
+  const createComment = async (
+    content: string,
+    mentionedUserIds: string[] = []
+  ) => {
     try {
       const endpoint = projectId
-        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || '0'}/projects/${projectId}/tasks/${taskId}/comments`
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}/comments`
         : `/api/v2/tasks/${taskId}/comments`;
 
       await useMutation(endpoint, {

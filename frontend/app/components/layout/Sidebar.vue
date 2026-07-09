@@ -63,7 +63,12 @@ const selectProject = (id: string) => {
 };
 
 const navigation = computed(() => [
-  { name: "Inbox", href: "/inbox", icon: Inbox, badge: unreadCount.value > 0 ? `${unreadCount.value} new` : "" },
+  {
+    name: "Inbox",
+    href: "/inbox",
+    icon: Inbox,
+    badge: unreadCount.value > 0 ? `${unreadCount.value} new` : "",
+  },
   { name: "My Tasks", href: "/tasks", icon: CheckSquare, badge: "" },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Analytics", href: "/analytics", icon: BarChart2 },

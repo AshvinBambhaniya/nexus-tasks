@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Folder, Search, Plus, ArrowRight, MoreHorizontal } from "lucide-vue-next";
+import { Folder, Search, Plus, MoreHorizontal } from "lucide-vue-next";
 import { format } from "date-fns";
 
 definePageMeta({ layout: "dashboard" });
@@ -124,27 +124,33 @@ const filteredProjects = computed(() => {
           v-for="project in filteredProjects"
           :key="project.id"
           :to="`/projects/${project.id}`"
-          class="group hover:bg-muted/40 border-transparent hover:border-border/60 flex items-center justify-between rounded-lg border px-4 py-3 transition-colors"
+          class="group hover:bg-muted/40 hover:border-border/60 flex items-center justify-between rounded-lg border border-transparent px-4 py-3 transition-colors"
         >
           <div class="flex min-w-0 items-center gap-4">
             <div
-              class="bg-muted/50 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all group-hover:border-primary/20 group-hover:shadow-sm"
+              class="bg-muted/50 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 group-hover:border-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all group-hover:shadow-sm"
             >
               <Folder class="h-4 w-4" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <h3 class="text-foreground truncate text-sm font-semibold tracking-tight">
+                <h3
+                  class="text-foreground truncate text-sm font-semibold tracking-tight"
+                >
                   {{ project.name }}
                 </h3>
                 <span
-                  class="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 inline-flex items-center justify-center rounded-sm border px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-sm"
-                  :class="project.is_archived ? 'bg-muted text-muted-foreground border-border' : ''"
+                  class="inline-flex items-center justify-center rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-500 uppercase shadow-sm"
+                  :class="
+                    project.is_archived
+                      ? 'bg-muted text-muted-foreground border-border'
+                      : ''
+                  "
                 >
                   {{ project.is_archived ? "Archived" : "Active" }}
                 </span>
               </div>
-              <p class="text-muted-foreground truncate text-xs mt-0.5">
+              <p class="text-muted-foreground mt-0.5 truncate text-xs">
                 {{ project.description || "No description provided." }}
               </p>
             </div>
@@ -153,14 +159,30 @@ const filteredProjects = computed(() => {
           <div class="flex shrink-0 items-center gap-6 pl-4">
             <!-- Mock Avatar Stack -->
             <div class="hidden items-center -space-x-2 sm:flex">
-              <div class="border-background bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">A</div>
-              <div class="border-background bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">M</div>
-              <div class="border-background bg-slate-400 dark:bg-slate-500 text-white flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">J</div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-slate-200 text-[9px] font-bold text-slate-700 shadow-sm dark:bg-slate-700 dark:text-slate-300"
+              >
+                A
+              </div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-slate-300 text-[9px] font-bold text-slate-700 shadow-sm dark:bg-slate-600 dark:text-slate-300"
+              >
+                M
+              </div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-slate-400 text-[9px] font-bold text-white shadow-sm dark:bg-slate-500"
+              >
+                J
+              </div>
             </div>
-            <div class="text-muted-foreground/70 hidden text-xs font-medium sm:block w-24 text-right">
+            <div
+              class="text-muted-foreground/70 hidden w-24 text-right text-xs font-medium sm:block"
+            >
               {{ format(new Date(project.created_at), "MMM d, yy") }}
             </div>
-            <div class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted/80 transition-colors">
+            <div
+              class="hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+            >
               <MoreHorizontal
                 class="text-muted-foreground/50 hover:text-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
               />

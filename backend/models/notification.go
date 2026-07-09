@@ -11,8 +11,11 @@ import (
 type NotificationEntityType string
 
 const (
-	EntityTypeTask    NotificationEntityType = "TASK"
+	// EntityTypeTask represents a notification tied to a task.
+	EntityTypeTask NotificationEntityType = "TASK"
+	// EntityTypeComment represents a notification tied to a comment.
 	EntityTypeComment NotificationEntityType = "COMMENT"
+	// EntityTypeProject represents a notification tied to a project.
 	EntityTypeProject NotificationEntityType = "PROJECT"
 )
 
@@ -20,10 +23,14 @@ const (
 type NotificationType string
 
 const (
-	NotificationTypeAssigned      NotificationType = "ASSIGNED"
-	NotificationTypeMentioned     NotificationType = "MENTIONED"
+	// NotificationTypeAssigned is triggered when a user is assigned to a task.
+	NotificationTypeAssigned NotificationType = "ASSIGNED"
+	// NotificationTypeMentioned is triggered when a user is mentioned in a comment or task.
+	NotificationTypeMentioned NotificationType = "MENTIONED"
+	// NotificationTypeStatusChanged is triggered when a task's status is changed.
 	NotificationTypeStatusChanged NotificationType = "STATUS_CHANGED"
-	NotificationTypeCommentAdded  NotificationType = "COMMENT_ADDED"
+	// NotificationTypeCommentAdded is triggered when a new comment is added.
+	NotificationTypeCommentAdded NotificationType = "COMMENT_ADDED"
 )
 
 // Notification represents a single inbox notification event.
@@ -42,6 +49,7 @@ type Notification struct {
 	UpdatedAt  time.Time              `json:"updated_at" db:"updated_at" goqu:"skipinsert"`
 }
 
+// NotificationRepository provides operations to manage notifications.
 type NotificationRepository interface {
 	Create(n *Notification) error
 	GetInbox(userID uuid.UUID) ([]Notification, error)
@@ -54,6 +62,7 @@ type notificationModel struct {
 	db DbExecutor
 }
 
+// InitNotificationModel initializes and returns a new NotificationRepository.
 func InitNotificationModel(db DbExecutor) NotificationRepository {
 	return &notificationModel{db: db}
 }

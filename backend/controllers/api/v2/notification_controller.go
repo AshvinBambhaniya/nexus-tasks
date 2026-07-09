@@ -11,11 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// NotificationController handles HTTP requests for user inbox and notifications.
 type NotificationController struct {
 	notificationService services.NotificationService
 	logger              *zap.Logger
 }
 
+// NewNotificationController initializes and returns a new NotificationController.
 func NewNotificationController(ns services.NotificationService, logger *zap.Logger) *NotificationController {
 	return &NotificationController{
 		notificationService: ns,

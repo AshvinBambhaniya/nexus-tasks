@@ -5,7 +5,6 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  Send,
   Sparkles,
 } from "lucide-vue-next";
 import { formatDistanceToNow, format } from "date-fns";
@@ -14,6 +13,7 @@ import type { TaskPriority } from "~/types";
 import { TaskStatus } from "~/types";
 import { useUsersStore } from "~/stores/user";
 import RichTextEditor from "~/components/ui/RichTextEditor.vue";
+import MarkdownViewer from "~/components/ui/MarkdownViewer.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -28,8 +28,11 @@ const userStore = useUsersStore();
 const currentUserId = computed(() => userStore.userData?.id);
 
 const formatComment = (htmlContent: string) => {
-  if (!currentUserId.value || !htmlContent) return htmlContent || '';
-  return htmlContent.replaceAll(`data-id="${currentUserId.value}"`, `data-id="${currentUserId.value}" data-is-me="true"`);
+  if (!currentUserId.value || !htmlContent) return htmlContent || "";
+  return htmlContent.replaceAll(
+    `data-id="${currentUserId.value}"`,
+    `data-id="${currentUserId.value}" data-is-me="true"`
+  );
 };
 
 const {
@@ -46,7 +49,6 @@ const {
 const { updateTask, deleteTask } = useTasks(projectId.value);
 const { members } = useProjectMembers(projectId.value);
 
-const commentContent = ref("");
 const isSubmittingComment = ref(false);
 const isEditingTitle = ref(false);
 const titleValue = ref("");
@@ -109,7 +111,10 @@ const handleDelete = async () => {
   router.push(`/projects/${projectId.value}`);
 };
 
-const handleSubmitComment = async (content: string, mentionedUserIds: string[]) => {
+const handleSubmitComment = async (
+  content: string,
+  mentionedUserIds: string[]
+) => {
   isSubmittingComment.value = true;
   try {
     await createComment(content, mentionedUserIds);
@@ -228,10 +233,10 @@ const authorName = computed(() => {
 
         <!-- Description -->
         <div>
-          <VueMarkdown
+          <MarkdownViewer
             v-if="task.description"
-            :source="task.description"
-            class="prose dark:prose-invert prose-sm prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border max-w-none"
+            :content="task.description"
+            class="max-w-none"
           />
           <div v-else class="text-muted-foreground/60 text-sm italic">
             Add a description...
@@ -275,33 +280,47 @@ const authorName = computed(() => {
               class="relative z-10 my-6 flex items-start gap-4"
             >
               <div class="bg-background mt-0.5">
-                <div class="border-border bg-muted flex h-7 w-7 items-center justify-center rounded-full border">
+                <div
+                  class="border-border bg-muted flex h-7 w-7 items-center justify-center rounded-full border"
+                >
                   <Sparkles class="text-primary h-3.5 w-3.5" />
                 </div>
               </div>
               <div class="flex-1">
-                <div v-if="aiSummary" class="border-primary/20 bg-primary/5 rounded-lg border p-4 shadow-sm relative overflow-hidden">
-                  <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+                <div
+                  v-if="aiSummary"
+                  class="border-primary/20 bg-primary/5 relative overflow-hidden rounded-lg border p-4 shadow-sm"
+                >
+                  <div
+                    class="from-primary/10 pointer-events-none absolute inset-0 bg-gradient-to-br to-transparent"
+                  />
                   <div class="relative z-10">
-                    <div class="flex items-center gap-2 mb-2">
-                      <Sparkles class="h-4 w-4 text-primary" />
-                      <h4 class="text-sm font-semibold text-primary">AI Thread Summary</h4>
+                    <div class="mb-2 flex items-center gap-2">
+                      <Sparkles class="text-primary h-4 w-4" />
+                      <h4 class="text-primary text-sm font-semibold">
+                        AI Thread Summary
+                      </h4>
                     </div>
                     <VueMarkdown
                       :source="aiSummary"
-                      class="prose dark:prose-invert prose-sm max-w-none text-foreground/90 marker:text-primary"
+                      class="prose dark:prose-invert prose-sm text-foreground/90 marker:text-primary max-w-none"
                     />
                   </div>
                 </div>
                 <button
                   v-else
-                  @click="handleSummarize"
                   :disabled="isSummarizing"
                   class="border-border hover:bg-muted/50 bg-background text-muted-foreground hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
+                  @click="handleSummarize"
                 >
-                  <Loader2 v-if="isSummarizing" class="text-primary h-3.5 w-3.5 animate-spin" />
+                  <Loader2
+                    v-if="isSummarizing"
+                    class="text-primary h-3.5 w-3.5 animate-spin"
+                  />
                   <Sparkles v-else class="text-primary h-3.5 w-3.5" />
-                  {{ isSummarizing ? "Summarizing thread..." : "✨ Catch me up" }}
+                  {{
+                    isSummarizing ? "Summarizing thread..." : "✨ Catch me up"
+                  }}
                 </button>
               </div>
             </div>
@@ -324,10 +343,10 @@ const authorName = computed(() => {
               </div>
               <div class="flex-1">
                 <div
-                  class="group/comment overflow-hidden rounded-lg border border-border/60 bg-muted/20 transition-colors"
+                  class="group/comment border-border/60 bg-muted/20 overflow-hidden rounded-lg border transition-colors"
                 >
                   <div
-                    class="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-2"
+                    class="border-border/40 bg-muted/10 flex items-center justify-between border-b px-3 py-2"
                   >
                     <span class="text-muted-foreground text-xs">
                       <span class="text-foreground font-medium">{{
@@ -346,10 +365,10 @@ const authorName = computed(() => {
                     </button>
                   </div>
                   <div class="px-3 py-2.5">
-                    <div
-                      class="prose dark:prose-invert prose-sm max-w-none"
-                      v-html="formatComment(comment.content)"
-                    ></div>
+                    <MarkdownViewer
+                      class="max-w-none"
+                      :content="formatComment(comment.content)"
+                    />
                   </div>
                 </div>
               </div>
@@ -366,11 +385,11 @@ const authorName = computed(() => {
                 />
               </div>
               <div class="flex-1">
-                  <RichTextEditor
-                    :project-id="projectId"
-                    :is-submitting="isSubmittingComment"
-                    @submit="handleSubmitComment"
-                  />
+                <RichTextEditor
+                  :project-id="projectId"
+                  :is-submitting="isSubmittingComment"
+                  @submit="handleSubmitComment"
+                />
               </div>
             </div>
           </div>

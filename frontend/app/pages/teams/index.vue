@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Users, Search, Plus, ArrowRight, MoreHorizontal } from "lucide-vue-next";
+import { Users, Search, Plus, MoreHorizontal } from "lucide-vue-next";
 import { format } from "date-fns";
 
 definePageMeta({ layout: "dashboard" });
@@ -91,21 +91,23 @@ const filteredTeams = computed(() => {
           v-for="team in filteredTeams"
           :key="team.id"
           :to="`/teams/${team.id}`"
-          class="group hover:bg-muted/40 border-transparent hover:border-border/60 flex items-center justify-between rounded-lg border px-4 py-3 transition-colors"
+          class="group hover:bg-muted/40 hover:border-border/60 flex items-center justify-between rounded-lg border border-transparent px-4 py-3 transition-colors"
         >
           <div class="flex min-w-0 items-center gap-4">
             <div
-              class="bg-muted/50 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all group-hover:border-primary/20 group-hover:shadow-sm"
+              class="bg-muted/50 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 group-hover:border-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all group-hover:shadow-sm"
             >
               <Users class="h-4 w-4" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <h3 class="text-foreground truncate text-sm font-semibold tracking-tight">
+                <h3
+                  class="text-foreground truncate text-sm font-semibold tracking-tight"
+                >
                   {{ team.name }}
                 </h3>
               </div>
-              <p class="text-muted-foreground truncate text-xs mt-0.5">
+              <p class="text-muted-foreground mt-0.5 truncate text-xs">
                 {{ team.description || "No description provided." }}
               </p>
             </div>
@@ -114,14 +116,34 @@ const filteredTeams = computed(() => {
           <div class="flex shrink-0 items-center gap-6 pl-4">
             <!-- Mock Avatar Stack for Team Members -->
             <div class="hidden items-center -space-x-2 sm:flex">
-              <div class="border-background bg-indigo-500/20 text-indigo-500 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">T</div>
-              <div class="border-background bg-rose-500/20 text-rose-500 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">E</div>
-              <div class="border-background bg-amber-500/20 text-amber-500 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">M</div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-indigo-500/20 text-[9px] font-bold text-indigo-500 shadow-sm"
+              >
+                T
+              </div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-rose-500/20 text-[9px] font-bold text-rose-500 shadow-sm"
+              >
+                E
+              </div>
+              <div
+                class="border-background flex h-6 w-6 items-center justify-center rounded-full border bg-amber-500/20 text-[9px] font-bold text-amber-500 shadow-sm"
+              >
+                M
+              </div>
             </div>
-            <div class="text-muted-foreground/70 hidden text-xs font-medium sm:block w-24 text-right">
-              {{ team.created_at ? format(new Date(team.created_at), "MMM d, yy") : "--" }}
+            <div
+              class="text-muted-foreground/70 hidden w-24 text-right text-xs font-medium sm:block"
+            >
+              {{
+                team.created_at
+                  ? format(new Date(team.created_at), "MMM d, yy")
+                  : "--"
+              }}
             </div>
-            <div class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted/80 transition-colors">
+            <div
+              class="hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+            >
               <MoreHorizontal
                 class="text-muted-foreground/50 hover:text-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
               />

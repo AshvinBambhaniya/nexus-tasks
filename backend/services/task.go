@@ -181,32 +181,7 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 			return err
 		}
 
-		if assigneeChanged && *req.AssigneeID != userID {
-			body := "You have been assigned to a task."
-			_ = txStorage.Notifications().Create(&models.Notification{
-				UserID:     *req.AssigneeID,
-				ActorID:    userID,
-				EntityID:   updatedTask.ID,
-				EntityType: models.EntityTypeTask,
-				Type:       models.NotificationTypeAssigned,
-				Title:      fmt.Sprintf("You were assigned to %s", updatedTask.Title),
-				Body:       &body,
-			})
-		}
-
-		if statusChanged && req.Status == models.TaskStatusDone && task.AuthorID != nil && *task.AuthorID != userID {
-			body := "Task moved to DONE"
-			_ = txStorage.Notifications().Create(&models.Notification{
-				UserID:     *task.AuthorID,
-				ActorID:    userID,
-				EntityID:   updatedTask.ID,
-				EntityType: models.EntityTypeTask,
-				Type:       models.NotificationTypeStatusChanged,
-				Title:      fmt.Sprintf("%s was marked as Done", updatedTask.Title),
-				Body:       &body,
-			})
-		}
-
+		s.dispatchUpdateNotifications(txStorage, userID, task, updatedTask, assigneeChanged, statusChanged, req)
 		return nil
 	})
 
@@ -222,6 +197,34 @@ func (s *taskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdate
 	}
 
 	return updatedTask, nil
+}
+
+func (s *taskService) dispatchUpdateNotifications(txStorage models.Storage, userID uuid.UUID, task models.TaskWithAssignee, updatedTask models.Task, assigneeChanged, statusChanged bool, req structs.ReqUpdateTask) {
+	if assigneeChanged && *req.AssigneeID != userID {
+		body := "You have been assigned to a task."
+		_ = txStorage.Notifications().Create(&models.Notification{
+			UserID:     *req.AssigneeID,
+			ActorID:    userID,
+			EntityID:   updatedTask.ID,
+			EntityType: models.EntityTypeTask,
+			Type:       models.NotificationTypeAssigned,
+			Title:      fmt.Sprintf("You were assigned to %s", updatedTask.Title),
+			Body:       &body,
+		})
+	}
+
+	if statusChanged && req.Status == models.TaskStatusDone && task.AuthorID != nil && *task.AuthorID != userID {
+		body := "Task moved to DONE"
+		_ = txStorage.Notifications().Create(&models.Notification{
+			UserID:     *task.AuthorID,
+			ActorID:    userID,
+			EntityID:   updatedTask.ID,
+			EntityType: models.EntityTypeTask,
+			Type:       models.NotificationTypeStatusChanged,
+			Title:      fmt.Sprintf("%s was marked as Done", updatedTask.Title),
+			Body:       &body,
+		})
+	}
 }
 
 func (s *taskService) applyBasicUpdates(task *models.Task, req structs.ReqUpdateTask) {

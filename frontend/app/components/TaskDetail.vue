@@ -5,14 +5,14 @@ import {
   CheckCircle2,
   Calendar,
   MoreVertical,
-  Paperclip,
   Clock,
 } from "lucide-vue-next";
 import { format } from "date-fns";
-import { TaskStatus, type TaskWithProject } from "~/types";
+import { TaskStatus } from "~/types";
 import { useTask } from "~/composables/useTasks";
 import { useUsersStore } from "~/stores/user";
 import RichTextEditor from "./ui/RichTextEditor.vue";
+import MarkdownViewer from "./ui/MarkdownViewer.vue";
 
 const props = defineProps<{
   taskId: string;
@@ -32,11 +32,13 @@ const userStore = useUsersStore();
 const currentUserId = computed(() => userStore.userData?.id);
 
 const formatComment = (htmlContent: string) => {
-  if (!currentUserId.value || !htmlContent) return htmlContent || '';
-  return htmlContent.replaceAll(`data-id="${currentUserId.value}"`, `data-id="${currentUserId.value}" data-is-me="true"`);
+  if (!currentUserId.value || !htmlContent) return htmlContent || "";
+  return htmlContent.replaceAll(
+    `data-id="${currentUserId.value}"`,
+    `data-id="${currentUserId.value}" data-is-me="true"`
+  );
 };
 
-const newComment = ref("");
 const isSubmitting = ref(false);
 
 const submitComment = async (content: string, mentionedUserIds: string[]) => {
@@ -169,12 +171,10 @@ const getPrioColor = (prio: string | undefined) => {
           <div
             class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
           >
-            <p
+            <MarkdownViewer
               v-if="task.description"
-              class="text-sm leading-relaxed whitespace-pre-wrap"
-            >
-              {{ task.description }}
-            </p>
+              :content="task.description"
+            />
             <p v-else class="italic opacity-50">No description provided.</p>
           </div>
 
@@ -241,11 +241,10 @@ const getPrioColor = (prio: string | undefined) => {
                     commented •
                     {{ format(new Date(comment.created_at), "MMM d, h:mm a") }}
                   </p>
-                  <div
-                    class="rounded-lg border border-border bg-card p-3 text-sm text-foreground transition-colors"
-                    v-html="formatComment(comment.content)"
-                  >
-                  </div>
+                  <MarkdownViewer
+                    class="border-border bg-card text-foreground rounded-lg border p-3 text-sm transition-colors"
+                    :content="formatComment(comment.content)"
+                  />
                 </div>
               </div>
             </div>

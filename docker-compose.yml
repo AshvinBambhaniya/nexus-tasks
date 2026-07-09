@@ -87,6 +87,20 @@ services:
       - ./backend/.env.docker
     command: ["./nexus-tasks", "dead-letter-queue"]
 
+  mcp_server:
+    build: ./backend
+    container_name: nexus_mcp_server
+    restart: always
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/.env.docker
+    depends_on:
+      - db
+      - migration
+      - redis
+    command: ["./nexus-tasks", "mcp"]
+
   frontend:
     build:
       context: ./frontend

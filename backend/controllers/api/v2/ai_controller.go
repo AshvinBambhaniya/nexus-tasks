@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/constants"
+	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
@@ -13,6 +14,8 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/go-playground/validator.v9"
 )
+
+const responseKeyContent = "content"
 
 // AiController handles AI related requests.
 type AiController struct {
@@ -51,7 +54,7 @@ func (ctrl *AiController) DraftTask(c *fiber.Ctx) error {
 	}
 
 	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{
-		"content": content,
+		responseKeyContent: content,
 	})
 }
 
@@ -95,7 +98,7 @@ func (ctrl *AiController) SummarizeComments(c *fiber.Ctx) error {
 	}
 
 	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{
-		"content": summary,
+		responseKeyContent: summary,
 	})
 }
 
@@ -113,14 +116,34 @@ func (ctrl *AiController) GenerateWeeklyReport(c *fiber.Ctx) error {
 		return utils.JSONFail(c, http.StatusBadRequest, constants.ErrInvalidProjectID)
 	}
 
-	// 1. Fetch completed tasks in the last 7 days
-	tasks, err := ctrl.taskService.ListCompletedTasksInLastDays(uid, projectID, 7)
+	tasks, commentsByTask, err := ctrl.fetchWeeklyTasksAndComments(uid, projectID)
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
-
 	if len(tasks) == 0 {
 		return utils.JSONFail(c, http.StatusBadRequest, "No completed tasks found in the last 7 days.")
+	}
+
+	tasksData := ctrl.compilePromptData(tasks, commentsByTask)
+
+	report, err := ctrl.aiService.GenerateWeeklyReport(tasksData)
+	if err != nil {
+		ctrl.logger.Error("failed to generate weekly report via AI", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate weekly report")
+	}
+
+	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{
+		responseKeyContent: report,
+	})
+}
+
+func (ctrl *AiController) fetchWeeklyTasksAndComments(uid, projectID uuid.UUID) ([]models.TaskWithAssignee, map[uuid.UUID][]string, error) {
+	tasks, err := ctrl.taskService.ListCompletedTasksInLastDays(uid, projectID, 7)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(tasks) == 0 {
+		return tasks, nil, nil
 	}
 
 	var taskIDs []uuid.UUID
@@ -128,13 +151,11 @@ func (ctrl *AiController) GenerateWeeklyReport(c *fiber.Ctx) error {
 		taskIDs = append(taskIDs, t.ID)
 	}
 
-	// 2. Fetch comments for all tasks
 	comments, err := ctrl.commentService.ListCommentsForTasks(uid, projectID, taskIDs)
 	if err != nil {
-		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
+		return nil, nil, err
 	}
 
-	// Group comments by taskID
 	commentsByTask := make(map[uuid.UUID][]string)
 	for _, c := range comments {
 		author := c.AuthorFullName
@@ -144,7 +165,10 @@ func (ctrl *AiController) GenerateWeeklyReport(c *fiber.Ctx) error {
 		commentsByTask[c.TaskID] = append(commentsByTask[c.TaskID], fmt.Sprintf("%s: %s", author, c.Content))
 	}
 
-	// 3. Compile the prompt data
+	return tasks, commentsByTask, nil
+}
+
+func (ctrl *AiController) compilePromptData(tasks []models.TaskWithAssignee, commentsByTask map[uuid.UUID][]string) string {
 	var tasksData string
 	for _, t := range tasks {
 		assignee := "Unassigned"
@@ -170,15 +194,5 @@ func (ctrl *AiController) GenerateWeeklyReport(c *fiber.Ctx) error {
 		}
 		tasksData += "\n---\n\n"
 	}
-
-	// 4. Send to AI
-	report, err := ctrl.aiService.GenerateWeeklyReport(tasksData)
-	if err != nil {
-		ctrl.logger.Error("failed to generate weekly report via AI", zap.Error(err))
-		return utils.JSONError(c, http.StatusInternalServerError, "failed to generate weekly report")
-	}
-
-	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{
-		"content": report,
-	})
+	return tasksData
 }
