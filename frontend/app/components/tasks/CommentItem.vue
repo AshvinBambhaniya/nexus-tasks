@@ -25,9 +25,13 @@ const authorName = computed(
   () => author.value.full_name || author.value.email.split("@")[0]
 );
 const initial = computed(() =>
-  (author.value.full_name || author.value.email)[0].toUpperCase()
+  (author.value.full_name || author.value.email)?.[0]?.toUpperCase() || '?'
 );
 const isAuthor = computed(() => currentUserId === author.value.id);
+const formattedContent = computed(() => {
+  if (!currentUserId || !comment.content) return comment.content || '';
+  return comment.content.replaceAll(`data-id="${currentUserId}"`, `data-id="${currentUserId}" data-is-me="true"`);
+});
 </script>
 
 <template>
@@ -57,10 +61,10 @@ const isAuthor = computed(() => currentUserId === author.value.id);
           Delete
         </button>
       </div>
-      <VueMarkdown
-        :source="comment.content"
-        class="prose prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border border-border bg-card max-w-none rounded-lg border p-4 shadow-sm"
-      />
+      <div
+        class="prose prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border max-w-none rounded-lg border border-border bg-card p-4 shadow-sm transition-colors"
+        v-html="formattedContent"
+      ></div>
     </div>
   </div>
 </template>

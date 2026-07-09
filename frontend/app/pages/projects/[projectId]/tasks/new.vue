@@ -40,6 +40,27 @@ const handleSubmit = async () => {
     isSaving.value = false;
   }
 };
+const isDrafting = ref(false);
+const handleMagicDraft = async () => {
+  if (!formData.value.title.trim()) {
+    alert("Please enter a brief title first to guide the AI.");
+    return;
+  }
+
+  isDrafting.value = true;
+  try {
+    const data = await useMutation<{ content: string }>('/api/v2/ai/draft-task', {
+      method: 'POST',
+      body: { title: formData.value.title }
+    });
+
+    formData.value.description = data.content;
+  } catch (err) {
+    alert(getApiErrorMessage(err, "Failed to generate AI draft"));
+  } finally {
+    isDrafting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -60,24 +81,47 @@ const handleSubmit = async () => {
       <div class="space-y-6 lg:col-span-2">
         <form class="space-y-6" @submit.prevent="handleSubmit">
           <div class="space-y-2">
-            <UiBaseLabel for="title">Title</UiBaseLabel>
+            <div class="flex items-center justify-between">
+              <UiBaseLabel for="title">Title</UiBaseLabel>
+              <UiBaseButton
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="h-6 px-2 text-[11px] font-bold text-primary hover:bg-primary/10 transition-colors"
+                :disabled="isDrafting || !formData.title.trim()"
+                @click="handleMagicDraft"
+              >
+                <Loader2 v-if="isDrafting" class="mr-1.5 h-3 w-3 animate-spin" />
+                <span v-else class="mr-1.5">✨</span>
+                {{ isDrafting ? 'Drafting...' : 'Magic Draft' }}
+              </UiBaseButton>
+            </div>
             <UiBaseInput
               id="title"
               v-model="formData.title"
               placeholder="What needs to be done?"
               required
               class-name="h-12 text-lg"
-              :disabled="isSaving"
+              :disabled="isSaving || isDrafting"
             />
           </div>
 
-          <div class="space-y-2">
+          <div class="space-y-2 relative">
             <UiBaseLabel for="description">Description</UiBaseLabel>
-            <UiBaseMarkdownEditor
-              v-model="formData.description"
-              placeholder="Add more details... (Markdown supported)"
-              :disabled="isSaving"
-            />
+            <div class="relative">
+              <UiBaseMarkdownEditor
+                v-model="formData.description"
+                placeholder="Add more details... (Markdown supported)"
+                :disabled="isSaving || isDrafting"
+                :class="[isDrafting ? 'opacity-50 pointer-events-none' : '']"
+              />
+              <div v-if="isDrafting" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                 <div class="bg-background/80 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm backdrop-blur-sm ring-1 ring-border">
+                   <Loader2 class="h-4 w-4 animate-spin text-primary" />
+                   Generating breakdown...
+                 </div>
+              </div>
+            </div>
           </div>
 
           <div class="flex justify-end gap-3 pt-4">

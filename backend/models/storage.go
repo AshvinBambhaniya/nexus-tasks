@@ -25,6 +25,7 @@ type Storage interface {
 	Projects() ProjectRepository
 	Tasks() TaskRepository
 	Comments() CommentRepository
+	Notifications() NotificationRepository
 
 	Atomic(ctx context.Context, fn func(Storage) error) error
 	CheckHealth(ctx context.Context) error
@@ -61,6 +62,10 @@ func (s *storage) Tasks() TaskRepository {
 
 func (s *storage) Comments() CommentRepository {
 	return InitCommentModel(s.db)
+}
+
+func (s *storage) Notifications() NotificationRepository {
+	return InitNotificationModel(s.db)
 }
 
 func (s *storage) Atomic(ctx context.Context, fn func(Storage) error) error {

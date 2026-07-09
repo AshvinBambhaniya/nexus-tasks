@@ -223,6 +223,7 @@ func (s *projectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 		allMembers[m.UserID] = structs.ResProjectMember{
 			UserID:   m.UserID,
 			Email:    m.Email,
+			FullName: m.FullName,
 			Role:     m.Role,
 			IsDirect: true,
 		}
@@ -238,6 +239,7 @@ func (s *projectService) ListMembers(userID, projectID uuid.UUID) ([]structs.Res
 				allMembers[tm.UserID] = structs.ResProjectMember{
 					UserID:   tm.UserID,
 					Email:    tm.Email,
+					FullName: tm.FullName,
 					Role:     models.ProjectRoleMember, // Implicit role
 					IsDirect: false,
 				}

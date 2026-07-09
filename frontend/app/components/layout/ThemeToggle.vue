@@ -12,7 +12,7 @@ const modes = [
 const nextMode = () => {
   const currentIndex = modes.findIndex((m) => m.name === colorMode.preference);
   const nextIndex = (currentIndex + 1) % modes.length;
-  colorMode.preference = modes[nextIndex].name;
+  colorMode.preference = modes[nextIndex]?.name || "system";
 };
 
 const currentIcon = computed(() => {

@@ -6,12 +6,14 @@ import {
   Clock,
   CheckCircle2,
   Send,
+  Sparkles,
 } from "lucide-vue-next";
 import { formatDistanceToNow, format } from "date-fns";
 import VueMarkdown from "vue-markdown-render";
 import type { TaskPriority } from "~/types";
 import { TaskStatus } from "~/types";
 import { useUsersStore } from "~/stores/user";
+import RichTextEditor from "~/components/ui/RichTextEditor.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -25,6 +27,11 @@ const taskId = computed(() => route.params.taskId as string);
 const userStore = useUsersStore();
 const currentUserId = computed(() => userStore.userData?.id);
 
+const formatComment = (htmlContent: string) => {
+  if (!currentUserId.value || !htmlContent) return htmlContent || '';
+  return htmlContent.replaceAll(`data-id="${currentUserId.value}"`, `data-id="${currentUserId.value}" data-is-me="true"`);
+};
+
 const {
   task,
   comments,
@@ -33,6 +40,7 @@ const {
   refreshComments,
   createComment,
   deleteComment,
+  summarizeComments,
 } = useTask(projectId.value, taskId.value);
 
 const { updateTask, deleteTask } = useTasks(projectId.value);
@@ -43,6 +51,9 @@ const isSubmittingComment = ref(false);
 const isEditingTitle = ref(false);
 const titleValue = ref("");
 const titleInput = ref<HTMLInputElement | null>(null);
+
+const aiSummary = ref("");
+const isSummarizing = ref(false);
 
 watch(
   task,
@@ -98,13 +109,10 @@ const handleDelete = async () => {
   router.push(`/projects/${projectId.value}`);
 };
 
-const handleSubmitComment = async () => {
-  if (!commentContent.value.trim()) return;
-
+const handleSubmitComment = async (content: string, mentionedUserIds: string[]) => {
   isSubmittingComment.value = true;
   try {
-    await createComment(commentContent.value);
-    commentContent.value = "";
+    await createComment(content, mentionedUserIds);
     await refreshComments();
   } catch (err) {
     console.error("Failed to add comment", err);
@@ -120,6 +128,20 @@ const handleDeleteComment = async (id: string) => {
     await refreshComments();
   } catch (err) {
     console.error("Failed to delete comment", err);
+  }
+};
+
+const handleSummarize = async () => {
+  isSummarizing.value = true;
+  try {
+    const summary = await summarizeComments();
+    if (summary) {
+      aiSummary.value = summary;
+    }
+  } catch (err) {
+    console.error("Failed to summarize comments", err);
+  } finally {
+    isSummarizing.value = false;
   }
 };
 
@@ -148,7 +170,7 @@ const authorName = computed(() => {
         </NuxtLink>
         <span class="text-muted-foreground/50">/</span>
         <span class="text-muted-foreground font-mono text-sm tracking-tight"
-          >PROJ-{{ task.number }}</span
+          >TASK-{{ task.number }}</span
         >
       </div>
 
@@ -232,7 +254,7 @@ const authorName = computed(() => {
             <div class="relative z-10 flex items-start gap-4">
               <div class="bg-background mt-0.5">
                 <UiBaseAvatar
-                  :fallback="authorName[0].toUpperCase()"
+                  :fallback="authorName?.[0]?.toUpperCase() || '?'"
                   class-name="h-7 w-7 text-[10px] border border-border bg-muted text-muted-foreground"
                 />
               </div>
@@ -247,6 +269,43 @@ const authorName = computed(() => {
               </div>
             </div>
 
+            <!-- AI Summary Block -->
+            <div
+              v-if="comments.length > 0"
+              class="relative z-10 my-6 flex items-start gap-4"
+            >
+              <div class="bg-background mt-0.5">
+                <div class="border-border bg-muted flex h-7 w-7 items-center justify-center rounded-full border">
+                  <Sparkles class="text-primary h-3.5 w-3.5" />
+                </div>
+              </div>
+              <div class="flex-1">
+                <div v-if="aiSummary" class="border-primary/20 bg-primary/5 rounded-lg border p-4 shadow-sm relative overflow-hidden">
+                  <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+                  <div class="relative z-10">
+                    <div class="flex items-center gap-2 mb-2">
+                      <Sparkles class="h-4 w-4 text-primary" />
+                      <h4 class="text-sm font-semibold text-primary">AI Thread Summary</h4>
+                    </div>
+                    <VueMarkdown
+                      :source="aiSummary"
+                      class="prose dark:prose-invert prose-sm max-w-none text-foreground/90 marker:text-primary"
+                    />
+                  </div>
+                </div>
+                <button
+                  v-else
+                  @click="handleSummarize"
+                  :disabled="isSummarizing"
+                  class="border-border hover:bg-muted/50 bg-background text-muted-foreground hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors"
+                >
+                  <Loader2 v-if="isSummarizing" class="text-primary h-3.5 w-3.5 animate-spin" />
+                  <Sparkles v-else class="text-primary h-3.5 w-3.5" />
+                  {{ isSummarizing ? "Summarizing thread..." : "✨ Catch me up" }}
+                </button>
+              </div>
+            </div>
+
             <!-- Comments -->
             <div
               v-for="comment in comments"
@@ -258,17 +317,17 @@ const authorName = computed(() => {
                   :fallback="
                     (comment.author?.full_name ||
                       comment.author?.email ||
-                      '?')[0].toUpperCase()
+                      '?')?.[0]?.toUpperCase() || '?'
                   "
                   class-name="h-7 w-7 text-[10px] border border-border"
                 />
               </div>
               <div class="flex-1">
                 <div
-                  class="border-border/60 bg-muted/20 group/comment overflow-hidden rounded-lg border"
+                  class="group/comment overflow-hidden rounded-lg border border-border/60 bg-muted/20 transition-colors"
                 >
                   <div
-                    class="border-border/40 bg-muted/10 flex items-center justify-between border-b px-3 py-2"
+                    class="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-2"
                   >
                     <span class="text-muted-foreground text-xs">
                       <span class="text-foreground font-medium">{{
@@ -287,10 +346,10 @@ const authorName = computed(() => {
                     </button>
                   </div>
                   <div class="px-3 py-2.5">
-                    <VueMarkdown
-                      :source="comment.content"
+                    <div
                       class="prose dark:prose-invert prose-sm max-w-none"
-                    />
+                      v-html="formatComment(comment.content)"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -301,33 +360,17 @@ const authorName = computed(() => {
               <div class="bg-background mt-1">
                 <UiBaseAvatar
                   :fallback="
-                    userStore.userData?.email?.[0].toUpperCase() || '?'
+                    userStore.userData?.email?.[0]?.toUpperCase() || '?'
                   "
                   class-name="h-7 w-7 text-[10px] border border-border"
                 />
               </div>
               <div class="flex-1">
-                <form @submit.prevent="handleSubmitComment">
-                  <UiBaseMarkdownEditor
-                    v-model="commentContent"
-                    placeholder="Leave a comment..."
-                    class-name="border-border shadow-sm min-h-[100px] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all"
+                  <RichTextEditor
+                    :project-id="projectId"
+                    :is-submitting="isSubmittingComment"
+                    @submit="handleSubmitComment"
                   />
-                  <div class="mt-2 flex justify-end">
-                    <button
-                      type="submit"
-                      :disabled="isSubmittingComment || !commentContent.trim()"
-                      class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-8 items-center justify-center gap-1.5 rounded-md px-4 text-xs font-medium transition-colors disabled:opacity-50"
-                    >
-                      <Loader2
-                        v-if="isSubmittingComment"
-                        class="h-3.5 w-3.5 animate-spin"
-                      />
-                      <Send v-else class="h-3 w-3" />
-                      Comment
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
           </div>

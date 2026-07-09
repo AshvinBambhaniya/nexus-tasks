@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Folder, Search, Plus, ArrowRight } from "lucide-vue-next";
+import { Folder, Search, Plus, ArrowRight, MoreHorizontal } from "lucide-vue-next";
 import { format } from "date-fns";
 
 definePageMeta({ layout: "dashboard" });
@@ -119,56 +119,53 @@ const filteredProjects = computed(() => {
           Create Project
         </UiBaseButton>
       </div>
-      <div v-else class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div v-else class="flex flex-col space-y-1 pb-10">
         <NuxtLink
           v-for="project in filteredProjects"
           :key="project.id"
           :to="`/projects/${project.id}`"
-          class="block h-full"
+          class="group hover:bg-muted/40 border-transparent hover:border-border/60 flex items-center justify-between rounded-lg border px-4 py-3 transition-colors"
         >
-          <UiBaseCard
-            class="group border-border hover:border-primary/30 flex h-full cursor-pointer flex-col p-6 transition-all hover:shadow-md"
-          >
-            <div class="mb-4 flex items-start justify-between">
-              <div
-                class="bg-primary/10 group-hover:bg-primary/20 rounded-xl p-2.5 transition-colors"
-              >
-                <Folder class="text-primary h-5 w-5" />
-              </div>
-              <UiBaseBadge v-if="project.is_archived" variant="secondary">
-                Archived
-              </UiBaseBadge>
+          <div class="flex min-w-0 items-center gap-4">
+            <div
+              class="bg-muted/50 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all group-hover:border-primary/20 group-hover:shadow-sm"
+            >
+              <Folder class="h-4 w-4" />
             </div>
-
-            <div class="flex-1">
-              <h3
-                class="text-foreground group-hover:text-primary mb-2 text-lg font-semibold transition-colors"
-              >
-                {{ project.name }}
-              </h3>
-              <p
-                class="text-muted-foreground line-clamp-2 text-sm leading-relaxed"
-              >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="text-foreground truncate text-sm font-semibold tracking-tight">
+                  {{ project.name }}
+                </h3>
+                <span
+                  class="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 inline-flex items-center justify-center rounded-sm border px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase shadow-sm"
+                  :class="project.is_archived ? 'bg-muted text-muted-foreground border-border' : ''"
+                >
+                  {{ project.is_archived ? "Archived" : "Active" }}
+                </span>
+              </div>
+              <p class="text-muted-foreground truncate text-xs mt-0.5">
                 {{ project.description || "No description provided." }}
               </p>
             </div>
+          </div>
 
-            <div
-              class="border-border text-muted-foreground mt-6 flex items-center justify-between border-t pt-4 text-xs"
-            >
-              <div class="flex items-center gap-1">
-                <span>
-                  Created
-                  {{ format(new Date(project.created_at), "MMM d, yyyy") }}
-                </span>
-              </div>
-              <div
-                class="text-primary flex items-center gap-1 font-medium opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                Open <ArrowRight class="h-3 w-3" />
-              </div>
+          <div class="flex shrink-0 items-center gap-6 pl-4">
+            <!-- Mock Avatar Stack -->
+            <div class="hidden items-center -space-x-2 sm:flex">
+              <div class="border-background bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">A</div>
+              <div class="border-background bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">M</div>
+              <div class="border-background bg-slate-400 dark:bg-slate-500 text-white flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-bold shadow-sm">J</div>
             </div>
-          </UiBaseCard>
+            <div class="text-muted-foreground/70 hidden text-xs font-medium sm:block w-24 text-right">
+              {{ format(new Date(project.created_at), "MMM d, yy") }}
+            </div>
+            <div class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted/80 transition-colors">
+              <MoreHorizontal
+                class="text-muted-foreground/50 hover:text-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+              />
+            </div>
+          </div>
         </NuxtLink>
       </div>
     </div>

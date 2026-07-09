@@ -58,7 +58,12 @@ func (m *mockStorage) Comments() models.CommentRepository {
 	return getMockArg[models.CommentRepository](args, 0)
 }
 
-func (m *mockStorage) Atomic(_ context.Context, fn func(models.Storage) error) error {
+func (m *mockStorage) Notifications() models.NotificationRepository {
+	args := m.Called()
+	return getMockArg[models.NotificationRepository](args, 0)
+}
+
+func (m *mockStorage) Atomic(ctx context.Context, fn func(models.Storage) error) error {
 	// For testing, we usually just execute the function with the mock itself
 	return fn(m)
 }
@@ -255,9 +260,9 @@ func (m *mockTaskRepository) Create(task models.Task) (models.Task, error) {
 	return getMockArg[models.Task](args, 0), args.Error(1)
 }
 
-func (m *mockTaskRepository) GetByID(id uuid.UUID) (models.Task, error) {
+func (m *mockTaskRepository) GetByID(id uuid.UUID) (models.TaskWithAssignee, error) {
 	args := m.Called(id)
-	return getMockArg[models.Task](args, 0), args.Error(1)
+	return getMockArg[models.TaskWithAssignee](args, 0), args.Error(1)
 }
 
 func (m *mockTaskRepository) Update(task models.Task) (models.Task, error) {
@@ -270,14 +275,24 @@ func (m *mockTaskRepository) Delete(id uuid.UUID) error {
 	return args.Error(0)
 }
 
-func (m *mockTaskRepository) ListByProjectID(projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error) {
+func (m *mockTaskRepository) ListByProjectID(projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.TaskWithAssignee, error) {
 	args := m.Called(projectID, status, assigneeID)
-	return getMockArg[[]models.Task](args, 0), args.Error(1)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
 }
 
-func (m *mockTaskRepository) ListByAssigneeID(assigneeID uuid.UUID) ([]models.Task, error) {
+func (m *mockTaskRepository) ListByAssigneeID(assigneeID uuid.UUID) ([]models.TaskWithAssignee, error) {
 	args := m.Called(assigneeID)
-	return getMockArg[[]models.Task](args, 0), args.Error(1)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
+}
+
+func (m *mockTaskRepository) ListCompletedTasksInLastDays(projectID uuid.UUID, days int) ([]models.TaskWithAssignee, error) {
+	args := m.Called(projectID, days)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
+}
+
+func (m *mockTaskRepository) GetNextTaskNumber(projectID uuid.UUID) (int, error) {
+	args := m.Called(projectID)
+	return args.Int(0), args.Error(1)
 }
 
 type mockCommentRepository struct {
@@ -296,6 +311,11 @@ func (m *mockCommentRepository) GetByID(id uuid.UUID) (models.Comment, error) {
 
 func (m *mockCommentRepository) ListByTaskID(taskID uuid.UUID) ([]models.CommentWithAuthor, error) {
 	args := m.Called(taskID)
+	return getMockArg[[]models.CommentWithAuthor](args, 0), args.Error(1)
+}
+
+func (m *mockCommentRepository) ListByTaskIDs(taskIDs []uuid.UUID) ([]models.CommentWithAuthor, error) {
+	args := m.Called(taskIDs)
 	return getMockArg[[]models.CommentWithAuthor](args, 0), args.Error(1)
 }
 

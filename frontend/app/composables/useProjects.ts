@@ -63,11 +63,28 @@ export const useProject = (id: string) => {
     }
   );
 
+  const generateWeeklyReport = async () => {
+    if (!workspaceStore.activeWorkspaceId) return null;
+    try {
+      const res = await useMutation<{ content: string }>(
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${id}/ai/generate-weekly-report`,
+        {
+          method: "POST",
+        }
+      );
+      return res?.content || null;
+    } catch (err) {
+      console.error("Failed to generate weekly report", err);
+      throw err;
+    }
+  };
+
   return {
     project,
     isLoading,
     isError: !!error.value,
     refresh,
+    generateWeeklyReport,
   };
 };
 

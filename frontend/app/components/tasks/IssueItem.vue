@@ -84,7 +84,7 @@ const priorityIcon = computed(() => priorityIcons[task.priority] || Minus);
 
     <!-- ID -->
     <td class="text-muted-foreground px-2 py-3 font-mono text-xs">
-      PROJ-{{ task.number }}
+      TASK-{{ task.number }}
     </td>
 
     <!-- Title -->
@@ -111,7 +111,7 @@ const priorityIcon = computed(() => priorityIcons[task.priority] || Minus);
     <td class="px-2 py-3">
       <div v-if="task.assignee" class="flex items-center gap-2">
         <UiBaseAvatar
-          :fallback="task.assignee.email[0].toUpperCase()"
+          :fallback="task.assignee.email?.[0]?.toUpperCase() || '?'"
           class-name="h-5 w-5 text-[10px]"
         />
         <span

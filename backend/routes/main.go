@@ -52,6 +52,8 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	websocketService := services.NewWebsocketService(workspaceService, projectService, logger)
 	commentService := services.NewCommentService(storage, projectService, logger)
 	healthService := services.NewHealthService(storage, logger)
+	aiService := services.NewAiService(config, logger)
+	notificationService := services.NewNotificationService(storage, logger)
 
 	router := app.Group("/api")
 	v2 := router.Group("/v2")
@@ -88,7 +90,17 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 		return err
 	}
 
+	err = setupAiController(v2, aiService, commentService, taskService, logger, middlewares)
+	if err != nil {
+		return err
+	}
+
 	err = setupWebsocketController(app, logger, config, hub, websocketService)
+	if err != nil {
+		return err
+	}
+
+	err = setupNotificationController(v2, notificationService, logger, middlewares)
 	if err != nil {
 		return err
 	}
@@ -223,6 +235,9 @@ func setupTaskController(v2 fiber.Router, taskService services.TaskService, comm
 
 	// 3. Global Task Routes
 	v2.Get("/tasks/me", authMiddleware.Authenticated, taskController.ListMyTasks)
+	v2.Get(fmt.Sprintf("/tasks/:%s", constants.ParamTaskID), authMiddleware.Authenticated, taskController.GetTask)
+	v2.Get(fmt.Sprintf("/tasks/:%s/comments", constants.ParamTaskID), authMiddleware.Authenticated, taskController.ListTaskComments)
+	v2.Post(fmt.Sprintf("/tasks/:%s/comments", constants.ParamTaskID), authMiddleware.Authenticated, taskController.CreateComment)
 
 	return nil
 }
@@ -235,6 +250,36 @@ func setupWebsocketController(app *fiber.App, logger *zap.Logger, cfg *config.Ap
 
 	app.Use("/ws", wsController.UpgradeMiddleware)
 	app.Get("/ws/:id", websocket.New(wsController.HandleWorkspaceConnection))
+
+	return nil
+}
+
+func setupAiController(v2 fiber.Router, aiService services.AiService, commentService services.CommentService, taskService services.TaskService, logger *zap.Logger, middleware middlewares.Middleware) error {
+	aiController, err := controller.NewAiController(aiService, commentService, taskService, logger)
+	if err != nil {
+		return err
+	}
+
+	ai := v2.Group("/ai", middleware.Authenticated)
+	ai.Post("/draft-task", aiController.DraftTask)
+
+	taskAi := v2.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s/tasks/:%s/ai", constants.ParamWorkspaceID, constants.ParamProjectID, constants.ParamTaskID), middleware.Authenticated)
+	taskAi.Post("/summarize-comments", aiController.SummarizeComments)
+
+	projectAi := v2.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s/ai", constants.ParamWorkspaceID, constants.ParamProjectID), middleware.Authenticated)
+	projectAi.Post("/generate-weekly-report", aiController.GenerateWeeklyReport)
+
+	return nil
+}
+
+func setupNotificationController(v2 fiber.Router, notificationService services.NotificationService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+	notificationController := controller.NewNotificationController(notificationService, logger)
+
+	inbox := v2.Group("/inbox", middlewares.Authenticated)
+	inbox.Get("/", notificationController.GetInbox)
+	inbox.Patch("/clear-all", notificationController.ClearAll)
+	inbox.Patch("/:notificationId/read", notificationController.MarkAsRead)
+	inbox.Patch("/:notificationId/clear", notificationController.MarkAsCleared)
 
 	return nil
 }

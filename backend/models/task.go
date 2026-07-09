@@ -65,6 +65,8 @@ type TaskWithAssignee struct {
 	Task
 	AssigneeEmail    *string `db:"assignee_email"`
 	AssigneeFullName *string `db:"assignee_full_name"`
+	AuthorEmail      *string `db:"author_email"`
+	AuthorFullName   *string `db:"author_full_name"`
 }
 
 // TaskModel is the implementation of TaskRepository.
@@ -75,11 +77,13 @@ type TaskModel struct {
 // TaskRepository defines the interface for task data access.
 type TaskRepository interface {
 	Create(task Task) (Task, error)
-	GetByID(id uuid.UUID) (Task, error)
+	GetByID(id uuid.UUID) (TaskWithAssignee, error)
 	Update(task Task) (Task, error)
 	Delete(id uuid.UUID) error
-	ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]Task, error)
-	ListByAssigneeID(assigneeID uuid.UUID) ([]Task, error)
+	ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]TaskWithAssignee, error)
+	ListByAssigneeID(assigneeID uuid.UUID) ([]TaskWithAssignee, error)
+	GetNextTaskNumber(projectID uuid.UUID) (int, error)
+	ListCompletedTasksInLastDays(projectID uuid.UUID, days int) ([]TaskWithAssignee, error)
 }
 
 // InitTaskModel initializes a new TaskModel.
@@ -116,11 +120,11 @@ func (model *TaskModel) Create(task Task) (Task, error) {
 }
 
 // GetNextTaskNumber returns the next available task number for a project.
-func (model *TaskModel) GetNextTaskNumber(transaction *goqu.TxDatabase, projectID uuid.UUID) (int, error) {
+func (model *TaskModel) GetNextTaskNumber(projectID uuid.UUID) (int, error) {
 	var maxNum struct {
-		Max int `db:"max"`
+		Max sql.NullInt64 `db:"max"`
 	}
-	found, err := transaction.From(TaskTable).
+	found, err := model.db.From(TaskTable).
 		Select(goqu.MAX("number").As("max")).
 		Where(goqu.Ex{"project_id": projectID}).
 		ScanStruct(&maxNum)
@@ -128,16 +132,28 @@ func (model *TaskModel) GetNextTaskNumber(transaction *goqu.TxDatabase, projectI
 	if err != nil {
 		return 0, err
 	}
-	if !found {
+	if !found || !maxNum.Max.Valid {
 		return 1, nil
 	}
-	return maxNum.Max + 1, nil
+	return int(maxNum.Max.Int64) + 1, nil
 }
 
 // GetByID retrieves a task by its ID.
-func (model *TaskModel) GetByID(id uuid.UUID) (Task, error) {
-	task := Task{}
-	found, err := model.db.From(TaskTable).Where(goqu.Ex{"id": id}).ScanStruct(&task)
+func (model *TaskModel) GetByID(id uuid.UUID) (TaskWithAssignee, error) {
+	var task TaskWithAssignee
+	found, err := model.db.From(TaskTable).
+		Select(
+			"tasks.*",
+			goqu.I("assignee.email").As("assignee_email"),
+			goqu.I("assignee.full_name").As("assignee_full_name"),
+			goqu.I("author.email").As("author_email"),
+			goqu.I("author.full_name").As("author_full_name"),
+		).
+		LeftJoin(goqu.T("users").As("assignee"), goqu.On(goqu.Ex{"tasks.assignee_id": goqu.I("assignee.id")})).
+		LeftJoin(goqu.T("users").As("author"), goqu.On(goqu.Ex{"tasks.author_id": goqu.I("author.id")})).
+		Where(goqu.Ex{"tasks.id": id}).
+		ScanStruct(&task)
+
 	if err != nil {
 		return task, err
 	}
@@ -185,30 +201,77 @@ func (model *TaskModel) Delete(id uuid.UUID) error {
 }
 
 // ListByProjectID lists all tasks in a project, optionally filtered by status and assignee.
-func (model *TaskModel) ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]Task, error) {
-	query := model.db.From(TaskTable).Where(goqu.Ex{"project_id": projectID})
+func (model *TaskModel) ListByProjectID(projectID uuid.UUID, status *TaskStatus, assigneeID *uuid.UUID) ([]TaskWithAssignee, error) {
+	query := model.db.From(TaskTable).
+		Select(
+			"tasks.*",
+			goqu.I("assignee.email").As("assignee_email"),
+			goqu.I("assignee.full_name").As("assignee_full_name"),
+			goqu.I("author.email").As("author_email"),
+			goqu.I("author.full_name").As("author_full_name"),
+		).
+		LeftJoin(goqu.T("users").As("assignee"), goqu.On(goqu.Ex{"tasks.assignee_id": goqu.I("assignee.id")})).
+		LeftJoin(goqu.T("users").As("author"), goqu.On(goqu.Ex{"tasks.author_id": goqu.I("author.id")})).
+		Where(goqu.Ex{"tasks.project_id": projectID})
 
 	if status != nil {
-		query = query.Where(goqu.Ex{"status": *status})
+		query = query.Where(goqu.Ex{"tasks.status": *status})
 	}
 	if assigneeID != nil {
-		query = query.Where(goqu.Ex{"assignee_id": *assigneeID})
+		query = query.Where(goqu.Ex{"tasks.assignee_id": *assigneeID})
 	}
 
-	var tasks []Task
+	var tasks []TaskWithAssignee
 	err := query.ScanStructs(&tasks)
 	return tasks, err
 }
 
 // ListByAssigneeID lists all tasks assigned to a specific user.
-func (model *TaskModel) ListByAssigneeID(assigneeID uuid.UUID) ([]Task, error) {
-	var tasks []Task
+func (model *TaskModel) ListByAssigneeID(assigneeID uuid.UUID) ([]TaskWithAssignee, error) {
+	var tasks []TaskWithAssignee
 	err := model.db.From(TaskTable).
-		Where(goqu.Ex{"assignee_id": assigneeID}).
+		Select(
+			"tasks.*",
+			goqu.I("assignee.email").As("assignee_email"),
+			goqu.I("assignee.full_name").As("assignee_full_name"),
+			goqu.I("author.email").As("author_email"),
+			goqu.I("author.full_name").As("author_full_name"),
+		).
+		LeftJoin(goqu.T("users").As("assignee"), goqu.On(goqu.Ex{"tasks.assignee_id": goqu.I("assignee.id")})).
+		LeftJoin(goqu.T("users").As("author"), goqu.On(goqu.Ex{"tasks.author_id": goqu.I("author.id")})).
+		Where(goqu.Ex{"tasks.assignee_id": assigneeID}).
 		Order(
-			goqu.I("priority").Asc(),
-			goqu.I("due_date").Asc(),
+			goqu.I("tasks.priority").Asc(),
+			goqu.I("tasks.due_date").Asc(),
 		).
 		ScanStructs(&tasks)
+	return tasks, err
+}
+
+// ListCompletedTasksInLastDays returns tasks that were completed in the last N days.
+func (model *TaskModel) ListCompletedTasksInLastDays(projectID uuid.UUID, days int) ([]TaskWithAssignee, error) {
+	var tasks []TaskWithAssignee
+	cutoffDate := time.Now().AddDate(0, 0, -days)
+
+	err := model.db.From(TaskTable).
+		Select(
+			"tasks.*",
+			goqu.I("assignee.email").As("assignee_email"),
+			goqu.I("assignee.full_name").As("assignee_full_name"),
+			goqu.I("author.email").As("author_email"),
+			goqu.I("author.full_name").As("author_full_name"),
+		).
+		LeftJoin(goqu.T("users").As("assignee"), goqu.On(goqu.Ex{"tasks.assignee_id": goqu.I("assignee.id")})).
+		LeftJoin(goqu.T("users").As("author"), goqu.On(goqu.Ex{"tasks.author_id": goqu.I("author.id")})).
+		Where(
+			goqu.Ex{
+				"tasks.project_id": projectID,
+				"tasks.status":     TaskStatusDone,
+			},
+			goqu.I("tasks.completed_at").Gte(cutoffDate),
+		).
+		Order(goqu.I("tasks.completed_at").Desc()).
+		ScanStructs(&tasks)
+
 	return tasks, err
 }

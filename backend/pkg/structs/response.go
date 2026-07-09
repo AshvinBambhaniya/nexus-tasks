@@ -66,6 +66,7 @@ type ResProject struct {
 // ResProjectMember defines the response payload for a project member.
 type ResProjectMember struct {
 	UserID   uuid.UUID          `json:"user_id"`
+	FullName string             `json:"full_name"`
 	Email    string             `json:"email"`
 	Role     models.ProjectRole `json:"role"`
 	IsDirect bool               `json:"is_direct"`

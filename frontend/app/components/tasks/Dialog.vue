@@ -12,8 +12,8 @@ interface Props {
 const { isOpen = false, task = null, projectId = "" } = defineProps<Props>();
 
 const emit = defineEmits(["close"]);
-
-const userStore = useUsersStore();
+import { useUsersStore } from "~/stores/user";
+import RichTextEditor from "~/components/ui/RichTextEditor.vue";
 const currentUserId = computed(() => userStore.userData?.id);
 
 const activeProjectId = computed(() => projectId || task?.project_id || "");
@@ -102,12 +102,10 @@ const handleDelete = async () => {
   }
 };
 
-const handleAddComment = async () => {
-  if (!newComment.value.trim()) return;
+const handleAddComment = async (content: string, mentionedUserIds: string[]) => {
   isCommenting.value = true;
   try {
-    await createComment(newComment.value);
-    newComment.value = "";
+    await createComment(content, mentionedUserIds);
   } catch (err) {
     console.error(err);
   } finally {
@@ -192,32 +190,16 @@ const handleAddComment = async () => {
             <!-- Comment Form -->
             <div class="flex gap-4">
               <UiBaseAvatar
-                :fallback="userStore.userData?.email?.[0].toUpperCase() || '?'"
+                :fallback="userStore.userData?.email?.[0]?.toUpperCase() || '?'"
                 class-name="mt-1 h-10 w-10 border border-border shadow-sm"
               />
-              <div class="flex-1 space-y-3">
-                <UiBaseTextArea
-                  v-model="newComment"
-                  placeholder="Write a comment... (Markdown supported)"
-                  :rows="3"
-                  class-name="bg-muted focus:bg-card transition-colors"
-                  :disabled="isCommenting"
+              <div class="flex-1 w-full max-w-full">
+                <RichTextEditor
+                  :project-id="activeProjectId"
+                  :is-submitting="isCommenting"
+                  @submit="handleAddComment"
                 />
-                <div class="flex justify-end">
-                  <UiBaseButton
-                    size="sm"
-                    :disabled="isCommenting || !newComment.trim()"
-                    @click="handleAddComment"
-                  >
-                    <template v-if="isCommenting">
-                      <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-                    </template>
-                    <template v-else>
-                      <Send class="mr-2 h-4 w-4" />
-                    </template>
-                    Comment
-                  </UiBaseButton>
-                </div>
+              </div>
               </div>
             </div>
 

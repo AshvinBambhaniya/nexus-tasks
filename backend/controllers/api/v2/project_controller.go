@@ -246,6 +246,7 @@ func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
+	ctrl.logger.Info("ListMembers response", zap.Any("members", members))
 
 	return utils.JSONSuccess(c, http.StatusOK, members)
 }

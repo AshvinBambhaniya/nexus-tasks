@@ -147,7 +147,7 @@ const availableTeams = computed(() =>
           >
             <div class="flex items-center gap-4">
               <UiBaseAvatar
-                :fallback="member.email[0].toUpperCase()"
+                :fallback="member.email?.[0]?.toUpperCase() || '?'"
                 class-name="h-10 w-10 bg-primary/10 text-primary text-sm font-medium border border-primary/20"
               />
               <div class="flex flex-col">
