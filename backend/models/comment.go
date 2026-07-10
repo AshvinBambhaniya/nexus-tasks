@@ -34,6 +34,7 @@ type CommentRepository interface {
 	Create(comment Comment) (Comment, error)
 	GetByID(id uuid.UUID) (Comment, error)
 	ListByTaskID(taskID uuid.UUID) ([]CommentWithAuthor, error)
+	ListByTaskIDs(taskIDs []uuid.UUID) ([]CommentWithAuthor, error)
 	Delete(id uuid.UUID) error
 }
 
@@ -105,4 +106,25 @@ func (model *CommentModel) Delete(id uuid.UUID) error {
 		Where(goqu.Ex{"id": id}).
 		Executor().Exec()
 	return err
+}
+
+// ListByTaskIDs returns all comments for a specific set of tasks.
+func (model *CommentModel) ListByTaskIDs(taskIDs []uuid.UUID) ([]CommentWithAuthor, error) {
+	var comments []CommentWithAuthor
+	if len(taskIDs) == 0 {
+		return comments, nil
+	}
+
+	err := model.db.From(CommentTable).
+		LeftJoin(goqu.T(UserTable), goqu.On(goqu.Ex{CommentTable + ".author_id": goqu.I(UserTable + ".id")})).
+		Where(goqu.Ex{CommentTable + ".task_id": taskIDs}).
+		Select(
+			CommentTable+".*",
+			goqu.I(UserTable+".email").As("author_email"),
+			goqu.I(UserTable+".full_name").As("author_full_name"),
+		).
+		Order(goqu.I(CommentTable + ".created_at").Asc()).
+		ScanStructs(&comments)
+
+	return comments, err
 }

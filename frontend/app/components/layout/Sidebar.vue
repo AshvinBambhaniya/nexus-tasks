@@ -19,6 +19,7 @@ import { useUsersStore } from "~/stores/user";
 import { useUIStore } from "~/stores/ui";
 import { useWorkspaceStore } from "~/stores/workspace";
 import { useProjectStore } from "~/stores/project";
+import { useInbox } from "~/composables/useInbox";
 
 const route = useRoute();
 const { logout } = useAuth();
@@ -36,6 +37,11 @@ const isCollapsed = computed(() => uiStore.isSidebarCollapsed);
 const { workspaces, activeWorkspace } = useWorkspaces();
 const { teams, isLoading: isTeamsLoading } = useTeams();
 const { projects, isLoading: isProjectsLoading } = useProjects();
+const { unreadCount, fetchInbox } = useInbox();
+
+onMounted(() => {
+  fetchInbox();
+});
 
 const isWorkspaceDropdownOpen = ref(false);
 const isTeamsOpen = ref(true);
@@ -56,13 +62,18 @@ const selectProject = (id: string) => {
   projectStore.setActiveProjectId(id);
 };
 
-const navigation = [
-  { name: "Inbox", href: "/inbox", icon: Inbox, badge: "3 new" },
-  { name: "My Tasks", href: "/tasks", icon: CheckSquare, badge: "5" },
+const navigation = computed(() => [
+  {
+    name: "Inbox",
+    href: "/inbox",
+    icon: Inbox,
+    badge: unreadCount.value > 0 ? `${unreadCount.value} new` : "",
+  },
+  { name: "My Tasks", href: "/tasks", icon: CheckSquare, badge: "" },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Analytics", href: "/analytics", icon: BarChart2 },
   { name: "Notifications", href: "/notifications", icon: Bell },
-];
+]);
 
 const userInitial = computed(() => {
   if (user.value?.full_name) {
@@ -196,23 +207,26 @@ const toggleSidebar = () => {
 
       <!-- TEAMS Tree -->
       <div v-if="!isCollapsed" class="space-y-1">
-        <div
-          class="group flex cursor-pointer items-center justify-between px-3 py-2"
-          @click="isTeamsOpen = !isTeamsOpen"
-        >
-          <h3
-            class="text-muted-foreground text-[10px] font-semibold tracking-widest"
+        <div class="group flex items-center justify-between px-3 py-2">
+          <NuxtLink
+            to="/teams"
+            class="text-muted-foreground hover:text-foreground text-[10px] font-semibold tracking-widest transition-colors"
           >
             TEAMS
-          </h3>
-          <ChevronUp
-            v-if="isTeamsOpen"
-            class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
-          />
-          <ChevronDown
-            v-else
-            class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
-          />
+          </NuxtLink>
+          <button
+            class="hover:bg-muted/50 rounded-sm p-0.5 transition-colors"
+            @click="isTeamsOpen = !isTeamsOpen"
+          >
+            <ChevronUp
+              v-if="isTeamsOpen"
+              class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
+            />
+            <ChevronDown
+              v-else
+              class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
+            />
+          </button>
         </div>
 
         <div v-if="isTeamsOpen" class="space-y-0.5 px-2">
@@ -240,28 +254,39 @@ const toggleSidebar = () => {
               </div>
             </NuxtLink>
           </div>
+          <div v-if="teams.length > 0" class="pt-1">
+            <NuxtLink
+              to="/teams"
+              class="text-muted-foreground hover:bg-muted/30 hover:text-foreground flex items-center justify-center rounded-md px-2 py-1.5 text-xs transition-colors"
+            >
+              View all teams
+            </NuxtLink>
+          </div>
         </div>
       </div>
 
       <!-- PROJECTS Tree -->
       <div v-if="!isCollapsed" class="space-y-1">
-        <div
-          class="group flex cursor-pointer items-center justify-between px-3 py-2"
-          @click="isProjectsOpen = !isProjectsOpen"
-        >
-          <h3
-            class="text-muted-foreground text-[10px] font-semibold tracking-widest"
+        <div class="group flex items-center justify-between px-3 py-2">
+          <NuxtLink
+            to="/projects"
+            class="text-muted-foreground hover:text-foreground text-[10px] font-semibold tracking-widest transition-colors"
           >
             PROJECTS
-          </h3>
-          <ChevronUp
-            v-if="isProjectsOpen"
-            class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
-          />
-          <ChevronDown
-            v-else
-            class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
-          />
+          </NuxtLink>
+          <button
+            class="hover:bg-muted/50 rounded-sm p-0.5 transition-colors"
+            @click="isProjectsOpen = !isProjectsOpen"
+          >
+            <ChevronUp
+              v-if="isProjectsOpen"
+              class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
+            />
+            <ChevronDown
+              v-else
+              class="text-muted-foreground/50 group-hover:text-foreground h-3 w-3"
+            />
+          </button>
         </div>
 
         <div v-if="isProjectsOpen" class="space-y-0.5 px-2">
@@ -282,7 +307,7 @@ const toggleSidebar = () => {
             v-for="project in projects"
             v-else
             :key="project.id"
-            :to="`/dashboard?projectId=${project.id}`"
+            :to="`/projects/${project.id}`"
             class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
             :class="
               projectStore.activeProjectId === project.id
@@ -301,6 +326,14 @@ const toggleSidebar = () => {
             />
             <span class="truncate">{{ project.name }}</span>
           </NuxtLink>
+          <div v-if="projects.length > 0" class="pt-1">
+            <NuxtLink
+              to="/projects"
+              class="text-muted-foreground hover:bg-muted/30 hover:text-foreground flex items-center justify-center rounded-md px-2 py-1.5 text-xs transition-colors"
+            >
+              View all projects
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>

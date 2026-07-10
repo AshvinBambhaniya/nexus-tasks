@@ -72,7 +72,8 @@ type ReqAddProjectTeam struct {
 
 // ReqCreateComment defines the request payload for creating a comment.
 type ReqCreateComment struct {
-	Content string `json:"content" validate:"required"`
+	Content          string      `json:"content" validate:"required"`
+	MentionedUserIDs []uuid.UUID `json:"mentioned_user_ids,omitempty"`
 }
 
 // ReqCreateTask defines the request payload for creating a task.
@@ -93,4 +94,9 @@ type ReqUpdateTask struct {
 	Priority    models.TaskPriority `json:"priority"`
 	DueDate     *CustomTime         `json:"due_date"`
 	AssigneeID  *uuid.UUID          `json:"assignee_id"`
+}
+
+// ReqDraftTask defines the request payload for drafting a task via AI.
+type ReqDraftTask struct {
+	Title string `json:"title" validate:"required"`
 }

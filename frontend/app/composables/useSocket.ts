@@ -49,8 +49,8 @@ export const useSocket = () => {
       message.type === "TASK_DELETED"
     ) {
       // Global refresh for any active useFetch with these keys
-      refreshNuxtData(
-        (key) => key.includes("/api/v2/projects/") || key === "my-tasks"
+      clearNuxtData(
+        (key: string) => key.includes("/api/v2/projects/") || key === "my-tasks"
       );
     }
   };

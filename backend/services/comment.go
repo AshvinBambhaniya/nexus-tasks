@@ -4,6 +4,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/models"
@@ -16,6 +17,7 @@ import (
 type CommentService interface {
 	CreateComment(userID, taskID uuid.UUID, req structs.ReqCreateComment) (models.Comment, error)
 	ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error)
+	ListCommentsForTasks(userID, projectID uuid.UUID, taskIDs []uuid.UUID) ([]models.CommentWithAuthor, error)
 	DeleteComment(userID, commentID uuid.UUID) error
 }
 
@@ -59,7 +61,12 @@ func (s *commentService) CreateComment(userID, taskID uuid.UUID, req structs.Req
 
 		var err error
 		createdComment, err = txStorage.Comments().Create(comment)
-		return err
+		if err != nil {
+			return err
+		}
+
+		s.dispatchCommentNotifications(txStorage, userID, task, req)
+		return nil
 	})
 
 	if err != nil {
@@ -67,6 +74,57 @@ func (s *commentService) CreateComment(userID, taskID uuid.UUID, req structs.Req
 	}
 
 	return createdComment, nil
+}
+
+func (s *commentService) dispatchCommentNotifications(txStorage models.Storage, userID uuid.UUID, task models.TaskWithAssignee, req structs.ReqCreateComment) {
+	mentionedMap := make(map[uuid.UUID]bool)
+	for _, mentionedID := range req.MentionedUserIDs {
+		if mentionedID == userID {
+			continue // Don't notify the user who made the comment
+		}
+		// Validate if the mentioned user is part of the project
+		if err := s.projectService.ValidateProjectAccess(task.ProjectID, mentionedID, false); err == nil {
+			mentionedMap[mentionedID] = true
+			body := "You were mentioned in a comment."
+			_ = txStorage.Notifications().Create(&models.Notification{
+				UserID:     mentionedID,
+				ActorID:    userID,
+				EntityID:   task.ID,
+				EntityType: models.EntityTypeTask,
+				Type:       models.NotificationTypeMentioned,
+				Title:      fmt.Sprintf("Mentioned on %s", task.Title),
+				Body:       &body,
+			})
+		}
+	}
+
+	// Notify Author if not mentioned
+	if task.AuthorID != nil && *task.AuthorID != userID && !mentionedMap[*task.AuthorID] {
+		body := "A new comment was added"
+		_ = txStorage.Notifications().Create(&models.Notification{
+			UserID:     *task.AuthorID,
+			ActorID:    userID,
+			EntityID:   task.ID,
+			EntityType: models.EntityTypeTask,
+			Type:       models.NotificationTypeCommentAdded,
+			Title:      fmt.Sprintf("New comment on %s", task.Title),
+			Body:       &body,
+		})
+	}
+
+	// Notify Assignee if not mentioned
+	if task.AssigneeID != nil && *task.AssigneeID != userID && (task.AuthorID == nil || *task.AssigneeID != *task.AuthorID) && !mentionedMap[*task.AssigneeID] {
+		body := "A new comment was added"
+		_ = txStorage.Notifications().Create(&models.Notification{
+			UserID:     *task.AssigneeID,
+			ActorID:    userID,
+			EntityID:   task.ID,
+			EntityType: models.EntityTypeTask,
+			Type:       models.NotificationTypeCommentAdded,
+			Title:      fmt.Sprintf("New comment on %s", task.Title),
+			Body:       &body,
+		})
+	}
 }
 
 func (s *commentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.CommentWithAuthor, error) {
@@ -81,6 +139,15 @@ func (s *commentService) ListTaskComments(userID, taskID uuid.UUID) ([]models.Co
 	}
 
 	return s.storage.Comments().ListByTaskID(taskID)
+}
+
+func (s *commentService) ListCommentsForTasks(userID, projectID uuid.UUID, taskIDs []uuid.UUID) ([]models.CommentWithAuthor, error) {
+	err := s.projectService.ValidateProjectAccess(projectID, userID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.storage.Comments().ListByTaskIDs(taskIDs)
 }
 
 func (s *commentService) DeleteComment(userID, commentID uuid.UUID) error {

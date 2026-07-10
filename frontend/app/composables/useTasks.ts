@@ -12,7 +12,7 @@ export const useTasks = (projectId?: string) => {
     () =>
       projectId && workspaceStore.activeWorkspaceId
         ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks`
-        : null,
+        : "",
     {
       key: `tasks-list-${projectId}`,
       watch: [() => projectId, () => workspaceStore.activeWorkspaceId],
@@ -87,6 +87,24 @@ export const useTasks = (projectId?: string) => {
   };
 };
 
+export const useMyTasks = () => {
+  const {
+    data: tasks,
+    pending: isLoading,
+    error,
+    refresh,
+  } = useApi<Task[]>("/api/v2/tasks/me", {
+    key: "my-tasks-list",
+  });
+
+  return {
+    tasks: computed(() => tasks.value || []),
+    isLoading,
+    isError: !!error.value,
+    refresh,
+  };
+};
+
 export const useTask = (projectId: string, taskId: string) => {
   const workspaceStore = useWorkspaceStore();
 
@@ -97,9 +115,9 @@ export const useTask = (projectId: string, taskId: string) => {
     refresh: refreshTask,
   } = useApi<Task>(
     () =>
-      workspaceStore.activeWorkspaceId
-        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}`
-        : `/api/v2/workspaces/0/projects/${projectId}/tasks/${taskId}`,
+      projectId
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}`
+        : `/api/v2/tasks/${taskId}`,
     {
       key: `task-${taskId}`,
     }
@@ -112,24 +130,27 @@ export const useTask = (projectId: string, taskId: string) => {
     refresh: refreshComments,
   } = useApi<Comment[]>(
     () =>
-      workspaceStore.activeWorkspaceId
-        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`
-        : `/api/v2/workspaces/0/projects/${projectId}/tasks/${taskId}/comments`,
+      projectId
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/api/v2/tasks/${taskId}/comments`,
     {
       key: `task-comments-${taskId}`,
     }
   );
 
-  const createComment = async (content: string) => {
-    if (!workspaceStore.activeWorkspaceId) return;
+  const createComment = async (
+    content: string,
+    mentionedUserIds: string[] = []
+  ) => {
     try {
-      await useMutation(
-        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/comments`,
-        {
-          method: "POST",
-          body: { content },
-        }
-      );
+      const endpoint = projectId
+        ? `/api/v2/workspaces/${workspaceStore.activeWorkspaceId || "0"}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/api/v2/tasks/${taskId}/comments`;
+
+      await useMutation(endpoint, {
+        method: "POST",
+        body: { content, mentioned_user_ids: mentionedUserIds },
+      });
       await refreshComments();
     } catch (err) {
       console.error("Failed to create comment", err);
@@ -153,6 +174,22 @@ export const useTask = (projectId: string, taskId: string) => {
     }
   };
 
+  const summarizeComments = async () => {
+    if (!workspaceStore.activeWorkspaceId) return null;
+    try {
+      const res = await useMutation<{ content: string }>(
+        `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${projectId}/tasks/${taskId}/ai/summarize-comments`,
+        {
+          method: "POST",
+        }
+      );
+      return res?.content || null;
+    } catch (err) {
+      console.error("Failed to summarize comments", err);
+      throw err;
+    }
+  };
+
   return {
     task,
     comments: computed(() => comments.value || []),
@@ -162,5 +199,6 @@ export const useTask = (projectId: string, taskId: string) => {
     refreshComments,
     createComment,
     deleteComment,
+    summarizeComments,
   };
 };

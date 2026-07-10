@@ -61,7 +61,7 @@ func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusCreated, ctrl.mapTaskToRes(task))
+	return utils.JSONSuccess(c, http.StatusCreated, ctrl.mapTaskToRes(models.TaskWithAssignee{Task: task}))
 }
 
 // ListProjectTasks handles listing all tasks in a project.
@@ -154,7 +154,7 @@ func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
 		return utils.JSONError(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(task))
+	return utils.JSONSuccess(c, http.StatusOK, ctrl.mapTaskToRes(models.TaskWithAssignee{Task: task}))
 }
 
 // DeleteTask handles deleting a task.
@@ -309,8 +309,8 @@ func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, fiber.Map{constants.PropMessage: constants.MsgCommentDeleted})
 }
 
-func (ctrl *TaskController) mapTaskToRes(t models.Task) structs.ResTask {
-	return structs.ResTask{
+func (ctrl *TaskController) mapTaskToRes(t models.TaskWithAssignee) structs.ResTask {
+	res := structs.ResTask{
 		ID:          t.ID,
 		Number:      t.Number,
 		Title:       t.Title,
@@ -325,4 +325,30 @@ func (ctrl *TaskController) mapTaskToRes(t models.Task) structs.ResTask {
 		CreatedAt:   t.CreatedAt,
 		UpdatedAt:   t.UpdatedAt,
 	}
+
+	if t.AssigneeID != nil && t.AssigneeEmail != nil {
+		fullName := ""
+		if t.AssigneeFullName != nil {
+			fullName = *t.AssigneeFullName
+		}
+		res.Assignee = &structs.ResUser{
+			ID:       *t.AssigneeID,
+			Email:    *t.AssigneeEmail,
+			FullName: fullName,
+		}
+	}
+
+	if t.AuthorID != nil && t.AuthorEmail != nil {
+		fullName := ""
+		if t.AuthorFullName != nil {
+			fullName = *t.AuthorFullName
+		}
+		res.Author = &structs.ResUser{
+			ID:       *t.AuthorID,
+			Email:    *t.AuthorEmail,
+			FullName: fullName,
+		}
+	}
+
+	return res
 }

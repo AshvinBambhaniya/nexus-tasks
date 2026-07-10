@@ -61,7 +61,7 @@ const priorityIcon = computed(() => priorityIcons[task.priority] || Minus);
             :class="cn('h-3.5 w-3.5', priorityColors[task.priority])"
           />
           <span class="text-muted-foreground font-mono text-xs"
-            >PROJ-{{ task.number }}</span
+            >TASK-{{ task.number }}</span
           >
         </div>
         <button
@@ -132,7 +132,7 @@ const priorityIcon = computed(() => priorityIcons[task.priority] || Minus);
 
           <UiBaseAvatar
             v-if="task.assignee"
-            :fallback="task.assignee.email[0].toUpperCase()"
+            :fallback="task.assignee.email?.[0]?.toUpperCase() || '?'"
             class-name="h-5 w-5 text-[9px] border border-background ring-1 ring-border/50"
           />
         </div>

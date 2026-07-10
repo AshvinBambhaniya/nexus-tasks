@@ -32,13 +32,13 @@ export const useApi = <T>(
 export const useMutation = <T>(
   url: string,
   options: Record<string, unknown> = {}
-) => {
+): Promise<T> => {
   const config = useRuntimeConfig();
 
   // Use the internal API URL for SSR and the public API URL for the browser
   const baseURL = import.meta.server ? config.apiUrl : config.public.apiUrl;
 
-  return $fetch<JSendResponse<T>>(url, {
+  return $fetch<T>(url, {
     baseURL: baseURL,
     credentials: "include",
     ...options,

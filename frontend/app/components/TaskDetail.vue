@@ -5,12 +5,13 @@ import {
   CheckCircle2,
   Calendar,
   MoreVertical,
-  Paperclip,
   Clock,
 } from "lucide-vue-next";
 import { format } from "date-fns";
 import { TaskStatus } from "~/types";
 import { useTask } from "~/composables/useTasks";
+import { useUsersStore } from "~/stores/user";
+import RichTextEditor from "./ui/RichTextEditor.vue";
 
 const props = defineProps<{
   taskId: string;
@@ -18,7 +19,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "toggle-done", task: unknown): void;
+  (e: "toggle-done", task: { id: string; status: TaskStatus }): void;
 }>();
 
 const { task, comments, createComment, isLoading, isError } = useTask(
@@ -26,15 +27,23 @@ const { task, comments, createComment, isLoading, isError } = useTask(
   props.taskId
 );
 
-const newComment = ref("");
+const userStore = useUsersStore();
+const currentUserId = computed(() => userStore.userData?.id);
+
+const formatComment = (htmlContent: string) => {
+  if (!currentUserId.value || !htmlContent) return htmlContent || "";
+  return htmlContent.replaceAll(
+    `data-id="${currentUserId.value}"`,
+    `data-id="${currentUserId.value}" data-is-me="true"`
+  );
+};
+
 const isSubmitting = ref(false);
 
-const submitComment = async () => {
-  if (!newComment.value.trim()) return;
+const submitComment = async (content: string, mentionedUserIds: string[]) => {
   isSubmitting.value = true;
   try {
-    await createComment(newComment.value);
-    newComment.value = "";
+    await createComment(content, mentionedUserIds);
   } catch (e) {
     console.error(e);
   } finally {
@@ -58,6 +67,7 @@ const getPrioColor = (prio: string | undefined) => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-v-html -->
   <div class="bg-background/30 flex h-full flex-col">
     <div v-if="isLoading" class="flex h-full items-center justify-center">
       <Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
@@ -220,60 +230,36 @@ const getPrioColor = (prio: string | undefined) => {
                   class="border-border bg-muted text-muted-foreground z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
                 >
                   {{
-                    comment.user?.full_name
-                      ? comment.user.full_name.substring(0, 2).toUpperCase()
+                    comment.author?.full_name
+                      ? comment.author.full_name.substring(0, 2).toUpperCase()
                       : "U"
                   }}
                 </div>
                 <div class="flex-1 space-y-2 pt-1.5 pb-2">
                   <p class="text-muted-foreground text-xs">
                     <span class="text-foreground font-medium">{{
-                      comment.user?.full_name || "User"
+                      comment.author?.full_name || "User"
                     }}</span>
                     commented •
                     {{ format(new Date(comment.created_at), "MMM d, h:mm a") }}
                   </p>
+                  <!-- eslint-disable-next-line vue/no-v-html -->
                   <div
-                    class="border-border bg-card text-foreground rounded-lg border p-3 text-sm whitespace-pre-wrap"
-                  >
-                    {{ comment.content }}
-                  </div>
+                    class="border-border bg-card text-foreground rounded-lg border p-3 text-sm transition-colors"
+                    v-html="formatComment(comment.content)"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Comment Box -->
-          <div
-            class="border-border bg-card focus-within:ring-primary mt-8 rounded-xl border p-1 shadow-sm transition-all focus-within:ring-1"
-          >
-            <textarea
-              v-model="newComment"
-              rows="3"
-              class="text-foreground placeholder:text-muted-foreground w-full resize-none bg-transparent p-3 text-sm focus:outline-none"
-              placeholder="Leave a comment..."
-              @keydown.enter.ctrl.prevent="submitComment"
+          <div class="mt-8">
+            <RichTextEditor
+              :project-id="task.project_id"
+              :is-submitting="isSubmitting"
+              @submit="submitComment"
             />
-            <div class="flex items-center justify-between p-2">
-              <div class="text-muted-foreground flex gap-1">
-                <button
-                  class="hover:bg-muted hover:text-foreground rounded p-1.5"
-                >
-                  <Paperclip class="h-4 w-4" />
-                </button>
-                <span class="hidden px-2 py-1.5 text-[10px] opacity-50 sm:block"
-                  >Ctrl+Enter to send</span
-                >
-              </div>
-              <button
-                :disabled="isSubmitting || !newComment.trim()"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-1.5 text-xs font-medium shadow-sm disabled:opacity-50"
-                @click="submitComment"
-              >
-                <Loader2 v-if="isSubmitting" class="h-3.5 w-3.5 animate-spin" />
-                <span v-else>Comment</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>

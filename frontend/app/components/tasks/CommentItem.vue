@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { formatDistanceToNow } from "date-fns";
-import VueMarkdown from "vue-markdown-render";
 import type { Comment } from "~/types";
 
 interface Props {
@@ -24,13 +23,22 @@ const author = computed(
 const authorName = computed(
   () => author.value.full_name || author.value.email.split("@")[0]
 );
-const initial = computed(() =>
-  (author.value.full_name || author.value.email)[0].toUpperCase()
+const initial = computed(
+  () =>
+    (author.value.full_name || author.value.email)?.[0]?.toUpperCase() || "?"
 );
 const isAuthor = computed(() => currentUserId === author.value.id);
+const formattedContent = computed(() => {
+  if (!currentUserId || !comment.content) return comment.content || "";
+  return comment.content.replaceAll(
+    `data-id="${currentUserId}"`,
+    `data-id="${currentUserId}" data-is-me="true"`
+  );
+});
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-v-html -->
   <div class="group flex gap-4">
     <UiBaseAvatar
       :fallback="initial"
@@ -57,9 +65,10 @@ const isAuthor = computed(() => currentUserId === author.value.id);
           Delete
         </button>
       </div>
-      <VueMarkdown
-        :source="comment.content"
-        class="prose prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border border-border bg-card max-w-none rounded-lg border p-4 shadow-sm"
+      <!-- eslint-disable-next-line vue/no-v-html -->
+      <div
+        class="prose prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border border-border bg-card max-w-none rounded-lg border p-4 shadow-sm transition-colors"
+        v-html="formattedContent"
       />
     </div>
   </div>

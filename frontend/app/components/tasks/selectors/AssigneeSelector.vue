@@ -45,7 +45,7 @@ const handleChange = (value: string | null) => {
         <span class="flex items-center gap-2 truncate">
           <UiBaseAvatar
             v-if="selected"
-            :fallback="selected.email[0].toUpperCase() || '?'"
+            :fallback="selected.email?.[0]?.toUpperCase() || '?'"
             class-name="h-5 w-5"
           />
           <UserIcon v-else class="text-muted-foreground/70 h-4 w-4" />
@@ -117,7 +117,7 @@ const handleChange = (value: string | null) => {
             >
               <span class="flex items-center gap-2">
                 <UiBaseAvatar
-                  :fallback="member.email[0].toUpperCase() || '?'"
+                  :fallback="member.email?.[0]?.toUpperCase() || '?'"
                   class-name="h-5 w-5"
                 />
                 <span

@@ -29,6 +29,8 @@ const (
 	PropMessage = "message"
 	// PropError is a key for errors
 	PropError = "error"
+	// ResponseKeyContent is a key for content in responses
+	ResponseKeyContent = "content"
 )
 
 // Fail messages

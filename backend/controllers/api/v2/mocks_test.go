@@ -185,14 +185,14 @@ func (m *mockTaskService) CreateTask(userID, projectID uuid.UUID, req structs.Re
 	return getMockArg[models.Task](args, 0), args.Error(1)
 }
 
-func (m *mockTaskService) ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.Task, error) {
+func (m *mockTaskService) ListProjectTasks(userID, projectID uuid.UUID, status *models.TaskStatus, assigneeID *uuid.UUID) ([]models.TaskWithAssignee, error) {
 	args := m.Called(userID, projectID, status, assigneeID)
-	return getMockArg[[]models.Task](args, 0), args.Error(1)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
 }
 
-func (m *mockTaskService) GetTask(userID, taskID uuid.UUID) (models.Task, error) {
+func (m *mockTaskService) GetTask(userID, taskID uuid.UUID) (models.TaskWithAssignee, error) {
 	args := m.Called(userID, taskID)
-	return getMockArg[models.Task](args, 0), args.Error(1)
+	return getMockArg[models.TaskWithAssignee](args, 0), args.Error(1)
 }
 
 func (m *mockTaskService) UpdateTask(userID, taskID uuid.UUID, req structs.ReqUpdateTask) (models.Task, error) {
@@ -205,9 +205,14 @@ func (m *mockTaskService) DeleteTask(userID, taskID uuid.UUID) error {
 	return args.Error(0)
 }
 
-func (m *mockTaskService) ListMyTasks(userID uuid.UUID) ([]models.Task, error) {
+func (m *mockTaskService) ListMyTasks(userID uuid.UUID) ([]models.TaskWithAssignee, error) {
 	args := m.Called(userID)
-	return getMockArg[[]models.Task](args, 0), args.Error(1)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
+}
+
+func (m *mockTaskService) ListCompletedTasksInLastDays(userID, projectID uuid.UUID, days int) ([]models.TaskWithAssignee, error) {
+	args := m.Called(userID, projectID, days)
+	return getMockArg[[]models.TaskWithAssignee](args, 0), args.Error(1)
 }
 
 type mockCommentService struct {
@@ -227,6 +232,11 @@ func (m *mockCommentService) ListTaskComments(userID, taskID uuid.UUID) ([]model
 func (m *mockCommentService) DeleteComment(userID, commentID uuid.UUID) error {
 	args := m.Called(userID, commentID)
 	return args.Error(0)
+}
+
+func (m *mockCommentService) ListCommentsForTasks(userID, projectID uuid.UUID, taskIDs []uuid.UUID) ([]models.CommentWithAuthor, error) {
+	args := m.Called(userID, projectID, taskIDs)
+	return getMockArg[[]models.CommentWithAuthor](args, 0), args.Error(1)
 }
 
 type mockHealthService struct {
