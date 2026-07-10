@@ -90,6 +90,15 @@ const (
 	TopicWelcomeMail      = "welcome_mail"
 )
 
+// API Key constants
+const (
+	ParamKeyID      = "keyId"
+	ErrInvalidKeyID = "invalid api key id"
+	MsgKeyCreated   = "API key created"
+	MsgKeyRevoked   = "API key revoked"
+	APIKeyPrefix    = "ntx_"
+)
+
 // Query parameters
 const (
 	QueryStatus     = "status"

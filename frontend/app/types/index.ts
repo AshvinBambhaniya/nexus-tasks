@@ -190,3 +190,20 @@ export interface Notification {
   created_at: string;
   updated_at: string;
 }
+
+// API Key Types
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  name: string;
+  token_prefix: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateApiKeyResponse {
+  raw_token: string;
+  key: ApiKey;
+}

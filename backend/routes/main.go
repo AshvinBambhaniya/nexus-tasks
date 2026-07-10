@@ -44,6 +44,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	storage := models.NewStorage(goqu)
 
 	// Initialize the Services
+	apiKeyService := services.NewAPIKeyService(storage, logger)
 	userService := services.NewUserService(storage, logger, config)
 	workspaceService := services.NewWorkspaceService(storage, logger, pub)
 	teamService := services.NewTeamService(storage, logger)
@@ -58,7 +59,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	router := app.Group("/api")
 	v2 := router.Group("/v2")
 
-	middlewares := middlewares.NewMiddleware(goqu, config, logger)
+	middlewares := middlewares.NewMiddleware(goqu, config, logger, apiKeyService)
 
 	err := healthCheckController(app, healthService, logger)
 	if err != nil {
@@ -101,6 +102,11 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	}
 
 	err = setupNotificationController(v2, notificationService, logger, middlewares)
+	if err != nil {
+		return err
+	}
+
+	err = setupAPIKeyController(v2, apiKeyService, logger, middlewares)
 	if err != nil {
 		return err
 	}
@@ -280,6 +286,17 @@ func setupNotificationController(v2 fiber.Router, notificationService services.N
 	inbox.Patch("/clear-all", notificationController.ClearAll)
 	inbox.Patch("/:notificationId/read", notificationController.MarkAsRead)
 	inbox.Patch("/:notificationId/clear", notificationController.MarkAsCleared)
+
+	return nil
+}
+
+func setupAPIKeyController(v2 fiber.Router, apiKeyService services.APIKeyService, logger *zap.Logger, middlewares middlewares.Middleware) error {
+	apiKeyController := controller.NewAPIKeyController(apiKeyService, logger)
+
+	apiKeys := v2.Group("/auth/api-keys", middlewares.Authenticated)
+	apiKeys.Post("/", apiKeyController.Create)
+	apiKeys.Get("/", apiKeyController.List)
+	apiKeys.Delete(fmt.Sprintf("/:%s", constants.ParamKeyID), apiKeyController.Revoke)
 
 	return nil
 }
