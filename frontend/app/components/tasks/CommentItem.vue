@@ -65,11 +65,12 @@ const formattedContent = computed(() => {
           Delete
         </button>
       </div>
-      <!-- eslint-disable-next-line vue/no-v-html -->
+      <!-- eslint-disable vue/no-v-html -->
       <div
         class="prose prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border border-border bg-card max-w-none rounded-lg border p-4 shadow-sm transition-colors"
         v-html="formattedContent"
       />
+      <!-- eslint-enable vue/no-v-html -->
     </div>
   </div>
 </template>

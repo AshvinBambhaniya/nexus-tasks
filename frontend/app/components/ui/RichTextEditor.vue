@@ -169,10 +169,15 @@ const handleSubmit = () => {
   const mentionedUserIds = new Set<string>();
 
   const traverse = (node: Record<string, unknown>) => {
-    if (node.type === "mention" && node.attrs?.id) {
-      mentionedUserIds.add(node.attrs.id);
+    if (
+      node.type === "mention" &&
+      node.attrs &&
+      typeof node.attrs === "object" &&
+      "id" in node.attrs
+    ) {
+      mentionedUserIds.add((node.attrs as Record<string, string>).id);
     }
-    if (node.content) {
+    if (Array.isArray(node.content)) {
       node.content.forEach(traverse);
     }
   };

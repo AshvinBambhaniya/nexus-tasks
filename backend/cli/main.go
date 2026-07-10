@@ -17,10 +17,12 @@ func Init(cfg config.AppConfig, logger *zap.Logger) error {
 	workerCmd.PersistentFlags().String("topic", constants.TopicWorkspaceInvites, "topic name(queue name)")
 
 	deadQueueCmd := GetDeadQueueCommandDef(cfg, logger)
+	mcpCmd := GetMCPCommandDef(&cfg, logger)
+
 	rootCmd := &cobra.Command{
 		Use:     "nexus-tasks",
 		Version: "2.0.0",
 	}
-	rootCmd.AddCommand(&migrationCmd, &apiCmd, &workerCmd, &deadQueueCmd)
+	rootCmd.AddCommand(&migrationCmd, &apiCmd, &workerCmd, &deadQueueCmd, &mcpCmd)
 	return rootCmd.Execute()
 }

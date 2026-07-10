@@ -13,6 +13,7 @@ import type { TaskPriority } from "~/types";
 import { TaskStatus } from "~/types";
 import { useUsersStore } from "~/stores/user";
 import RichTextEditor from "~/components/ui/RichTextEditor.vue";
+import MarkdownViewer from "~/components/ui/MarkdownViewer.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -156,7 +157,6 @@ const authorName = computed(() => {
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-v-html -->
   <div v-if="isLoading" class="flex h-full items-center justify-center">
     <Loader2 class="text-primary h-8 w-8 animate-spin" />
   </div>
@@ -233,10 +233,10 @@ const authorName = computed(() => {
 
         <!-- Description -->
         <div>
-          <VueMarkdown
+          <MarkdownViewer
             v-if="task.description"
-            :source="task.description"
-            class="prose dark:prose-invert prose-sm prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border max-w-none"
+            :content="task.description"
+            class="max-w-none"
           />
           <div v-else class="text-muted-foreground/60 text-sm italic">
             Add a description...
@@ -365,10 +365,9 @@ const authorName = computed(() => {
                     </button>
                   </div>
                   <div class="px-3 py-2.5">
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <div
-                      class="prose dark:prose-invert prose-sm max-w-none"
-                      v-html="formatComment(comment.content)"
+                    <MarkdownViewer
+                      class="max-w-none"
+                      :content="formatComment(comment.content)"
                     />
                   </div>
                 </div>

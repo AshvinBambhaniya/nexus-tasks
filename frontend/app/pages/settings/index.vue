@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { User, Users, Bell, Shield, Palette } from "lucide-vue-next";
+import { User, Users, Bell, Shield, Palette, Key } from "lucide-vue-next";
 import SettingsGeneral from "~/components/settings/SettingsGeneral.vue";
 import SettingsMembers from "~/components/settings/SettingsMembers.vue";
+import SettingsApiKeys from "~/components/settings/SettingsApiKeys.vue";
 
 definePageMeta({
   layout: "dashboard",
 });
 
-const activeTab = ref<"general" | "members">("general");
+const activeTab = ref<"general" | "members" | "api-keys">("general");
 
 const tabs = [
   {
@@ -84,6 +85,35 @@ const comingSoonTabs = [
             <div
               class="text-muted-foreground mb-3 px-3 text-xs font-semibold tracking-wider uppercase"
             >
+              Developer
+            </div>
+            <div class="space-y-1">
+              <button
+                :class="[
+                  'group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  activeTab === 'api-keys'
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                ]"
+                @click="activeTab = 'api-keys'"
+              >
+                <Key
+                  :class="[
+                    'h-4 w-4 shrink-0',
+                    activeTab === 'api-keys'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground group-hover:text-foreground',
+                  ]"
+                />
+                API Keys
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div
+              class="text-muted-foreground mb-3 px-3 text-xs font-semibold tracking-wider uppercase"
+            >
               Preferences
             </div>
             <div class="space-y-1">
@@ -114,6 +144,7 @@ const comingSoonTabs = [
           <div :key="activeTab">
             <SettingsGeneral v-if="activeTab === 'general'" />
             <SettingsMembers v-else-if="activeTab === 'members'" />
+            <SettingsApiKeys v-else-if="activeTab === 'api-keys'" />
           </div>
         </Transition>
       </main>

@@ -12,6 +12,7 @@ import { TaskStatus } from "~/types";
 import { useTask } from "~/composables/useTasks";
 import { useUsersStore } from "~/stores/user";
 import RichTextEditor from "./ui/RichTextEditor.vue";
+import MarkdownViewer from "./ui/MarkdownViewer.vue";
 
 const props = defineProps<{
   taskId: string;
@@ -171,12 +172,10 @@ const getPrioColor = (prio: string | undefined) => {
           <div
             class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
           >
-            <p
+            <MarkdownViewer
               v-if="task.description"
-              class="text-sm leading-relaxed whitespace-pre-wrap"
-            >
-              {{ task.description }}
-            </p>
+              :content="task.description"
+            />
             <p v-else class="italic opacity-50">No description provided.</p>
           </div>
 
@@ -243,10 +242,9 @@ const getPrioColor = (prio: string | undefined) => {
                     commented •
                     {{ format(new Date(comment.created_at), "MMM d, h:mm a") }}
                   </p>
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div
+                  <MarkdownViewer
                     class="border-border bg-card text-foreground rounded-lg border p-3 text-sm transition-colors"
-                    v-html="formatComment(comment.content)"
+                    :content="formatComment(comment.content)"
                   />
                 </div>
               </div>

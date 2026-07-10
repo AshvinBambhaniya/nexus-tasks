@@ -247,3 +247,51 @@ func (m *mockHealthService) CheckDatabaseHealth(ctx context.Context) error {
 	args := m.Called(ctx)
 	return args.Error(0)
 }
+
+type mockNotificationService struct {
+	mock.Mock
+}
+
+func (m *mockNotificationService) CreateNotification(n *models.Notification) error {
+	args := m.Called(n)
+	return args.Error(0)
+}
+
+func (m *mockNotificationService) GetInbox(userID uuid.UUID) ([]models.Notification, error) {
+	args := m.Called(userID)
+	return getMockArg[[]models.Notification](args, 0), args.Error(1)
+}
+
+func (m *mockNotificationService) MarkAsRead(id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(id, userID)
+	return args.Error(0)
+}
+
+func (m *mockNotificationService) MarkAsCleared(id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(id, userID)
+	return args.Error(0)
+}
+
+func (m *mockNotificationService) ClearAll(userID uuid.UUID) error {
+	args := m.Called(userID)
+	return args.Error(0)
+}
+
+type mockAiService struct {
+	mock.Mock
+}
+
+func (m *mockAiService) DraftTask(title string) (string, error) {
+	args := m.Called(title)
+	return args.String(0), args.Error(1)
+}
+
+func (m *mockAiService) SummarizeComments(commentsText string) (string, error) {
+	args := m.Called(commentsText)
+	return args.String(0), args.Error(1)
+}
+
+func (m *mockAiService) GenerateWeeklyReport(tasksData string) (string, error) {
+	args := m.Called(tasksData)
+	return args.String(0), args.Error(1)
+}
