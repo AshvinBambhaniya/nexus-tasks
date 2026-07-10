@@ -2,7 +2,7 @@
 import type { Component } from "vue";
 import { cn } from "~/utils/cn";
 
-type StatsColor = "blue" | "indigo" | "orange" | "green";
+type StatsColor = "blue" | "indigo" | "orange" | "green" | "purple";
 
 interface Props {
   title: string;
@@ -11,6 +11,7 @@ interface Props {
   isLoading?: boolean;
   color?: StatsColor;
   label?: string;
+  trend?: string;
 }
 
 const {
@@ -20,42 +21,69 @@ const {
   isLoading = false,
   color = "blue",
   label = "",
+  trend = "",
 } = defineProps<Props>();
 
-const colors: Record<StatsColor, string> = {
-  blue: "bg-primary/10 text-primary",
-  indigo: "bg-indigo-500/10 text-indigo-500",
-  orange: "bg-orange-500/10 text-orange-500",
-  green: "bg-emerald-500/10 text-emerald-500",
+const textColors: Record<StatsColor, string> = {
+  blue: "text-blue-600 dark:text-blue-400 dark:drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]",
+  indigo:
+    "text-indigo-600 dark:text-indigo-400 dark:drop-shadow-[0_0_12px_rgba(129,140,248,0.6)]",
+  orange:
+    "text-orange-600 dark:text-orange-400 dark:drop-shadow-[0_0_12px_rgba(251,146,60,0.6)]",
+  green:
+    "text-emerald-600 dark:text-emerald-400 dark:drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]",
+  purple:
+    "text-purple-600 dark:text-purple-400 dark:drop-shadow-[0_0_12px_rgba(192,132,252,0.6)]",
+};
+
+const iconColors: Record<StatsColor, string> = {
+  blue: "text-blue-500",
+  indigo: "text-indigo-500",
+  orange: "text-orange-500",
+  green: "text-emerald-500",
+  purple: "text-purple-500",
 };
 </script>
 
 <template>
-  <UiBaseCard class="border-border p-5 shadow-sm">
+  <div
+    class="group border-border bg-card hover:border-foreground/10 hover:bg-muted/50 relative overflow-hidden rounded-xl border p-6 transition-all"
+  >
     <div class="flex items-center justify-between">
-      <div>
-        <p class="text-muted-foreground text-sm font-medium">{{ title }}</p>
-        <template v-if="isLoading">
-          <div class="bg-muted mt-1 h-8 w-16 animate-pulse rounded" />
-        </template>
-        <template v-else>
-          <div class="mt-1 flex items-baseline gap-2">
-            <span class="text-card-foreground text-2xl font-bold">{{
-              value
-            }}</span>
-            <span
-              v-if="label"
-              class="text-muted-foreground text-xs font-normal"
-            >
-              {{ label }}
-            </span>
-          </div>
-        </template>
-      </div>
-      <div :class="cn('rounded-lg p-2', colors[color])">
-        <!-- Render the icon component using the built-in component tag -->
-        <component :is="icon" class="h-5 w-5" />
-      </div>
+      <h3 class="text-muted-foreground text-sm font-medium">{{ title }}</h3>
+      <component
+        :is="icon"
+        :class="cn('h-4 w-4 opacity-50', iconColors[color])"
+      />
     </div>
-  </UiBaseCard>
+
+    <div class="mt-4 flex items-baseline gap-2">
+      <template v-if="isLoading">
+        <div class="bg-muted h-12 w-24 animate-pulse rounded-md" />
+      </template>
+      <template v-else>
+        <span
+          :class="cn('text-5xl font-bold tracking-tighter', textColors[color])"
+        >
+          {{ value }}
+        </span>
+      </template>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between text-[10px]">
+      <span
+        class="text-muted-foreground/70 font-semibold tracking-widest uppercase"
+        >{{ title }}</span
+      >
+      <span
+        v-if="trend"
+        :class="cn('flex items-center gap-1 font-medium', iconColors[color])"
+      >
+        ↗ {{ trend }}
+      </span>
+      <span v-else-if="label" class="text-muted-foreground font-medium">
+        {{ label }}
+      </span>
+    </div>
+  </div>
 </template>

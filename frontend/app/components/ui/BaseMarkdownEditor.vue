@@ -81,7 +81,7 @@ const onInput = (event: Event) => {
       <VueMarkdown
         v-else-if="modelValue"
         :source="modelValue"
-        class="prose prose-sm bg-muted/30 min-h-[200px] max-w-none p-4"
+        class="prose dark:prose-invert prose-sm bg-muted/30 min-h-[200px] max-w-none p-4"
       />
       <div v-else class="bg-muted/30 min-h-[200px] p-4">
         <span class="text-muted-foreground text-sm italic">

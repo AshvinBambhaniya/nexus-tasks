@@ -4,11 +4,8 @@ import {
   Building,
   Loader2,
   Check,
-  User as UserIcon,
   Mail,
-  Fingerprint,
   Camera,
-  ExternalLink,
 } from "lucide-vue-next";
 import { useUsersStore } from "~/stores/user";
 import { useWorkspaces } from "~/composables/useWorkspaces";
@@ -70,60 +67,58 @@ const userInitial = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-8 pb-10">
+  <div class="space-y-12">
     <!-- Profile Section -->
-    <section>
-      <div class="mb-4">
-        <h2 class="text-foreground text-lg font-semibold">
+    <section
+      class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+    >
+      <div class="lg:w-1/3">
+        <h2 class="text-foreground text-lg font-semibold tracking-tight">
           Personal Information
         </h2>
-        <p class="text-muted-foreground text-sm">
-          Update your profile details and how others see you.
+        <p class="text-muted-foreground mt-1 text-sm">
+          Update your profile details and how others see you on the platform.
         </p>
       </div>
 
-      <UiBaseCard
-        class="border-border overflow-hidden shadow-sm transition-shadow hover:shadow-md"
-      >
-        <div class="p-8">
-          <div
-            class="border-border flex flex-col items-center gap-8 border-b pb-8 sm:flex-row"
-          >
+      <UiBaseCard class="border-border bg-card lg:w-2/3">
+        <div class="p-6">
+          <div class="flex flex-col gap-8 sm:flex-row sm:items-center">
             <div class="group relative">
               <UiBaseAvatar
                 :fallback="userInitial"
-                class="border-card ring-border h-28 w-28 border-4 text-3xl shadow-lg ring-1"
+                class="h-24 w-24 border-0 text-3xl shadow-sm"
               />
               <button
-                class="border-border bg-card text-muted-foreground hover:bg-muted hover:text-primary absolute right-0 bottom-0 rounded-full border p-2 shadow-sm transition-all"
+                class="border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground absolute right-0 bottom-0 rounded-full border p-2 shadow-sm transition-colors"
+                title="Update avatar"
               >
                 <Camera class="h-4 w-4" />
               </button>
             </div>
 
-            <div class="space-y-2 text-center sm:text-left">
-              <h3 class="text-card-foreground text-2xl font-bold">
+            <div class="space-y-1">
+              <h3 class="text-card-foreground text-xl font-bold">
                 {{ user?.full_name || "Nexus User" }}
               </h3>
               <div
-                class="text-muted-foreground flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start"
+                class="text-muted-foreground flex flex-wrap items-center gap-4 text-sm"
               >
                 <span class="flex items-center gap-1.5">
-                  <Mail class="text-muted-foreground/60 h-4 w-4" />
+                  <Mail class="h-4 w-4" />
                   {{ user?.email }}
                 </span>
-                <span class="flex items-center gap-1.5 font-mono text-xs">
-                  <Fingerprint class="text-muted-foreground/60 h-4 w-4" />
-                  ID: {{ user?.id }}
-                </span>
               </div>
-              <div class="pt-1">
+              <div class="flex items-center gap-2 pt-2">
                 <UiBaseBadge
                   variant="secondary"
-                  class="bg-emerald-500/10 text-[10px] font-bold text-emerald-500 uppercase ring-1 ring-emerald-500/20"
+                  class="bg-emerald-500/10 text-[10px] font-bold text-emerald-600 uppercase dark:text-emerald-500"
                 >
                   Active Account
                 </UiBaseBadge>
+                <span class="text-muted-foreground/60 font-mono text-xs">
+                  ID: {{ user?.id }}
+                </span>
               </div>
             </div>
           </div>
@@ -133,62 +128,39 @@ const userInitial = computed(() => {
               <div class="space-y-2">
                 <UiBaseLabel
                   for="fullName"
-                  class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
+                  class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
                   >Full Name</UiBaseLabel
                 >
-                <div class="relative">
-                  <UserIcon
-                    class="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-                  />
-                  <UiBaseInput
-                    id="fullName"
-                    v-model="fullName"
-                    placeholder="John Doe"
-                    class="focus:ring-primary/10 pl-10 transition-all focus:ring-2"
-                  />
-                </div>
+                <UiBaseInput
+                  id="fullName"
+                  v-model="fullName"
+                  placeholder="John Doe"
+                />
               </div>
               <div class="space-y-2">
                 <UiBaseLabel
                   for="email"
-                  class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
+                  class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
                   >Email Address</UiBaseLabel
                 >
-                <div class="relative">
-                  <Mail
-                    class="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-                  />
-                  <UiBaseInput
-                    id="email"
-                    v-model="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    class="focus:ring-primary/10 pl-10 transition-all focus:ring-2"
-                  />
-                </div>
+                <UiBaseInput
+                  id="email"
+                  v-model="email"
+                  type="email"
+                  placeholder="john@example.com"
+                />
               </div>
             </div>
 
-            <div
-              class="border-border flex items-center justify-end border-t pt-6"
-            >
+            <div class="flex items-center justify-end pt-4">
               <UiBaseButton
                 type="submit"
                 :disabled="isUpdating"
-                class="min-w-[140px] shadow-sm transition-all active:scale-95"
+                class="min-w-[120px]"
               >
                 <Loader2 v-if="isUpdating" class="mr-2 h-4 w-4 animate-spin" />
-                <Check
-                  v-else-if="isSuccess"
-                  class="text-primary-foreground mr-2 h-4 w-4"
-                />
-                {{
-                  isUpdating
-                    ? "Saving..."
-                    : isSuccess
-                      ? "Changes Saved"
-                      : "Save Changes"
-                }}
+                <Check v-else-if="isSuccess" class="mr-2 h-4 w-4" />
+                {{ isUpdating ? "Saving..." : isSuccess ? "Saved" : "Save" }}
               </UiBaseButton>
             </div>
           </form>
@@ -196,125 +168,107 @@ const userInitial = computed(() => {
       </UiBaseCard>
     </section>
 
+    <div class="border-border border-t" />
+
     <!-- Workspace Section -->
-    <section>
-      <div class="mb-4">
-        <h2 class="text-foreground text-lg font-semibold">Current Workspace</h2>
-        <p class="text-muted-foreground text-sm">
+    <section
+      class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+    >
+      <div class="lg:w-1/3">
+        <h2 class="text-foreground text-lg font-semibold tracking-tight">
+          Current Workspace
+        </h2>
+        <p class="text-muted-foreground mt-1 text-sm">
           Settings and information about your active project environment.
         </p>
       </div>
 
-      <UiBaseCard class="border-border shadow-sm">
-        <div class="p-8">
-          <div v-if="activeWorkspace" class="grid gap-8 sm:grid-cols-2">
-            <div class="space-y-3">
-              <UiBaseLabel
-                class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
-                >Workspace Identity</UiBaseLabel
-              >
+      <UiBaseCard class="border-border bg-card lg:w-2/3">
+        <div class="p-6">
+          <div
+            v-if="activeWorkspace"
+            class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div class="flex items-center gap-4">
               <div
-                class="border-border bg-muted/50 hover:bg-muted flex items-center gap-4 rounded-xl border p-4 transition-colors"
+                class="border-border bg-background text-foreground flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border shadow-sm"
               >
+                <Building class="h-6 w-6" />
+              </div>
+              <div>
                 <div
-                  class="border-primary/20 bg-card text-primary flex h-12 w-12 items-center justify-center rounded-lg border shadow-sm"
+                  class="text-card-foreground flex items-center gap-2 text-base font-bold"
                 >
-                  <Building class="h-6 w-6" />
+                  {{ activeWorkspace.name }}
+                  <UiBaseBadge
+                    class="bg-primary/10 text-primary hover:bg-primary/20 text-[10px]"
+                    >Team</UiBaseBadge
+                  >
                 </div>
-                <div>
-                  <div class="text-card-foreground text-sm font-bold">
-                    {{ activeWorkspace.name }}
-                  </div>
-                  <div class="text-muted-foreground text-xs italic">
-                    Workspace ID: #{{ activeWorkspace.id }}
-                  </div>
+                <div class="text-muted-foreground mt-0.5 text-xs">
+                  ID: {{ activeWorkspace.id }}
                 </div>
               </div>
             </div>
-
-            <div class="space-y-3">
-              <UiBaseLabel
-                class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
-                >Environment Type</UiBaseLabel
-              >
-              <div
-                class="border-border bg-muted/50 hover:bg-muted flex items-center gap-4 rounded-xl border p-4 transition-colors"
-              >
-                <div
-                  class="bg-card flex h-12 w-12 items-center justify-center rounded-lg border border-purple-500/20 text-purple-500 shadow-sm"
-                >
-                  <ExternalLink class="h-6 w-6" />
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-card-foreground text-sm font-bold capitalize"
-                      >{{ activeWorkspace.type.toLowerCase() }}</span
-                    >
-                    <UiBaseBadge class="bg-primary/10 text-primary text-[10px]"
-                      >Team</UiBaseBadge
-                    >
-                  </div>
-                  <div class="text-muted-foreground text-xs">
-                    Collaborative workspace
-                  </div>
-                </div>
-              </div>
+            <div>
+              <UiBaseButton variant="outline" size="sm" to="/workspaces">
+                Switch Workspace
+              </UiBaseButton>
             </div>
           </div>
 
           <div
             v-else
-            class="border-border bg-muted/50 rounded-xl border border-dashed p-12 text-center"
+            class="flex flex-col items-center justify-center p-8 text-center"
           >
-            <Building class="text-muted mx-auto mb-4 h-12 w-12" />
-            <h3 class="text-card-foreground font-medium">
+            <Building class="text-muted-foreground/50 mx-auto mb-3 h-10 w-10" />
+            <h3 class="text-card-foreground text-sm font-medium">
               No Active Workspace
             </h3>
             <p class="text-muted-foreground mt-1 text-sm text-pretty">
-              Select or create a workspace to see details here.
+              Select or create a workspace to manage settings.
             </p>
             <UiBaseButton
               variant="outline"
               size="sm"
               class="mt-4"
               to="/workspaces"
-              >Go to Workspaces</UiBaseButton
             >
+              Go to Workspaces
+            </UiBaseButton>
           </div>
         </div>
       </UiBaseCard>
     </section>
 
+    <div class="border-border border-t" />
+
     <!-- Danger Zone -->
-    <section>
-      <div class="mb-4">
-        <h2 class="text-destructive text-lg font-semibold">
+    <section
+      class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+    >
+      <div class="lg:w-1/3">
+        <h2 class="text-destructive text-lg font-semibold tracking-tight">
           Security & Sessions
         </h2>
-        <p class="text-destructive/80 text-sm">
+        <p class="text-muted-foreground mt-1 text-sm">
           Sensitive actions that affect your account access.
         </p>
       </div>
 
       <div
-        class="border-destructive/20 bg-destructive/10 ring-destructive/20 overflow-hidden rounded-xl border shadow-sm ring-1"
+        class="border-destructive/30 bg-destructive/5 overflow-hidden rounded-xl border lg:w-2/3"
       >
         <div
-          class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
+          class="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div class="space-y-1 text-center sm:text-left">
-            <h3 class="text-destructive font-bold">Sign out of Nexus</h3>
-            <p class="text-destructive/80 text-sm">
-              You will be redirected to the login page. All active sessions will
-              remain, but you will need to re-authenticate on this device.
+          <div>
+            <h3 class="text-destructive font-semibold">Sign out of Nexus</h3>
+            <p class="text-muted-foreground mt-1 text-sm">
+              You will be redirected to the login page.
             </p>
           </div>
-          <UiBaseButton
-            variant="destructive"
-            class="shadow-destructive/20 min-w-[140px] shadow-md active:scale-95"
-            @click="logout"
-          >
+          <UiBaseButton variant="destructive" @click="logout">
             <LogOut class="mr-2 h-4 w-4" /> Log out
           </UiBaseButton>
         </div>
