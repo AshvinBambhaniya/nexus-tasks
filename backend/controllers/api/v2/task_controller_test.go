@@ -233,7 +233,7 @@ func TestTaskController_GetTask(t *testing.T) {
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
-				mt.On("GetTask", uid, taskID).Return(models.Task{ID: taskID}, nil)
+				mt.On("GetTask", uid, taskID).Return(models.TaskWithAssignee{Task: models.Task{ID: taskID}}, nil)
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -262,7 +262,7 @@ func TestTaskController_GetTask(t *testing.T) {
 			},
 			taskIDParam: taskID.String(),
 			setupMocks: func(mt *mockTaskService) {
-				mt.On("GetTask", uid, taskID).Return(models.Task{}, errors.New("not found"))
+				mt.On("GetTask", uid, taskID).Return(models.TaskWithAssignee{}, errors.New("not found"))
 			},
 			expectedStatus: http.StatusNotFound,
 		},

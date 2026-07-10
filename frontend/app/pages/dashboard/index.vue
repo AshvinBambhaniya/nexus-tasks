@@ -172,7 +172,7 @@ const getStatusLabel = (status: string) => status.replace("_", " ");
             <NuxtLink
               v-for="project in projects.slice(0, 6)"
               :key="project.id"
-              :to="`/dashboard?projectId=${project.id}`"
+              :to="`/projects/${project.id}`"
               class="block"
             >
               <div

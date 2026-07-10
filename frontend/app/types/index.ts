@@ -77,6 +77,7 @@ export interface ProjectMember {
   user_id: string;
   role: ProjectRole;
   email: string; // Flattened for display
+  full_name?: string;
   is_direct: boolean;
 }
 
@@ -160,4 +161,32 @@ export interface ApiError {
   response?: {
     data?: JSendResponse<unknown>;
   };
+}
+
+export enum NotificationEntityType {
+  TASK = "TASK",
+  COMMENT = "COMMENT",
+  PROJECT = "PROJECT",
+}
+
+export enum NotificationType {
+  ASSIGNED = "ASSIGNED",
+  MENTIONED = "MENTIONED",
+  STATUS_CHANGED = "STATUS_CHANGED",
+  COMMENT_ADDED = "COMMENT_ADDED",
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  entity_id: string;
+  entity_type: NotificationEntityType;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  is_read: boolean;
+  is_cleared: boolean;
+  created_at: string;
+  updated_at: string;
 }

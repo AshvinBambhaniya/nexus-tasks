@@ -91,7 +91,7 @@ const handleRemoveMember = async (userId: string) => {
             <div
               class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold"
             >
-              {{ (member.email || "?")[0].toUpperCase() }}
+              {{ (member.email || "?")?.[0]?.toUpperCase() || "?" }}
             </div>
             <div>
               <div class="text-foreground text-sm font-semibold tracking-tight">

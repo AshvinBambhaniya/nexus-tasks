@@ -25,6 +25,9 @@ type AppConfig struct {
 	DB                 DBConfig
 	Sentry             SentryConfig
 	Mail               MailConfig
+	OpenAIKey          string `envconfig:"OPENAI_API_KEY"`
+	OpenAIBaseURL      string `envconfig:"OPENAI_BASE_URL"`
+	OpenAIModel        string `envconfig:"OPENAI_MODEL" default:"gpt-4o-mini"`
 }
 
 // GetConfig Collects all configs

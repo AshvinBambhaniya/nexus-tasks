@@ -205,7 +205,7 @@ const handleRemove = async (userId: string) => {
                   <UiBaseAvatar
                     :fallback="
                       (member.user.full_name ||
-                        member.user.email)[0].toUpperCase()
+                        member.user.email)?.[0]?.toUpperCase() || '?'
                     "
                     class="h-10 w-10 text-sm font-medium"
                   />

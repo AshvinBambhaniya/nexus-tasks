@@ -1,40 +1,73 @@
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { Loader2 } from "lucide-vue-next";
 import type { Task } from "~/types";
+import { TaskStatus } from "~/types";
+import TasksToolbar from "~/components/tasks/TasksToolbar.vue";
+import TasksTable from "~/components/tasks/TasksTable.vue";
 
 definePageMeta({ layout: "dashboard" });
 
 const router = useRouter();
-const { tasks, isLoading } = useTasks();
+const workspaceStore = useWorkspaceStore();
+const { tasks, isLoading } = useMyTasks();
 
-const handleCreateClick = () => {
-  // If we don't have a projectId, we might need a project selector or just redirect to projects
-  router.push("/projects");
-};
+const searchQuery = ref("");
+
+const filteredTasks = computed(() => {
+  if (!searchQuery.value.trim()) return tasks.value;
+  const q = searchQuery.value.toLowerCase();
+  return tasks.value.filter((t) => t.title.toLowerCase().includes(q));
+});
 
 const handleTaskClick = (task: Task) => {
-  router.push(`/projects/${task.project_id}/tasks/${task.id}`);
+  if (task.project_id) {
+    router.push(`/projects/${task.project_id}/tasks/${task.id}`);
+  }
+};
+
+const handleToggleStatus = async (task: Task) => {
+  const newStatus =
+    task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+  const originalStatus = task.status;
+
+  // Optimistic update
+  task.status = newStatus;
+
+  try {
+    if (!task.project_id || !workspaceStore.activeWorkspaceId) return;
+
+    await useMutation(
+      `/api/v2/workspaces/${workspaceStore.activeWorkspaceId}/projects/${task.project_id}/tasks/${task.id}`,
+      {
+        method: "PATCH",
+        body: { status: newStatus },
+      }
+    );
+  } catch (e) {
+    console.error("Failed to update status", e);
+    task.status = originalStatus; // Revert
+  }
 };
 </script>
 
 <template>
-  <div class="flex h-full flex-col space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-foreground text-2xl font-bold tracking-tight">
-        All Tasks
-      </h1>
-      <UiBaseButton @click="handleCreateClick">
-        <Plus class="mr-2 h-4 w-4" /> Create Task
-      </UiBaseButton>
+  <div class="mx-auto flex h-full w-full max-w-6xl flex-col px-8 py-6">
+    <h1 class="text-foreground mb-2 text-2xl font-semibold">My Tasks</h1>
+
+    <TasksToolbar v-model:search-query="searchQuery" />
+
+    <div v-if="isLoading" class="flex flex-1 items-center justify-center">
+      <Loader2 class="text-muted-foreground h-8 w-8 animate-spin" />
     </div>
 
-    <div v-if="isLoading" class="flex h-64 items-center justify-center">
-      <div
-        class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"
+    <div v-else class="flex-1 overflow-y-auto pb-10">
+      <TasksTable
+        :tasks="filteredTasks"
+        @task-click="handleTaskClick"
+        @toggle-status="handleToggleStatus"
       />
-    </div>
-    <div v-else class="flex-1 overflow-hidden">
-      <TasksListView :tasks="tasks" @task-click="handleTaskClick" />
     </div>
   </div>
 </template>
