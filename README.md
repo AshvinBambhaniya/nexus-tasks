@@ -5,7 +5,7 @@
 <h1 align="center">Nexus Tasks</h1>
 
 <p align="center">
-  <strong>The Developer-Focused Project Management Platform</strong>
+  <strong>The AI-Powered, Extensible Project Management Platform for Developers</strong>
 </p>
 
 <p align="center">
@@ -20,51 +20,47 @@
 
 ---
 
-Nexus Tasks bridges the gap between personal productivity and team collaboration. It is designed for developers who need speed, simplicity, and a unified context for their entire workflow.
+Nexus Tasks bridges the gap between personal productivity and team collaboration. Built strictly for developers, it eliminates the configuration bloat of enterprise suites (like Jira) while providing the advanced features—like Artificial Intelligence and real-time integrations—that simple to-do apps lack.
 
 ## Why Nexus Tasks?
 
-Modern developers often struggle with two types of tools: simple to-do lists that lack collaboration features, and complex enterprise suites (like Jira) that disrupt individual flow with excessive configuration and slowness.
+Modern developers need speed, seamless communication, and automated workflows. Nexus Tasks delivers a **Hybrid Workspace** model combined with next-generation developer tooling:
 
-Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
+1.  **Unified Context:** Manage private side-projects and shared team sprints in a single interface without endless context switching.
+2.  **AI-Native Workflow:** From drafting tasks to summarizing 50-comment threads, AI is built directly into the core loop.
+3.  **Developer-First Extensibility:** Exposes a standalone Model Context Protocol (MCP) server so autonomous agents can interact with your tasks and projects.
+4.  **Simplicity over Configuration:** Opinionated agile workflows (To Do -> In Progress -> Done) allow teams to start shipping immediately.
 
-1.  **Unified Context:** Manage your private side-projects and shared team sprints in a single interface without constant context switching.
-2.  **Developer Experience:** Built for speed. Features Markdown support, keyboard navigation, and a clean UI that gets out of your way.
-3.  **Simplicity over Configuration:** Opinionated workflows (To Do -> In Progress -> Done) allow teams to start shipping immediately without spending days setting up boards.
-4.  **Open & Extensible:** Fully open-source, built with modern standard technologies (**Go** & **Nuxt 4**), making it easy to self-host or extend.
+## Key Features
 
-## Features
+- **AI Productivity Suite:** Magic Draft task generation, one-click comment thread summarization, and automated weekly sprint reports.
+- **Model Context Protocol (MCP):** Connect your favorite AI agents (like Claude Desktop) directly to your workspaces via our standalone MCP server.
+- **Real-Time Collaboration:** Instant push updates, a unified notification inbox, and an `@mention` engine powered by WebSockets.
+- **Multiple Views:** Toggle seamlessly between visual Kanban boards and high-density Task Tables.
+- **Secure Rich Text Editing:** Write robust specs and comments using a safe, DOMPurify-sanitized Markdown editor.
+- **Role-Based Access & Workspaces:** Granular permissions (Admin/Member/Viewer) operating across distinct Personal and Team workspaces.
 
-- **Hybrid Workspaces:** Distinct environments for Personal and Team work.
-- **Real-Time Sync:** Instant updates across clients using WebSockets.
-- **Kanban & Lists:** Toggle between visual boards and structured lists.
-- **Markdown Editor:** Write tasks and comments using standard Markdown.
-- **Role-Based Access:** Granular permissions (Admin/Member/Viewer) for projects and teams.
-- **Modular Background Processing:** Optional background workers for email invitations and system tasks.
-
-## Tech Stack
+## Tech Stack & Architecture
 
 **Frontend**
-
-- **Nuxt 4** (Vue 3)
-- **TypeScript**
+- **Nuxt 4** (Vue 3) / **TypeScript**
 - **Tailwind CSS 4**
+- **TipTap / DOMPurify / Marked** (Rich Text & Safe Markdown)
 - **Pinia** (State Management)
-- **Lucide Vue Next** (Icons)
 
 **Backend**
-
 - **Go 1.26** (Fiber Framework)
 - **Goqu** (SQL Builder & Unit of Work)
-- **Watermill** (Event-Driven Messaging)
+- **OpenAI API** (AI Feature Integrations)
+- **Watermill & Redis** (Pub/Sub Event-Driven Background Workers)
 - **PostgreSQL / MySQL / SQLite**
-- **Redis** (Message Broker)
-- **WebSockets**
+- **WebSockets** (Real-Time Hub)
+
+*The backend utilizes a decoupled event-driven architecture. Background workers handle intensive tasks (like SMTP Welcome Emails and Workspace Invitations) via a Dead Letter Queue (DLQ) enabled Pub/Sub system.*
 
 ## Getting Started
 
 ### Prerequisites
-
 - Docker & Docker Compose
 - Node.js 22+
 - Go 1.26+
@@ -74,28 +70,23 @@ Nexus Tasks takes a different approach by offering a **Hybrid Workspace** model:
 To run the entire stack (Frontend, Backend, Database, Redis, Mailpit) in development mode:
 
 1. Clone the repository:
-
    ```bash
    git clone https://github.com/AshvinBambhaniya/nexus-tasks.git
-   ```
-
-2. Navigate to the project directory:
-
-   ```bash
    cd nexus-tasks
    ```
 
-3. Start the services using Docker Compose:
+2. Configure your environment (optional but recommended for AI features):
+   Add your `OPENAI_API_KEY` into `backend/.env.docker` or `backend/.env`.
+
+3. Start the services:
    ```bash
    docker-compose up --build
    ```
 
 The application will be available at:
-
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- API: [http://localhost:8000](http://localhost:8000)
-- Mailpit (Email Preview): [http://localhost:8025](http://localhost:8025)
-- Adminer (DB Management): [http://localhost:8080](http://localhost:8080)
+- **Frontend:** [http://localhost:3000](http://localhost:3000)
+- **API:** [http://localhost:8000](http://localhost:8000)
+- **Mailpit (Local Email Preview):** [http://localhost:8025](http://localhost:8025)
 
 ### Local Development Setup
 
@@ -135,6 +126,11 @@ Start the background worker:
 
 ```bash
 go run app.go worker
+```
+
+**Start the MCP Server (For Agent Integrations):**
+```bash
+go run app.go mcp
 ```
 
 #### 2. Frontend
@@ -177,25 +173,18 @@ helm install nexus-tasks nexus-tasks/nexus-tasks
 
 For detailed Kubernetes configuration and custom values, see [deploy/helm/nexus-tasks/README.md](deploy/helm/nexus-tasks/README.md).
 
-### Local Kubernetes Deployment (Development)
-
-If you are developing the Helm chart locally:
-
-```bash
-cd deploy/helm/nexus-tasks
-helm dependency update
-helm install nexus .
-```
 
 ## Contributing
 
-Contributions are welcome! Please read the source code and existing issues before contributing.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+Contributions are heavily encouraged! Please read the source code and existing issues before contributing.
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/amazing-feature`).
 3. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/).
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
 
 ## License
 
