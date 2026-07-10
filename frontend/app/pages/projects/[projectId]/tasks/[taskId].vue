@@ -3,18 +3,12 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
-  Settings2,
   Clock,
-  User as UserIcon,
   CheckCircle2,
-  Circle,
-  AlertCircle,
   Send,
 } from "lucide-vue-next";
-import type { Component } from "vue";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import VueMarkdown from "vue-markdown-render";
-import { cn } from "~/utils/cn";
 import type { TaskPriority } from "~/types";
 import { TaskStatus } from "~/types";
 import { useUsersStore } from "~/stores/user";
@@ -48,6 +42,7 @@ const commentContent = ref("");
 const isSubmittingComment = ref(false);
 const isEditingTitle = ref(false);
 const titleValue = ref("");
+const titleInput = ref<HTMLInputElement | null>(null);
 
 watch(
   task,
@@ -82,11 +77,19 @@ const handleUpdateDueDate = async (dateStr: string) => {
 const handleUpdateTitle = async () => {
   if (!titleValue.value.trim() || titleValue.value === task.value?.title) {
     isEditingTitle.value = false;
+    titleValue.value = task.value?.title || "";
     return;
   }
   await updateTask(taskId.value, { title: titleValue.value });
   isEditingTitle.value = false;
   await refreshTask();
+};
+
+const enableTitleEdit = () => {
+  isEditingTitle.value = true;
+  nextTick(() => {
+    titleInput.value?.focus();
+  });
 };
 
 const handleDelete = async () => {
@@ -120,17 +123,6 @@ const handleDeleteComment = async (id: string) => {
   }
 };
 
-const statusIcons: Record<TaskStatus, Component> = {
-  [TaskStatus.BACKLOG]: Clock,
-  [TaskStatus.TODO]: Circle,
-  [TaskStatus.IN_PROGRESS]: AlertCircle,
-  [TaskStatus.DONE]: CheckCircle2,
-};
-
-const statusIcon = computed(() =>
-  task.value ? statusIcons[task.value.status] || Circle : Circle
-);
-
 const authorName = computed(() => {
   if (!task.value?.author) return "Unknown";
   return task.value.author.full_name || task.value.author.email.split("@")[0];
@@ -144,254 +136,284 @@ const authorName = computed(() => {
   <div v-else-if="!task" class="text-muted-foreground p-8 text-center">
     Task not found
   </div>
-  <div v-else class="mx-auto max-w-6xl space-y-6 pb-20">
-    <!-- Header -->
-    <div class="space-y-4">
-      <NuxtLink
-        :to="`/projects/${projectId}`"
-        class="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1 text-sm"
-      >
-        <ArrowLeft class="h-4 w-4" /> Back to project
-      </NuxtLink>
-
-      <div class="flex flex-col gap-2">
-        <div class="flex items-start justify-between gap-4">
-          <div v-if="isEditingTitle" class="flex flex-1 gap-2">
-            <UiBaseInput
-              v-model="titleValue"
-              class-name="h-12 text-2xl font-bold"
-              auto-focus
-              @keyup.enter="handleUpdateTitle"
-              @blur="handleUpdateTitle"
-            />
-            <UiBaseButton @click="handleUpdateTitle">Save</UiBaseButton>
-            <UiBaseButton variant="ghost" @click="isEditingTitle = false">
-              Cancel
-            </UiBaseButton>
-          </div>
-          <h1
-            v-else
-            class="group text-foreground flex items-center gap-2 text-3xl font-bold"
-          >
-            {{ task.title }}
-            <span class="text-muted-foreground/70 font-normal"
-              >#{{ task.number }}</span
-            >
-            <button
-              class="hover:bg-muted rounded p-1 opacity-0 transition-all group-hover:opacity-100"
-              @click="isEditingTitle = true"
-            >
-              <Settings2 class="text-muted-foreground h-4 w-4" />
-            </button>
-          </h1>
-
-          <div class="flex shrink-0 gap-2">
-            <UiBaseButton
-              v-if="task.status === TaskStatus.DONE"
-              variant="outline"
-              size="sm"
-              class="whitespace-nowrap"
-              @click="handleUpdateStatus(TaskStatus.TODO)"
-            >
-              <ArrowLeft class="mr-2 h-4 w-4" />
-              Reopen Task
-            </UiBaseButton>
-            <UiBaseButton
-              v-else
-              variant="primary"
-              size="sm"
-              class="!hover:bg-green-700 !bg-green-600 whitespace-nowrap !shadow-none"
-              @click="handleUpdateStatus(TaskStatus.DONE)"
-            >
-              <CheckCircle2 class="mr-2 h-4 w-4" />
-              Complete Task
-            </UiBaseButton>
-            <UiBaseButton
-              variant="destructive"
-              size="sm"
-              class="whitespace-nowrap"
-              @click="handleDelete"
-            >
-              <Trash2 class="mr-2 h-4 w-4" />
-              Delete Task
-            </UiBaseButton>
-          </div>
-        </div>
-
-        <div
-          class="border-border flex flex-wrap items-center gap-3 border-b pb-6"
+  <div v-else class="mx-auto mt-4 flex max-w-6xl flex-col gap-8 pb-20">
+    <!-- Header Row (Breadcrumbs & Actions) -->
+    <div class="border-border flex items-center justify-between border-b pb-4">
+      <div class="flex items-center gap-4">
+        <NuxtLink
+          :to="`/projects/${projectId}`"
+          class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
         >
-          <UiBaseBadge
-            :class="
-              cn(
-                'flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors',
-                task.status === TaskStatus.DONE
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-primary/10 text-primary hover:bg-primary/20'
-              )
-            "
-          >
-            <component :is="statusIcon" class="h-4 w-4" />
-            {{ task.status.replace("_", " ") }}
-          </UiBaseBadge>
-          <span
-            class="text-muted-foreground flex items-center gap-1.5 text-sm font-medium"
-          >
-            <UserIcon class="h-4 w-4" />
-            <span class="text-foreground font-semibold">
-              {{ authorName }}
-            </span>
-            opened this task
-            {{ formatDistanceToNow(new Date(task.created_at)) }} ago •
-            {{ comments.length }} comments
-          </span>
-        </div>
+          <ArrowLeft class="h-4 w-4" /> Back to board
+        </NuxtLink>
+        <span class="text-muted-foreground/50">/</span>
+        <span class="text-muted-foreground font-mono text-sm tracking-tight"
+          >PROJ-{{ task.number }}</span
+        >
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          v-if="task.status === TaskStatus.DONE"
+          class="text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+          @click="handleUpdateStatus(TaskStatus.TODO)"
+        >
+          <ArrowLeft class="h-4 w-4" />
+          Reopen
+        </button>
+        <button
+          v-else
+          class="flex items-center gap-1.5 rounded-md border border-green-600/20 bg-green-600/10 px-3 py-1.5 text-sm font-medium text-green-600 transition-colors hover:bg-green-600/20"
+          @click="handleUpdateStatus(TaskStatus.DONE)"
+        >
+          <CheckCircle2 class="h-4 w-4" />
+          Complete
+        </button>
+
+        <button
+          class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-2 rounded-md p-1.5 transition-colors"
+          title="Delete Task"
+          @click="handleDelete"
+        >
+          <Trash2 class="h-4 w-4" />
+        </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
-      <!-- Main Stream -->
-      <div class="space-y-8 lg:col-span-3">
-        <!-- Description -->
-        <div class="flex gap-4">
-          <UiBaseAvatar
-            :fallback="authorName[0].toUpperCase()"
-            class-name="mt-1 h-10 w-10 border border-border shadow-sm"
+    <!-- Main Content Area -->
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-4">
+      <!-- Left Column: Title, Description, Activity -->
+      <div class="space-y-10 lg:col-span-3">
+        <!-- Title -->
+        <div class="group relative">
+          <input
+            v-if="isEditingTitle"
+            ref="titleInput"
+            v-model="titleValue"
+            class="text-foreground border-primary/50 focus:border-primary w-full border-b bg-transparent pb-1 text-3xl font-bold tracking-tight transition-colors outline-none"
+            @keyup.enter="handleUpdateTitle"
+            @blur="handleUpdateTitle"
+            @keyup.esc="isEditingTitle = false"
           />
-          <div class="flex-1">
-            <div
-              class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
-            >
-              <div
-                class="border-border bg-muted/50 flex items-center justify-between border-b px-4 py-2"
-              >
-                <span class="text-foreground/80 text-sm font-semibold">
-                  Description
-                </span>
-              </div>
-              <VueMarkdown
-                v-if="task.description"
-                :source="task.description"
-                class="prose dark:prose-invert prose-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border max-w-none p-4"
-              />
-              <div v-else class="text-muted-foreground/70 p-4 italic">
-                No description provided.
-              </div>
-            </div>
+          <h1
+            v-else
+            class="text-foreground cursor-text pr-8 text-3xl leading-tight font-bold tracking-tight"
+            @click="enableTitleEdit"
+          >
+            {{ task.title }}
+          </h1>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <VueMarkdown
+            v-if="task.description"
+            :source="task.description"
+            class="prose dark:prose-invert prose-sm prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border max-w-none"
+          />
+          <div v-else class="text-muted-foreground/60 text-sm italic">
+            Add a description...
           </div>
         </div>
 
-        <!-- Comments List -->
-        <div
-          class="before:bg-border relative space-y-8 before:absolute before:top-0 before:bottom-0 before:left-[1.25rem] before:w-0.5"
-        >
-          <TasksCommentItem
-            v-for="comment in comments"
-            :key="comment.id"
-            :comment="comment"
-            :current-user-id="currentUserId"
-            @delete="handleDeleteComment"
-          />
-        </div>
+        <hr class="border-border" />
 
-        <!-- New Comment Box -->
-        <div class="border-border flex gap-4 border-t pt-8">
-          <UiBaseAvatar
-            :fallback="userStore.userData?.email?.[0].toUpperCase() || '?'"
-            class-name="mt-1 h-10 w-10 border border-border shadow-sm"
-          />
-          <div class="flex-1">
-            <form class="space-y-4" @submit.prevent="handleSubmitComment">
-              <UiBaseMarkdownEditor
-                v-model="commentContent"
-                placeholder="Add a comment..."
-                class-name="border-border shadow-sm"
-              />
-              <div class="flex justify-end">
-                <UiBaseButton
-                  type="submit"
-                  :disabled="isSubmittingComment || !commentContent.trim()"
-                  class-name="bg-primary px-6 text-primary-foreground hover:bg-primary/90"
-                >
-                  <Loader2
-                    v-if="isSubmittingComment"
-                    class="mr-2 h-4 w-4 animate-spin"
-                  />
-                  <Send v-else class="mr-2 h-4 w-4" />
-                  Comment
-                </UiBaseButton>
+        <!-- Activity Stream -->
+        <div class="space-y-6">
+          <h3 class="text-foreground text-sm font-semibold">Activity</h3>
+
+          <div class="relative space-y-6 pl-4">
+            <!-- Continuous Line -->
+            <div
+              class="bg-border pointer-events-none absolute top-4 bottom-12 left-[27px] w-[1px]"
+            />
+
+            <!-- Creation Event -->
+            <div class="relative z-10 flex items-start gap-4">
+              <div class="bg-background mt-0.5">
+                <UiBaseAvatar
+                  :fallback="authorName[0].toUpperCase()"
+                  class-name="h-7 w-7 text-[10px] border border-border bg-muted text-muted-foreground"
+                />
               </div>
-            </form>
+              <div class="flex-1 pt-1">
+                <p class="text-muted-foreground text-sm">
+                  <span class="text-foreground font-medium">{{
+                    authorName
+                  }}</span>
+                  created this issue
+                  {{ formatDistanceToNow(new Date(task.created_at)) }} ago
+                </p>
+              </div>
+            </div>
+
+            <!-- Comments -->
+            <div
+              v-for="comment in comments"
+              :key="comment.id"
+              class="relative z-10 flex items-start gap-4"
+            >
+              <div class="bg-background mt-0.5">
+                <UiBaseAvatar
+                  :fallback="
+                    (comment.author?.full_name ||
+                      comment.author?.email ||
+                      '?')[0].toUpperCase()
+                  "
+                  class-name="h-7 w-7 text-[10px] border border-border"
+                />
+              </div>
+              <div class="flex-1">
+                <div
+                  class="border-border/60 bg-muted/20 group/comment overflow-hidden rounded-lg border"
+                >
+                  <div
+                    class="border-border/40 bg-muted/10 flex items-center justify-between border-b px-3 py-2"
+                  >
+                    <span class="text-muted-foreground text-xs">
+                      <span class="text-foreground font-medium">{{
+                        comment.author?.full_name || comment.author?.email
+                      }}</span>
+                      commented
+                      {{ formatDistanceToNow(new Date(comment.created_at)) }}
+                      ago
+                    </span>
+                    <button
+                      v-if="comment.author_id === currentUserId"
+                      class="text-muted-foreground hover:text-destructive opacity-0 transition-opacity group-hover/comment:opacity-100"
+                      @click="handleDeleteComment(comment.id)"
+                    >
+                      <Trash2 class="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div class="px-3 py-2.5">
+                    <VueMarkdown
+                      :source="comment.content"
+                      class="prose dark:prose-invert prose-sm max-w-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- New Comment Box -->
+            <div class="relative z-10 flex items-start gap-4 pt-4">
+              <div class="bg-background mt-1">
+                <UiBaseAvatar
+                  :fallback="
+                    userStore.userData?.email?.[0].toUpperCase() || '?'
+                  "
+                  class-name="h-7 w-7 text-[10px] border border-border"
+                />
+              </div>
+              <div class="flex-1">
+                <form @submit.prevent="handleSubmitComment">
+                  <UiBaseMarkdownEditor
+                    v-model="commentContent"
+                    placeholder="Leave a comment..."
+                    class-name="border-border shadow-sm min-h-[100px] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all"
+                  />
+                  <div class="mt-2 flex justify-end">
+                    <button
+                      type="submit"
+                      :disabled="isSubmittingComment || !commentContent.trim()"
+                      class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-8 items-center justify-center gap-1.5 rounded-md px-4 text-xs font-medium transition-colors disabled:opacity-50"
+                    >
+                      <Loader2
+                        v-if="isSubmittingComment"
+                        class="h-3.5 w-3.5 animate-spin"
+                      />
+                      <Send v-else class="h-3 w-3" />
+                      Comment
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sidebar Controls -->
-      <div class="space-y-8 lg:col-span-1">
+      <!-- Right Column: Properties Sidebar -->
+      <div
+        class="lg:border-border/50 space-y-8 lg:col-span-1 lg:border-l lg:pl-8"
+      >
         <div class="space-y-6">
-          <div class="border-border space-y-2 border-b pb-4">
-            <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-            >
-              Due Date
-            </UiBaseLabel>
-            <UiBaseInput
-              type="date"
-              :model-value="task.due_date ? task.due_date.split('T')[0] : ''"
-              @update:model-value="handleUpdateDueDate"
-            />
-          </div>
+          <h3 class="text-foreground text-sm font-semibold">Properties</h3>
 
-          <div class="border-border space-y-2 border-b pb-4">
-            <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-            >
-              Assignee
-            </UiBaseLabel>
-            <TasksSelectorsAssigneeSelector
-              :model-value="task.assignee_id"
-              :members="members"
-              @update:model-value="handleUpdateAssignee"
-            />
-          </div>
+          <div class="space-y-4">
+            <!-- Status -->
+            <div class="space-y-2">
+              <span
+                class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
+              >
+                Status
+              </span>
+              <TasksSelectorsStatusSelector
+                :model-value="task.status"
+                @update:model-value="handleUpdateStatus"
+              />
+            </div>
 
-          <div class="border-border space-y-2 border-b pb-4">
-            <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-            >
-              Status
-            </UiBaseLabel>
-            <TasksSelectorsStatusSelector
-              :model-value="task.status"
-              @update:model-value="handleUpdateStatus"
-            />
-          </div>
+            <!-- Priority -->
+            <div class="space-y-2">
+              <span
+                class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
+              >
+                Priority
+              </span>
+              <TasksSelectorsPrioritySelector
+                :model-value="task.priority"
+                @update:model-value="handleUpdatePriority"
+              />
+            </div>
 
-          <div
-            v-if="task.completed_at"
-            class="border-border space-y-2 border-b pb-4"
-          >
-            <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-            >
-              Completed On
-            </UiBaseLabel>
-            <div class="text-foreground/80 flex items-center gap-2 text-sm">
-              <CheckCircle2 class="h-4 w-4 text-green-600" />
-              {{ new Date(task.completed_at).toLocaleDateString() }}
+            <!-- Assignee -->
+            <div class="space-y-2">
+              <span
+                class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
+              >
+                Assignee
+              </span>
+              <TasksSelectorsAssigneeSelector
+                :model-value="task.assignee_id"
+                :members="members"
+                @update:model-value="handleUpdateAssignee"
+              />
+            </div>
+
+            <!-- Due Date -->
+            <div class="space-y-2">
+              <span
+                class="text-muted-foreground text-xs font-semibold tracking-wide uppercase"
+              >
+                Due Date
+              </span>
+              <div
+                class="border-border bg-background hover:bg-muted focus-within:ring-ring flex items-center rounded-md border px-3 py-2 transition-colors focus-within:ring-2"
+              >
+                <Clock class="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+                <input
+                  type="date"
+                  :value="task.due_date ? task.due_date.split('T')[0] : ''"
+                  class="text-foreground/80 w-full flex-1 cursor-pointer bg-transparent text-sm font-medium outline-none"
+                  @input="
+                    (e) =>
+                      handleUpdateDueDate((e.target as HTMLInputElement).value)
+                  "
+                />
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="border-border space-y-2 border-b pb-4">
-            <UiBaseLabel
-              class-name="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-            >
-              Priority
-            </UiBaseLabel>
-            <TasksSelectorsPrioritySelector
-              :model-value="task.priority"
-              @update:model-value="handleUpdatePriority"
-            />
+        <div v-if="task.completed_at" class="border-border/50 border-t pt-6">
+          <h3 class="text-foreground mb-3 text-sm font-semibold">Resolution</h3>
+          <div
+            class="flex items-center gap-2 text-sm font-medium text-green-600"
+          >
+            <CheckCircle2 class="h-4 w-4" />
+            Completed {{ format(new Date(task.completed_at), "MMM d, yyyy") }}
           </div>
         </div>
       </div>

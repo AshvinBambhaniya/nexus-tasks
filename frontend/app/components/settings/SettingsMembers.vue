@@ -90,177 +90,162 @@ const handleRemove = async (userId: string) => {
 </script>
 
 <template>
-  <div>
+  <div class="space-y-12 pb-10">
     <div
       v-if="!activeWorkspace"
-      class="border-border bg-muted/50 flex flex-col items-center justify-center rounded-xl border border-dashed p-16 text-center"
+      class="border-border bg-card flex flex-col items-center justify-center rounded-xl border p-12 text-center"
     >
       <div
-        class="bg-card ring-border mb-4 flex h-16 w-16 items-center justify-center rounded-full shadow-sm ring-1"
+        class="bg-muted mb-4 flex h-12 w-12 items-center justify-center rounded-full"
       >
-        <UserIcon class="text-muted-foreground/60 h-8 w-8" />
+        <UserIcon class="text-muted-foreground h-6 w-6" />
       </div>
-      <h3 class="text-card-foreground text-lg font-bold">
+      <h3 class="text-card-foreground text-sm font-semibold">
         No Workspace Selected
       </h3>
-      <p class="text-muted-foreground mt-1 max-w-xs text-sm text-pretty">
-        Select a workspace from the dashboard to manage its members and
-        permissions.
+      <p class="text-muted-foreground mt-1 max-w-xs text-sm">
+        Select a workspace from the dashboard to manage its members.
       </p>
     </div>
 
-    <div
-      v-else
-      class="animate-in fade-in slide-in-from-right-4 space-y-8 duration-300"
-    >
+    <template v-else>
       <!-- Invite Section -->
-      <section>
-        <div class="mb-4">
-          <h2 class="text-foreground text-lg font-semibold">
-            Invite New Members
+      <section
+        class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+      >
+        <div class="lg:w-1/3">
+          <h2 class="text-foreground text-lg font-semibold tracking-tight">
+            Invite Members
           </h2>
-          <p class="text-muted-foreground text-sm">
+          <p class="text-muted-foreground mt-1 text-sm">
             Expand your team by inviting collaborators to this workspace.
           </p>
         </div>
 
-        <UiBaseCard
-          class="border-border shadow-sm transition-shadow hover:shadow-md"
-        >
-          <div class="p-8">
+        <UiBaseCard class="border-border bg-card lg:w-2/3">
+          <div class="p-6">
             <form
-              class="flex flex-col gap-4 sm:flex-row"
+              class="flex flex-col gap-3 sm:flex-row"
               @submit.prevent="handleInvite"
             >
               <div class="relative flex-1">
                 <Mail
-                  class="text-muted-foreground/60 absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2"
+                  class="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
                 />
                 <UiBaseInput
                   v-model="inviteEmail"
                   placeholder="colleague@company.com"
                   type="email"
                   required
-                  class="focus:ring-primary/10 h-11 pl-10.5 transition-all focus:ring-2"
+                  class="pl-9"
                 />
               </div>
               <UiBaseButton
                 type="submit"
                 :disabled="isInviting"
-                class="h-11 px-8 shadow-sm active:scale-95"
+                class="min-w-[120px]"
               >
                 <Loader2 v-if="isInviting" class="mr-2 h-4 w-4 animate-spin" />
                 <UserPlus v-else class="mr-2 h-4 w-4" />
                 Send Invite
               </UiBaseButton>
             </form>
-            <div
-              class="text-muted-foreground/60 mt-4 flex items-center gap-2 text-[11px] font-medium"
-            >
-              <Shield class="h-3 w-3" />
-              <span>Invited members will join as "Member" by default.</span>
+            <div class="text-muted-foreground/60 mt-3 text-xs">
+              Invited members will join as "Member" by default.
             </div>
           </div>
         </UiBaseCard>
       </section>
 
+      <div class="border-border border-t" />
+
       <!-- Members List Section -->
-      <section>
-        <div class="mb-4 flex items-end justify-between">
-          <div>
-            <h2 class="text-foreground text-lg font-semibold">
-              Workspace Members
-            </h2>
-            <p class="text-muted-foreground text-sm">
-              A list of all users with access to this environment.
-            </p>
-          </div>
-          <div
-            class="bg-primary/10 text-primary rounded-md px-2 py-1 text-xs font-bold"
-          >
-            {{ members?.length || 0 }} Total
-          </div>
+      <section
+        class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+      >
+        <div class="lg:w-1/3">
+          <h2 class="text-foreground text-lg font-semibold tracking-tight">
+            Workspace Members
+          </h2>
+          <p class="text-muted-foreground mt-1 text-sm">
+            A list of all users with access to this environment.
+          </p>
         </div>
 
-        <UiBaseCard class="border-border overflow-hidden shadow-sm">
-          <div class="border-border bg-muted/30 border-b p-4">
-            <div class="relative max-w-md">
+        <UiBaseCard class="border-border bg-card overflow-hidden lg:w-2/3">
+          <div class="border-border bg-muted/30 border-b p-3">
+            <div class="relative w-full sm:max-w-xs">
               <Search
                 class="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
               />
-              <UiBaseInput
+              <input
                 v-model="searchQuery"
+                type="text"
                 placeholder="Filter members..."
-                class="bg-card focus:ring-primary/10 h-9 border-none pl-9 shadow-sm focus:ring-1"
+                class="bg-background border-border text-foreground placeholder:text-muted-foreground/60 focus:ring-primary/20 w-full rounded-md border py-1.5 pr-3 pl-9 text-sm transition-colors focus:ring-2 focus:outline-none"
               />
             </div>
           </div>
 
           <div
             v-if="isLoading"
-            class="flex flex-col items-center justify-center p-20"
+            class="flex flex-col items-center justify-center p-12"
           >
-            <Loader2 class="text-primary/20 h-10 w-10 animate-spin" />
-            <p class="text-muted-foreground/60 mt-4 text-sm font-medium">
-              Loading directory...
-            </p>
+            <Loader2 class="text-muted-foreground/40 h-8 w-8 animate-spin" />
           </div>
 
           <div v-else class="divide-border divide-y">
             <div
               v-for="member in filteredMembers"
               :key="member.user_id"
-              class="group hover:bg-primary/5 flex items-center justify-between p-6 transition-all"
+              class="hover:bg-muted/30 flex items-center justify-between p-4 transition-colors"
             >
-              <div class="flex items-center gap-5">
+              <div class="flex items-center gap-4">
                 <div class="relative">
                   <UiBaseAvatar
                     :fallback="
                       (member.user.full_name ||
                         member.user.email)[0].toUpperCase()
                     "
-                    class="border-border bg-card text-primary group-hover:ring-primary/20 h-12 w-12 border font-bold shadow-sm ring-2 ring-transparent transition-all"
+                    class="h-10 w-10 text-sm font-medium"
                   />
                   <div
                     v-if="member.role === 'ADMIN'"
-                    class="bg-primary text-primary-foreground ring-card absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full ring-2"
+                    class="bg-primary text-primary-foreground ring-card absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full ring-2"
                   >
-                    <Shield class="h-3 w-3" />
+                    <Shield class="h-2 w-2" />
                   </div>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-card-foreground font-bold">{{
-                      member.user.full_name || member.user.email.split("@")[0]
-                    }}</span>
+                    <span class="text-card-foreground text-sm font-semibold">
+                      {{
+                        member.user.full_name || member.user.email.split("@")[0]
+                      }}
+                    </span>
                     <UiBaseBadge
                       v-if="member.user.id === userStore.userData?.id"
-                      class="bg-muted text-muted-foreground text-[9px] font-black uppercase"
-                      >You</UiBaseBadge
+                      variant="secondary"
+                      class="px-1.5 py-0.5 text-[9px] leading-none font-bold uppercase"
                     >
+                      You
+                    </UiBaseBadge>
                   </div>
-                  <div
-                    class="text-muted-foreground group-hover:text-primary/70 text-sm transition-colors"
-                  >
+                  <div class="text-muted-foreground text-xs">
                     {{ member.user.email }}
                   </div>
                 </div>
               </div>
 
-              <div class="flex items-center gap-6">
+              <div class="flex items-center gap-4">
                 <UiBaseBadge
                   :variant="member.role === 'ADMIN' ? 'default' : 'secondary'"
-                  :class="[
-                    'h-6 px-2.5 text-[10px] font-bold tracking-wider uppercase ring-1',
-                    member.role === 'ADMIN'
-                      ? 'bg-primary ring-primary-foreground/20'
-                      : 'bg-card text-muted-foreground ring-border',
-                  ]"
+                  class="text-[10px] font-bold uppercase"
                 >
                   {{ member.role.toLowerCase() }}
                 </UiBaseBadge>
 
-                <div class="flex w-10 justify-center">
+                <div class="flex w-8 justify-end">
                   <UiBaseButton
                     v-if="
                       member.role !== 'ADMIN' &&
@@ -268,11 +253,11 @@ const handleRemove = async (userId: string) => {
                     "
                     variant="ghost"
                     size="sm"
-                    class="text-muted/60 hover:bg-destructive/10 hover:text-destructive h-9 w-9 rounded-full p-0 transition-all active:scale-90"
-                    title="Remove from workspace"
+                    class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-8 w-8 p-0"
+                    title="Remove member"
                     @click="handleRemove(member.user_id)"
                   >
-                    <Trash2 class="h-4.5 w-4.5" />
+                    <Trash2 class="h-4 w-4" />
                   </UiBaseButton>
                 </div>
               </div>
@@ -280,19 +265,21 @@ const handleRemove = async (userId: string) => {
 
             <div
               v-if="!filteredMembers || filteredMembers.length === 0"
-              class="flex flex-col items-center justify-center p-20 text-center"
+              class="flex flex-col items-center justify-center p-12 text-center"
             >
-              <div class="bg-muted mb-4 rounded-full p-4">
-                <Search class="text-muted h-8 w-8" />
+              <div class="bg-muted mb-3 rounded-full p-3">
+                <Search class="text-muted-foreground/50 h-6 w-6" />
               </div>
-              <h3 class="text-card-foreground font-medium">No members found</h3>
-              <p class="text-muted-foreground mt-1 text-sm">
-                Try adjusting your search or inviting new team members.
+              <h3 class="text-card-foreground text-sm font-medium">
+                No members found
+              </h3>
+              <p class="text-muted-foreground mt-1 text-xs">
+                Try adjusting your search criteria.
               </p>
             </div>
           </div>
         </UiBaseCard>
       </section>
-    </div>
+    </template>
   </div>
 </template>

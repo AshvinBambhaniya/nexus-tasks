@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  Archive,
-  Trash2,
-  Check,
-  Loader2,
-  AlertTriangle,
-  RefreshCw,
-} from "lucide-vue-next";
+import { Archive, Trash2, Loader2, RefreshCw } from "lucide-vue-next";
 import type { Project } from "~/types";
 import { useProjects } from "~/composables/useProjects";
 
@@ -103,145 +96,150 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div
-    class="animate-in fade-in slide-in-from-bottom-4 max-w-4xl space-y-8 pb-10 duration-300"
-  >
+  <div class="mx-auto max-w-4xl space-y-10 pb-10">
     <!-- General Settings -->
-    <section>
-      <div class="mb-4">
-        <h2 class="text-foreground text-lg font-semibold">General Settings</h2>
-        <p class="text-muted-foreground text-sm">
-          Update project name and description.
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-foreground text-xl font-semibold tracking-tight">
+          General Settings
+        </h2>
+        <p class="text-muted-foreground mt-1 text-sm">
+          Manage your project's basic information and identification.
         </p>
       </div>
 
-      <UiBaseCard
-        class="border-border shadow-sm transition-shadow hover:shadow-md"
+      <div
+        class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
       >
-        <form class="space-y-6 p-8" @submit.prevent="handleUpdateGeneral">
-          <div class="space-y-2">
-            <UiBaseLabel
-              for="projectName"
-              class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
-              >Project Name</UiBaseLabel
-            >
-            <UiBaseInput
-              id="projectName"
-              v-model="projectName"
-              required
-              placeholder="E.g., Marketing Campaign 2024"
-              class="focus:ring-primary/10 transition-all focus:ring-2"
-            />
-          </div>
+        <form @submit.prevent="handleUpdateGeneral">
+          <div class="space-y-6 p-6">
+            <div class="space-y-3">
+              <label
+                for="projectName"
+                class="text-foreground text-sm font-medium"
+              >
+                Project Name
+              </label>
+              <input
+                id="projectName"
+                v-model="projectName"
+                required
+                placeholder="E.g., Marketing Campaign 2024"
+                class="bg-background border-border focus:ring-primary focus:border-primary block h-9 w-full rounded-md border px-3 text-sm transition-all focus:ring-1 focus:outline-none sm:w-[400px]"
+              />
+            </div>
 
-          <div class="space-y-2">
-            <UiBaseLabel
-              for="projectDesc"
-              class="text-muted-foreground text-xs font-bold tracking-wide uppercase"
-              >Description</UiBaseLabel
-            >
-            <UiBaseTextArea
-              id="projectDesc"
-              v-model="projectDescription"
-              placeholder="What is this project about?"
-              :rows="4"
-              class="focus:ring-primary/10 transition-all focus:ring-2"
-            />
+            <div class="space-y-3">
+              <label
+                for="projectDesc"
+                class="text-foreground text-sm font-medium"
+              >
+                Description
+              </label>
+              <textarea
+                id="projectDesc"
+                v-model="projectDescription"
+                placeholder="What is this project about?"
+                :rows="3"
+                class="bg-background border-border focus:ring-primary focus:border-primary block w-full resize-y rounded-md border px-3 py-2 text-sm transition-all focus:ring-1 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div
-            class="border-border flex items-center justify-end border-t pt-6"
+            class="border-border bg-muted/30 flex items-center justify-between border-t px-6 py-4"
           >
-            <UiBaseButton
+            <p class="text-muted-foreground text-xs">
+              Please use 32 characters at maximum for the project name.
+            </p>
+            <button
               type="submit"
               :disabled="isUpdating"
-              class="min-w-[140px] shadow-sm active:scale-95"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 min-w-[100px] items-center justify-center rounded-md px-4 text-sm font-medium transition-colors disabled:opacity-50"
             >
-              <Loader2 v-if="isUpdating" class="mr-2 h-4 w-4 animate-spin" />
-              <Check
-                v-else-if="isSuccess"
-                class="text-primary-foreground mr-2 h-4 w-4"
-              />
-              {{
-                isUpdating
-                  ? "Saving..."
-                  : isSuccess
-                    ? "Changes Saved"
-                    : "Save Changes"
-              }}
-            </UiBaseButton>
+              <Loader2 v-if="isUpdating" class="h-4 w-4 animate-spin" />
+              <span v-else>{{ isSuccess ? "Saved" : "Save" }}</span>
+            </button>
           </div>
         </form>
-      </UiBaseCard>
+      </div>
     </section>
 
     <!-- Archive Section -->
-    <section>
-      <div class="mb-4">
-        <h2 class="text-foreground text-lg font-semibold">Project Lifecycle</h2>
-        <p class="text-muted-foreground text-sm">
-          Archive or restore this project from your active view.
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-foreground text-xl font-semibold tracking-tight">
+          Archive Project
+        </h2>
+        <p class="text-muted-foreground mt-1 text-sm">
+          Deactivate this project and hide it from active views.
         </p>
       </div>
 
-      <UiBaseCard class="border-border shadow-sm">
+      <div
+        class="border-border bg-card overflow-hidden rounded-lg border shadow-sm"
+      >
         <div
-          class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
+          class="flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center"
         >
-          <div class="space-y-1 text-center sm:text-left">
-            <h3 class="text-card-foreground font-bold">
+          <div class="max-w-[600px] space-y-1">
+            <h3 class="text-foreground text-sm font-medium">
               {{ project.is_archived ? "Restore Project" : "Archive Project" }}
             </h3>
             <p class="text-muted-foreground text-sm">
               {{
                 project.is_archived
-                  ? "Move this project back to the active list to continue working on it."
-                  : "Archived projects are hidden but keep all their data. You can restore them anytime."
+                  ? "Move this project back to the active list to continue working on it. All data remains intact."
+                  : "Archived projects are hidden from the active list but keep all their data. You can restore them anytime."
               }}
             </p>
           </div>
-          <UiBaseButton
-            variant="outline"
+          <button
             :disabled="isUpdating"
-            class="border-border hover:bg-muted min-w-[160px] transition-all active:scale-95"
+            class="bg-secondary text-secondary-foreground hover:bg-secondary/80 border-border flex h-9 items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50"
             @click="handleToggleArchive"
           >
-            <RefreshCw v-if="project.is_archived" class="mr-2 h-4 w-4" />
-            <Archive v-else class="mr-2 h-4 w-4 text-orange-500" />
-            {{ project.is_archived ? "Restore Project" : "Archive Project" }}
-          </UiBaseButton>
+            <RefreshCw v-if="project.is_archived" class="h-4 w-4" />
+            <Archive v-else class="h-4 w-4" />
+            {{ project.is_archived ? "Restore" : "Archive" }}
+          </button>
         </div>
-      </UiBaseCard>
+      </div>
     </section>
 
     <!-- Danger Zone -->
-    <section>
-      <div class="mb-4 flex items-center gap-2">
-        <AlertTriangle class="text-destructive h-5 w-5" />
-        <h2 class="text-destructive text-lg font-semibold">Danger Zone</h2>
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-foreground text-xl font-semibold tracking-tight">
+          Danger Zone
+        </h2>
+        <p class="text-muted-foreground mt-1 text-sm">
+          Irreversible and destructive actions.
+        </p>
       </div>
 
       <div
-        class="border-destructive/20 bg-destructive/10 ring-destructive/20 overflow-hidden rounded-xl border shadow-sm ring-1"
+        class="border-destructive/30 bg-card relative overflow-hidden rounded-lg border shadow-sm"
       >
+        <div class="bg-destructive/5 pointer-events-none absolute inset-0" />
         <div
-          class="flex flex-col items-center justify-between gap-6 p-8 sm:flex-row"
+          class="relative flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center"
         >
-          <div class="space-y-1 text-center sm:text-left">
-            <h3 class="text-destructive font-bold">Delete this project</h3>
-            <p class="text-destructive/80 text-sm">
-              Once you delete a project, there is no going back. Please be
-              certain.
+          <div class="max-w-[600px] space-y-1">
+            <h3 class="text-foreground text-sm font-medium">Delete Project</h3>
+            <p class="text-muted-foreground text-sm">
+              Once you delete a project, there is no going back. All associated
+              tasks, configurations, and data will be permanently removed.
             </p>
           </div>
-          <UiBaseButton
-            variant="destructive"
+          <button
             :disabled="isUpdating"
-            class="shadow-destructive/20 min-w-[160px] shadow-md active:scale-95"
+            class="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 flex h-9 items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50"
             @click="handleDelete"
           >
-            <Trash2 class="mr-2 h-4 w-4" /> Delete Project
-          </UiBaseButton>
+            <Trash2 class="h-4 w-4" />
+            Delete Project
+          </button>
         </div>
       </div>
     </section>
