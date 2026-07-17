@@ -20,6 +20,7 @@ type UserService interface {
 	Register(email, password, fullName string) (models.User, string, error)
 	Authenticate(email, password string) (string, error)
 	GetByID(userID uuid.UUID) (models.User, error)
+	ProvisionSSOUser(email, fullName, provider, providerId string) (models.User, string, error)
 }
 
 type userService struct {
@@ -134,4 +135,80 @@ func (s *userService) Authenticate(email, password string) (string, error) {
 
 func (s *userService) GetByID(userID uuid.UUID) (models.User, error) {
 	return s.storage.Users().GetByID(userID)
+}
+
+func (s *userService) ProvisionSSOUser(email, fullName, provider, providerId string) (models.User, string, error) {
+	var user models.User
+
+	// 1. Check for existing linked identity
+	identity, err := s.storage.UserIdentities().GetByProvider(provider, providerId)
+	if err == nil {
+		user, _ = s.storage.Users().GetByID(identity.UserID)
+		token, err := jwt.CreateToken(s.config.Secret, user.ID.String(), time.Now().Add(time.Duration(s.config.JwtExpirationHours)*time.Hour))
+		if err != nil {
+			return models.User{}, "", err
+		}
+		return user, token, nil
+	}
+
+	err = s.storage.Atomic(context.Background(), func(tx models.Storage) error {
+		// 2. Fallback: Check if local user exists by email for first-time link
+		existingUser, err := tx.Users().GetByEmail(email)
+
+		if err == nil {
+			// 3. Link account: User exists locally, link this new SSO identity
+			user = existingUser
+		} else {
+			// 4. Provision: User does not exist, create them
+			newUser := models.User{
+				Email:    email,
+				FullName: fullName,
+				IsActive: true,
+			}
+			user, err = tx.Users().CreateUser(newUser)
+			if err != nil {
+				return err
+			}
+
+			// Also create a default personal workspace for the new user
+			personalWs := models.Workspace{
+				Name:    string(models.WorkspaceTypePersonal),
+				Type:    models.WorkspaceTypePersonal,
+				OwnerID: user.ID,
+			}
+			createdWs, err := tx.Workspaces().CreateWorkspace(personalWs)
+			if err != nil {
+				return err
+			}
+			err = tx.Workspaces().AddMember(models.WorkspaceMember{
+				WorkspaceID: createdWs.ID,
+				UserID:      user.ID,
+				Role:        models.WorkspaceRoleAdmin,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Insert the identity record mapping the SSO provider to the local User ID
+		userIdentity := models.UserIdentity{
+			UserID:     user.ID,
+			Provider:   provider,
+			ProviderID: providerId,
+		}
+		_, err = tx.UserIdentities().Create(userIdentity)
+		return err
+	})
+
+	if err != nil {
+		s.logger.Error("failed to provision sso user", zap.Error(err))
+		return models.User{}, "", err
+	}
+
+	token, err := jwt.CreateToken(s.config.Secret, user.ID.String(), time.Now().Add(time.Duration(s.config.JwtExpirationHours)*time.Hour))
+	if err != nil {
+		return models.User{}, "", err
+	}
+
+	return user, token, nil
 }

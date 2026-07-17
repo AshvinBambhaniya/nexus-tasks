@@ -1,0 +1,47 @@
+issuer: http://localhost:5556/dex
+storage:
+  type: sqlite3
+  config:
+    file: /tmp/dex.db
+web:
+  http: 0.0.0.0:5556
+
+connectors:
+- type: ldap
+  name: OpenLDAP
+  id: ldap
+  config:
+    host: ldap:389
+    insecureNoSSL: true
+    bindDN: cn=admin,dc=example,dc=org
+    bindPW: admin
+    usernamePrompt: Email Address
+    userSearch:
+      baseDN: ou=People,dc=example,dc=org
+      filter: "(objectClass=person)"
+      username: mail
+      idAttr: DN
+      emailAttr: mail
+      nameAttr: cn
+    groupSearch:
+      baseDN: ou=Groups,dc=example,dc=org
+      filter: "(objectClass=groupOfNames)"
+      userMatchers:
+      - userAttr: DN
+        groupAttr: member
+      nameAttr: cn
+
+- type: google
+  id: google
+  name: Google
+  config:
+    clientID: $GOOGLE_CLIENT_ID
+    clientSecret: $GOOGLE_CLIENT_SECRET
+    redirectURI: http://localhost:5556/dex/callback
+
+staticClients:
+- id: nexus-tasks
+  redirectURIs:
+  - 'http://localhost:8000/api/v2/auth/sso/callback'
+  name: 'Nexus Tasks'
+  secret: nexus-tasks-secret

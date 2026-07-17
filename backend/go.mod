@@ -12,6 +12,7 @@ require (
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.5.0
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/ThreeDotsLabs/watermill-sql/v2 v2.0.0
+	github.com/coreos/go-oidc/v3 v3.18.0
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/getsentry/sentry-go v0.35.0
 	github.com/go-sql-driver/mysql v1.7.1
@@ -33,6 +34,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.49.0
+	golang.org/x/oauth2 v0.36.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
@@ -53,6 +55,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fasthttp/websocket v1.5.8 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -92,7 +95,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.42.0 // indirect
 	go.opentelemetry.io/otel/trace v1.42.0 // indirect
 	golang.org/x/net v0.52.0 // indirect
-	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/api v0.272.0 // indirect

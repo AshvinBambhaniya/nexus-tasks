@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Github, CheckSquare } from "lucide-vue-next";
+import { CheckSquare } from "lucide-vue-next";
 
 definePageMeta({
   layout: false,
@@ -8,9 +8,14 @@ definePageMeta({
 const email = ref("");
 const password = ref("");
 const { login, isLoading, error } = useAuth();
+const config = useRuntimeConfig();
 
 const handleSubmit = async () => {
   await login(email.value, password.value);
+};
+
+const handleSSOLogin = () => {
+  window.location.href = `${config.public.apiUrl}/api/v2/auth/sso/login`;
 };
 </script>
 
@@ -57,8 +62,9 @@ const handleSubmit = async () => {
         <UiBaseButton
           variant="outline"
           class="bg-muted/30 hover:bg-muted/50 text-foreground h-11 w-full transition-all"
+          @click="handleSSOLogin"
         >
-          <Github class="mr-2 h-5 w-5" /> Continue with GitHub
+          <CheckSquare class="mr-2 h-4 w-4" /> Continue with SSO
         </UiBaseButton>
       </div>
 
@@ -128,6 +134,7 @@ const handleSubmit = async () => {
           {{ isLoading ? "Signing In..." : "Sign In with Email" }}
         </UiBaseButton>
       </form>
+
 
       <div class="mt-6 text-center text-sm">
         <span class="text-muted-foreground">Don't have an account? </span>

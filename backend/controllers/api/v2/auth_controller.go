@@ -10,9 +10,11 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/utils"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -136,4 +138,99 @@ func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 		FullName: user.FullName,
 		IsActive: user.IsActive,
 	})
+}
+
+// SSOLogin redirects the user to the SSO/Dex login page.
+func (ctrl *AuthController) SSOLogin(c *fiber.Ctx) error {
+	provider, err := oidc.NewProvider(c.Context(), ctrl.config.OIDC.Issuer)
+	if err != nil {
+		ctrl.logger.Error("failed to get oidc provider", zap.Error(err), zap.String("issuer", ctrl.config.OIDC.Issuer))
+		return utils.JSONError(c, http.StatusInternalServerError, "Authentication provider is unavailable")
+	}
+
+	oauth2Config := oauth2.Config{
+		ClientID:     ctrl.config.OIDC.ClientID,
+		ClientSecret: ctrl.config.OIDC.ClientSecret,
+		RedirectURL:  ctrl.config.OIDC.RedirectURL,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+
+	state := uuid.New().String()
+	c.Cookie(&fiber.Cookie{
+		Name:     "oidc_state",
+		Value:    state,
+		Expires:  time.Now().Add(1 * time.Hour),
+		HTTPOnly: true,
+		Secure:   false, // Set to true in production
+	})
+
+	return c.Redirect(oauth2Config.AuthCodeURL(state))
+}
+
+// SSOCallback handles the callback from Dex.
+func (ctrl *AuthController) SSOCallback(c *fiber.Ctx) error {
+	state := c.Cookies("oidc_state")
+	if state == "" || state != c.Query("state") {
+		return utils.JSONFail(c, http.StatusBadRequest, "Invalid state")
+	}
+
+	provider, err := oidc.NewProvider(c.Context(), ctrl.config.OIDC.Issuer)
+	if err != nil {
+		ctrl.logger.Error("failed to get oidc provider in callback", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "Authentication provider is unavailable")
+	}
+
+	oauth2Config := oauth2.Config{
+		ClientID:     ctrl.config.OIDC.ClientID,
+		ClientSecret: ctrl.config.OIDC.ClientSecret,
+		RedirectURL:  ctrl.config.OIDC.RedirectURL,
+		Endpoint:     provider.Endpoint(),
+	}
+
+	token, err := oauth2Config.Exchange(c.Context(), c.Query("code"))
+	if err != nil {
+		ctrl.logger.Error("failed to exchange token", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "Failed to exchange token")
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return utils.JSONError(c, http.StatusInternalServerError, "No id_token in response")
+	}
+
+	verifier := provider.Verifier(&oidc.Config{ClientID: ctrl.config.OIDC.ClientID})
+	idToken, err := verifier.Verify(c.Context(), rawIDToken)
+	if err != nil {
+		ctrl.logger.Error("failed to verify id_token", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "Failed to verify token")
+	}
+
+	var claims struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+		Sub   string `json:"sub"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		return utils.JSONError(c, http.StatusInternalServerError, "Failed to parse claims")
+	}
+
+	_, localToken, err := ctrl.userService.ProvisionSSOUser(claims.Email, claims.Name, "dex", claims.Sub)
+	if err != nil {
+		ctrl.logger.Error("failed to provision oidc user", zap.Error(err))
+		return utils.JSONError(c, http.StatusInternalServerError, "Failed to provision user")
+	}
+
+	// Set Auth Cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     constants.CookieUser,
+		Value:    localToken,
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: cookieSameSiteLax,
+		MaxAge:   ctrl.config.JwtExpirationHours * 60 * 60,
+	})
+
+	// Redirect back to frontend dashboard
+	return c.Redirect("http://localhost:3000")
 }

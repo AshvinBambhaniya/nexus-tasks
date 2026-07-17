@@ -140,6 +140,10 @@ func setupAuthController(v2 fiber.Router, userSvc services.UserService, logger *
 	auth.Post("/logout", authController.Logout)
 	auth.Get("/me", middlewares.Authenticated, authController.Me)
 
+	// SSO / OIDC routes
+	auth.Get("/sso/login", authController.SSOLogin)
+	auth.Get("/sso/callback", authController.SSOCallback)
+
 	return nil
 }
 

@@ -28,6 +28,14 @@ type AppConfig struct {
 	OpenAIKey          string `envconfig:"OPENAI_API_KEY"`
 	OpenAIBaseURL      string `envconfig:"OPENAI_BASE_URL"`
 	OpenAIModel        string `envconfig:"OPENAI_MODEL" default:"gpt-4o-mini"`
+	OIDC               OIDCConfig
+}
+
+type OIDCConfig struct {
+	Issuer       string `envconfig:"OIDC_ISSUER"`
+	ClientID     string `envconfig:"OIDC_CLIENT_ID"`
+	ClientSecret string `envconfig:"OIDC_CLIENT_SECRET"`
+	RedirectURL  string `envconfig:"OIDC_REDIRECT_URL"`
 }
 
 // GetConfig Collects all configs

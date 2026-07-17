@@ -37,6 +37,34 @@ services:
       - "1025:1025"
     restart: always
 
+  ldap:
+    image: osixia/openldap:1.4.0
+    container_name: nexus_ldap
+    command: ["--copy-service"]
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: try
+    volumes:
+      - ./ldap/config-ldap.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/config-ldap.ldif
+    ports:
+      - "389:389"
+      - "636:636"
+    restart: always
+
+  dex:
+    image: dexidp/dex:v2.41.1
+    container_name: nexus_dex
+    volumes:
+      - ./ldap/config-ldap.yaml:/etc/dex/config.docker.yaml
+    ports:
+      - "5556:5556"
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    command: dex serve /etc/dex/config.docker.yaml
+    depends_on:
+      - ldap
+    restart: always
+
   migration:
     build: ./backend
     container_name: nexus_migration
