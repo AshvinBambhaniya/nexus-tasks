@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - nexus_pgdata:/var/lib/postgresql/data
+      - nexus_db_data:/var/lib/postgresql/data
     restart: always
 
   adminer:
@@ -114,4 +114,4 @@ services:
       - "3000:80"
 
 volumes:
-  nexus_pgdata:
+  nexus_db_data:

@@ -104,3 +104,14 @@ const (
 	QueryStatus     = "status"
 	QueryAssigneeID = "assignee_id"
 )
+
+// Time tracking constants
+const (
+	ParamEntryID        = "entryId"
+	ErrInvalidEntryID   = "invalid time entry id"
+	MsgTimerStarted     = "Timer started"
+	MsgTimerStopped     = "Timer stopped and time logged"
+	MsgTimerDiscarded   = "Timer discarded"
+	MsgTimeLogged       = "Time logged"
+	MsgTimeEntryDeleted = "Time entry deleted"
+)

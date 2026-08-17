@@ -126,6 +126,7 @@ export interface Task {
   created_at: string;
   updated_at: string;
   comment_count?: number;
+  estimated_minutes?: number;
 }
 
 export interface ProjectInfo {
@@ -206,4 +207,67 @@ export interface ApiKey {
 export interface CreateApiKeyResponse {
   raw_token: string;
   key: ApiKey;
+}
+
+// Time Tracking
+export interface TimeEntry {
+  id: string;
+  task_id: string;
+  user_id: string;
+  user_full_name: string;
+  description: string;
+  start_time: string;
+  end_time: string | null;
+  duration_minutes: number | null;
+  is_manual: boolean;
+  created_at: string;
+}
+
+export interface ProjectTimeEntry extends TimeEntry {
+  task_title: string;
+  task_number: number;
+}
+
+export interface ActiveTimer {
+  id: string;
+  task_id: string;
+  task_title: string;
+  task_number: number;
+  start_time: string;
+}
+
+export interface TaskTimeEntries {
+  entries: TimeEntry[];
+  total_logged_minutes: number;
+  estimated_minutes: number | null;
+}
+
+export interface TaskTimeSummary {
+  task_id: string;
+  task_number: number;
+  task_title: string;
+  estimated_minutes: number | null;
+  logged_minutes: number;
+  is_over_budget: boolean;
+}
+
+export interface MemberTimeSummary {
+  user_id: string;
+  full_name: string;
+  logged_minutes: number;
+}
+
+export interface DailyTimeEntry {
+  date: string;
+  logged_minutes: number;
+}
+
+export interface ProjectTimeAnalytics {
+  total_estimated_minutes: number;
+  total_logged_minutes: number;
+  estimate_accuracy_percent: number;
+  over_budget_task_count: number;
+  by_task: TaskTimeSummary[];
+  by_member: MemberTimeSummary[];
+  daily_trend: DailyTimeEntry[];
 }

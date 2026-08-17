@@ -55,6 +55,7 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	healthService := services.NewHealthService(storage, logger)
 	aiService := services.NewAiService(config, logger)
 	notificationService := services.NewNotificationService(storage, logger)
+	timeTrackingService := services.NewTimeTrackingService(storage, logger, hub)
 
 	router := app.Group("/api")
 	v2 := router.Group("/v2")
@@ -102,6 +103,11 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	}
 
 	err = setupNotificationController(v2, notificationService, logger, middlewares)
+	if err != nil {
+		return err
+	}
+
+	err = setupTimeTrackingController(v2, timeTrackingService, logger, middlewares)
 	if err != nil {
 		return err
 	}
@@ -297,6 +303,34 @@ func setupAPIKeyController(v2 fiber.Router, apiKeyService services.APIKeyService
 	apiKeys.Post("/", apiKeyController.Create)
 	apiKeys.Get("/", apiKeyController.List)
 	apiKeys.Delete(fmt.Sprintf("/:%s", constants.ParamKeyID), apiKeyController.Revoke)
+
+	return nil
+}
+
+func setupTimeTrackingController(v2 fiber.Router, service services.TimeTrackingService, logger *zap.Logger, middleware middlewares.Middleware) error {
+	ctrl, err := controller.NewTimeTrackingController(service, logger)
+	if err != nil {
+		return err
+	}
+
+	// Active timer
+	v2.Get("/timer/active", middleware.Authenticated, ctrl.GetActiveTimer)
+
+	// Task-scoped timer operations
+	tasks := v2.Group(fmt.Sprintf("/tasks/:%s", constants.ParamTaskID), middleware.Authenticated)
+	tasks.Post("/timer/start", ctrl.StartTimer)
+	tasks.Post("/timer/stop", ctrl.StopTimer)
+	tasks.Post("/timer/discard", ctrl.DiscardTimer)
+	tasks.Post("/time-entries", ctrl.LogManualTime)
+	tasks.Get("/time-entries", ctrl.ListTaskTimeEntries)
+
+	// Time entry management
+	v2.Delete(fmt.Sprintf("/time-entries/:%s", constants.ParamEntryID), middleware.Authenticated, ctrl.DeleteTimeEntry)
+
+	// Project analytics (nested under workspace/project)
+	projectAnalytics := v2.Group(fmt.Sprintf("/workspaces/:%s/projects/:%s", constants.ParamWorkspaceID, constants.ParamProjectID), middleware.Authenticated)
+	projectAnalytics.Get("/time-analytics", ctrl.GetProjectAnalytics)
+	projectAnalytics.Get("/time-entries", ctrl.ListProjectTimeEntries)
 
 	return nil
 }

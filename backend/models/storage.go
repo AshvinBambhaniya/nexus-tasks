@@ -27,6 +27,7 @@ type Storage interface {
 	Comments() CommentRepository
 	Notifications() NotificationRepository
 	APIKeys() APIKeyRepository
+	TimeEntries() TimeEntryRepository
 
 	Atomic(ctx context.Context, fn func(Storage) error) error
 	CheckHealth(ctx context.Context) error
@@ -71,6 +72,10 @@ func (s *storage) Notifications() NotificationRepository {
 
 func (s *storage) APIKeys() APIKeyRepository {
 	return InitAPIKeyModel(s.db)
+}
+
+func (s *storage) TimeEntries() TimeEntryRepository {
+	return InitTimeEntryModel(s.db)
 }
 
 func (s *storage) Atomic(ctx context.Context, fn func(Storage) error) error {

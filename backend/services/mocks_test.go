@@ -68,6 +68,11 @@ func (m *mockStorage) APIKeys() models.APIKeyRepository {
 	return getMockArg[models.APIKeyRepository](args, 0)
 }
 
+func (m *mockStorage) TimeEntries() models.TimeEntryRepository {
+	args := m.Called()
+	return getMockArg[models.TimeEntryRepository](args, 0)
+}
+
 func (m *mockStorage) Atomic(_ context.Context, fn func(models.Storage) error) error {
 	// For testing, we usually just execute the function with the mock itself
 	return fn(m)

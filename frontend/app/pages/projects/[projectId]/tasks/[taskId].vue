@@ -48,6 +48,10 @@ const {
 
 const { updateTask, deleteTask } = useTasks(projectId.value);
 const { members } = useProjectMembers(projectId.value);
+const { fetchTaskTimeEntries } = useTimeTracking();
+const { data: timeData, refresh: refreshTimeEntries } = fetchTaskTimeEntries(
+  taskId.value
+);
 
 const isSubmittingComment = ref(false);
 const isEditingTitle = ref(false);
@@ -56,6 +60,8 @@ const titleInput = ref<HTMLInputElement | null>(null);
 
 const aiSummary = ref("");
 const isSummarizing = ref(false);
+
+const activeTab = ref<"activity" | "timelogs">("activity");
 
 watch(
   task,
@@ -243,13 +249,34 @@ const authorName = computed(() => {
           </div>
         </div>
 
-        <hr class="border-border" />
+        <!-- Activity / Time Logs Tabs -->
+        <div class="border-border flex gap-6 border-b">
+          <button
+            class="border-b-2 pb-3 text-sm font-medium transition-colors"
+            :class="
+              activeTab === 'activity'
+                ? 'border-primary text-primary'
+                : 'text-muted-foreground hover:border-border hover:text-foreground/80 border-transparent'
+            "
+            @click="activeTab = 'activity'"
+          >
+            💬 Activity & Comments
+          </button>
+          <button
+            class="border-b-2 pb-3 text-sm font-medium transition-colors"
+            :class="
+              activeTab === 'timelogs'
+                ? 'border-primary text-primary'
+                : 'text-muted-foreground hover:border-border hover:text-foreground/80 border-transparent'
+            "
+            @click="activeTab = 'timelogs'"
+          >
+            ⏱️ Time Logs
+          </button>
+        </div>
 
-        <!-- Activity Stream -->
-        <div class="space-y-6">
-          <h3 class="text-foreground text-sm font-semibold">Activity</h3>
-
-          <div class="relative space-y-6 pl-4">
+        <div class="space-y-6 pt-4">
+          <div v-if="activeTab === 'activity'" class="relative space-y-6 pl-4">
             <!-- Continuous Line -->
             <div
               class="bg-border pointer-events-none absolute top-4 bottom-12 left-[27px] w-[1px]"
@@ -392,6 +419,15 @@ const authorName = computed(() => {
                 />
               </div>
             </div>
+          </div>
+
+          <div v-else-if="activeTab === 'timelogs'">
+            <TasksTaskTabsTimeLogs
+              :task="task"
+              :entries="timeData?.entries || []"
+              :total-logged-minutes="timeData?.total_logged_minutes || 0"
+              :on-refresh="refreshTimeEntries"
+            />
           </div>
         </div>
       </div>

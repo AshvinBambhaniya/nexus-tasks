@@ -30,6 +30,8 @@ const {
 
 const isSaving = ref(false);
 const isCommenting = ref(false);
+const estimateHours = ref(0);
+const estimateMins = ref(0);
 
 const formData = ref({
   title: "",
@@ -50,6 +52,9 @@ watchEffect(() => {
       assignee_id: task.assignee_id || null,
       due_date: task.due_date ? task.due_date.split("T")[0] : "",
     };
+    const est = task.estimated_minutes || 0;
+    estimateHours.value = Math.floor(est / 60);
+    estimateMins.value = est % 60;
   } else {
     formData.value = {
       title: "",
@@ -59,6 +64,8 @@ watchEffect(() => {
       assignee_id: null,
       due_date: "",
     };
+    estimateHours.value = 0;
+    estimateMins.value = 0;
   }
 });
 
@@ -66,10 +73,13 @@ const handleSubmit = async () => {
   if (!formData.value.title.trim()) return;
   isSaving.value = true;
   try {
+    const totalMins =
+      (estimateHours.value || 0) * 60 + (estimateMins.value || 0);
     const payload = {
       ...formData.value,
       assignee_id: formData.value.assignee_id || undefined,
       due_date: formData.value.due_date || undefined,
+      estimated_minutes: totalMins > 0 ? totalMins : undefined,
     };
     if (task) {
       await updateTask(task.id, payload);
@@ -250,6 +260,34 @@ const handleAddComment = async (
               v-model="formData.due_date"
               type="date"
             />
+          </div>
+
+          <div class="space-y-2">
+            <UiBaseLabel>Estimated Time</UiBaseLabel>
+            <div class="flex items-center gap-2">
+              <UiBaseInput
+                v-model.number="estimateHours"
+                type="number"
+                :min="0"
+                :max="999"
+                placeholder="0"
+                class-name="w-20"
+                :disabled="isSaving"
+              />
+              <span class="text-muted-foreground text-xs font-medium">hrs</span>
+              <UiBaseInput
+                v-model.number="estimateMins"
+                type="number"
+                :min="0"
+                :max="59"
+                placeholder="0"
+                class-name="w-20"
+                :disabled="isSaving"
+              />
+              <span class="text-muted-foreground text-xs font-medium"
+                >mins</span
+              >
+            </div>
           </div>
         </div>
       </div>

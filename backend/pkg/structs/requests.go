@@ -78,25 +78,40 @@ type ReqCreateComment struct {
 
 // ReqCreateTask defines the request payload for creating a task.
 type ReqCreateTask struct {
-	Title       string              `json:"title" validate:"required"`
-	Description string              `json:"description"`
-	Status      models.TaskStatus   `json:"status"`   // Optional, default TODO
-	Priority    models.TaskPriority `json:"priority"` // Optional, default P2
-	DueDate     *CustomTime         `json:"due_date"`
-	AssigneeID  *uuid.UUID          `json:"assignee_id"`
+	Title            string              `json:"title" validate:"required"`
+	Description      string              `json:"description"`
+	Status           models.TaskStatus   `json:"status"`   // Optional, default TODO
+	Priority         models.TaskPriority `json:"priority"` // Optional, default P2
+	DueDate          *CustomTime         `json:"due_date"`
+	AssigneeID       *uuid.UUID          `json:"assignee_id"`
+	EstimatedMinutes *int                `json:"estimated_minutes"`
 }
 
 // ReqUpdateTask defines the request payload for updating a task.
 type ReqUpdateTask struct {
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	Status      models.TaskStatus   `json:"status"`
-	Priority    models.TaskPriority `json:"priority"`
-	DueDate     *CustomTime         `json:"due_date"`
-	AssigneeID  *uuid.UUID          `json:"assignee_id"`
+	Title            string              `json:"title"`
+	Description      string              `json:"description"`
+	Status           models.TaskStatus   `json:"status"`
+	Priority         models.TaskPriority `json:"priority"`
+	DueDate          *CustomTime         `json:"due_date"`
+	AssigneeID       *uuid.UUID          `json:"assignee_id"`
+	EstimatedMinutes *int                `json:"estimated_minutes"`
 }
 
 // ReqDraftTask defines the request payload for drafting a task via AI.
 type ReqDraftTask struct {
 	Title string `json:"title" validate:"required"`
+}
+
+// ReqStopTimer defines the request payload for stopping a timer.
+type ReqStopTimer struct {
+	Description     string `json:"description"`
+	DurationMinutes *int   `json:"duration_minutes"` // Optional override
+}
+
+// ReqLogManualTime defines the request payload for manual time logging.
+type ReqLogManualTime struct {
+	DurationMinutes int    `json:"duration_minutes" validate:"required,min=1"`
+	Description     string `json:"description"`
+	Date            string `json:"date"` // YYYY-MM-DD format, optional, defaults to today
 }

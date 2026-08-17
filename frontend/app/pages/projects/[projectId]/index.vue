@@ -11,12 +11,20 @@ const { project, isLoading, generateWeeklyReport } = useProject(
   projectId.value
 );
 
-type TabType = "tasks" | "board" | "members" | "settings";
+type TabType =
+  | "tasks"
+  | "board"
+  | "analytics"
+  | "time-logs"
+  | "members"
+  | "settings";
 const router = useRouter();
 
 const tabs: { id: TabType; label: string }[] = [
   { id: "tasks", label: "Tasks" },
   { id: "board", label: "Board" },
+  { id: "analytics", label: "Analytics" },
+  { id: "time-logs", label: "Time Logs" },
   { id: "members", label: "Members" },
   { id: "settings", label: "Settings" },
 ];
@@ -121,6 +129,12 @@ const copyToClipboard = () => {
       </div>
       <div v-else-if="activeTab === 'board'">
         <ProjectTabsBoard :project-id="projectId" />
+      </div>
+      <div v-else-if="activeTab === 'analytics'">
+        <ProjectTabsAnalytics :project-id="projectId" />
+      </div>
+      <div v-else-if="activeTab === 'time-logs'">
+        <ProjectTabsTimeLogs :project-id="projectId" />
       </div>
       <div v-else-if="activeTab === 'members'">
         <ProjectTabsMembers :project-id="projectId" />

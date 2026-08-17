@@ -33,9 +33,10 @@ func GetMCPCommandDef(cfg *config.AppConfig, logger *zap.Logger) cobra.Command {
 			}
 			storage := models.NewStorage(db)
 			apiKeyService := services.NewAPIKeyService(storage, logger)
+			timeTrackingService := services.NewTimeTrackingService(storage, logger, nil)
 
 			// 2. Initialize MCP Server with domain services
-			mcpServer := mcpserver.NewServer(storage, logger, cfg)
+			mcpServer := mcpserver.NewServer(storage, logger, cfg, timeTrackingService)
 
 			// 3. Setup Streamable HTTP Transport
 			// The client's configuration implies it is using the Stateless HTTP transport

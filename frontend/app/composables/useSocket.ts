@@ -53,6 +53,17 @@ export const useSocket = () => {
         (key: string) => key.includes("/api/v2/projects/") || key === "my-tasks"
       );
     }
+
+    if (
+      message.type === "TIMER_STARTED" ||
+      message.type === "TIMER_STOPPED" ||
+      message.type === "TIMER_DISCARDED"
+    ) {
+      clearNuxtData(
+        (key: string) =>
+          key.includes("time-entries") || key.includes("time-analytics")
+      );
+    }
   };
 
   // Watch for workspace changes

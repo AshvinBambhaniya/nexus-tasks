@@ -76,17 +76,18 @@ func (s *taskService) CreateTask(userID, projectID uuid.UUID, req structs.ReqCre
 		}
 
 		task := models.Task{
-			Number:      nextNumber,
-			Title:       req.Title,
-			Description: req.Description,
-			Status:      status,
-			Priority:    priority,
-			ProjectID:   projectID,
-			AssigneeID:  req.AssigneeID,
-			AuthorID:    &userID,
-			DueDate:     dueDate,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			Number:           nextNumber,
+			Title:            req.Title,
+			Description:      req.Description,
+			Status:           status,
+			Priority:         priority,
+			ProjectID:        projectID,
+			AssigneeID:       req.AssigneeID,
+			AuthorID:         &userID,
+			DueDate:          dueDate,
+			EstimatedMinutes: req.EstimatedMinutes,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
 		}
 
 		var err error
@@ -239,6 +240,9 @@ func (s *taskService) applyBasicUpdates(task *models.Task, req structs.ReqUpdate
 	}
 	if req.DueDate != nil {
 		task.DueDate = &req.DueDate.Time
+	}
+	if req.EstimatedMinutes != nil {
+		task.EstimatedMinutes = req.EstimatedMinutes
 	}
 }
 

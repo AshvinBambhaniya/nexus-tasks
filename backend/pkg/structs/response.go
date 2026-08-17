@@ -92,26 +92,64 @@ type ResComment struct {
 
 // ResTask defines the response payload for a task.
 type ResTask struct {
-	ID           uuid.UUID           `json:"id"`
-	Number       int                 `json:"number"`
-	Title        string              `json:"title"`
-	Description  string              `json:"description"`
-	Status       models.TaskStatus   `json:"status"`
-	Priority     models.TaskPriority `json:"priority"`
-	ProjectID    uuid.UUID           `json:"project_id"`
-	AssigneeID   *uuid.UUID          `json:"assignee_id"`
-	AuthorID     *uuid.UUID          `json:"author_id"`
-	DueDate      *time.Time          `json:"due_date"`
-	CompletedAt  *time.Time          `json:"completed_at"`
-	CreatedAt    time.Time           `json:"created_at"`
-	UpdatedAt    time.Time           `json:"updated_at"`
-	CommentCount int                 `json:"comment_count"` // Computed
-	Assignee     *ResUser            `json:"assignee"`      // Expanded if needed
-	Author       *ResUser            `json:"author"`        // Expanded if needed
+	ID               uuid.UUID           `json:"id"`
+	Number           int                 `json:"number"`
+	Title            string              `json:"title"`
+	Description      string              `json:"description"`
+	Status           models.TaskStatus   `json:"status"`
+	Priority         models.TaskPriority `json:"priority"`
+	ProjectID        uuid.UUID           `json:"project_id"`
+	AssigneeID       *uuid.UUID          `json:"assignee_id"`
+	AuthorID         *uuid.UUID          `json:"author_id"`
+	DueDate          *time.Time          `json:"due_date"`
+	EstimatedMinutes *int                `json:"estimated_minutes"`
+	CompletedAt      *time.Time          `json:"completed_at"`
+	CreatedAt        time.Time           `json:"created_at"`
+	UpdatedAt        time.Time           `json:"updated_at"`
+	CommentCount     int                 `json:"comment_count"` // Computed
+	Assignee         *ResUser            `json:"assignee"`      // Expanded if needed
+	Author           *ResUser            `json:"author"`        // Expanded if needed
 }
 
 // ResTaskWithProject defines the response payload for a task with its project.
 type ResTaskWithProject struct {
 	ResTask
 	Project ResProject `json:"project"`
+}
+
+// ResTimeEntry defines the response payload for a time entry.
+type ResTimeEntry struct {
+	ID              uuid.UUID  `json:"id"`
+	TaskID          uuid.UUID  `json:"task_id"`
+	UserID          uuid.UUID  `json:"user_id"`
+	UserFullName    string     `json:"user_full_name"`
+	Description     string     `json:"description"`
+	StartTime       time.Time  `json:"start_time"`
+	EndTime         *time.Time `json:"end_time"`
+	DurationMinutes *int       `json:"duration_minutes"`
+	IsManual        bool       `json:"is_manual"`
+	CreatedAt       time.Time  `json:"created_at"`
+}
+
+// ResTimeEntryWithTask defines the response payload for a time entry with task info.
+type ResTimeEntryWithTask struct {
+	ResTimeEntry
+	TaskTitle  string `json:"task_title"`
+	TaskNumber int    `json:"task_number"`
+}
+
+// ResActiveTimer defines the response for the currently active timer.
+type ResActiveTimer struct {
+	ID         uuid.UUID `json:"id"`
+	TaskID     uuid.UUID `json:"task_id"`
+	TaskTitle  string    `json:"task_title"`
+	TaskNumber int       `json:"task_number"`
+	StartTime  time.Time `json:"start_time"`
+}
+
+// ResTaskTimeEntries defines the response for time entries with a summary.
+type ResTaskTimeEntries struct {
+	Entries            []ResTimeEntry `json:"entries"`
+	TotalLoggedMinutes int            `json:"total_logged_minutes"`
+	EstimatedMinutes   *int           `json:"estimated_minutes"`
 }

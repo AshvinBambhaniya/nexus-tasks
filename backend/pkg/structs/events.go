@@ -11,4 +11,8 @@ const (
 	EventTypeTaskCreated = "TASK_CREATED"
 	EventTypeTaskUpdated = "TASK_UPDATED"
 	EventTypeTaskDeleted = "TASK_DELETED"
+
+	EventTypeTimerStarted   = "TIMER_STARTED"
+	EventTypeTimerStopped   = "TIMER_STOPPED"
+	EventTypeTimerDiscarded = "TIMER_DISCARDED"
 )

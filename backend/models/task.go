@@ -41,19 +41,20 @@ const (
 
 // Task represents a task in a project.
 type Task struct {
-	ID          uuid.UUID    `json:"id" db:"id"`
-	Number      int          `json:"number" db:"number"`
-	Title       string       `json:"title" db:"title"`
-	Description string       `json:"description" db:"description"`
-	Status      TaskStatus   `json:"status" db:"status"`
-	Priority    TaskPriority `json:"priority" db:"priority"`
-	ProjectID   uuid.UUID    `json:"project_id" db:"project_id"`
-	AssigneeID  *uuid.UUID   `json:"assignee_id" db:"assignee_id"` // Nullable
-	AuthorID    *uuid.UUID   `json:"author_id" db:"author_id"`     // Nullable
-	DueDate     *time.Time   `json:"due_date" db:"due_date"`       // Nullable
-	CompletedAt *time.Time   `json:"completed_at" db:"completed_at"`
-	CreatedAt   time.Time    `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at" db:"updated_at"`
+	ID               uuid.UUID    `json:"id" db:"id"`
+	Number           int          `json:"number" db:"number"`
+	Title            string       `json:"title" db:"title"`
+	Description      string       `json:"description" db:"description"`
+	Status           TaskStatus   `json:"status" db:"status"`
+	Priority         TaskPriority `json:"priority" db:"priority"`
+	ProjectID        uuid.UUID    `json:"project_id" db:"project_id"`
+	AssigneeID       *uuid.UUID   `json:"assignee_id" db:"assignee_id"` // Nullable
+	AuthorID         *uuid.UUID   `json:"author_id" db:"author_id"`     // Nullable
+	DueDate          *time.Time   `json:"due_date" db:"due_date"`       // Nullable
+	EstimatedMinutes *int         `json:"estimated_minutes" db:"estimated_minutes"`
+	CompletedAt      *time.Time   `json:"completed_at" db:"completed_at"`
+	CreatedAt        time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt        time.Time    `json:"updated_at" db:"updated_at"`
 }
 
 // TaskWithDetails includes joined user info if needed,
@@ -98,15 +99,16 @@ func (model *TaskModel) Create(task Task) (Task, error) {
 	var createdTask Task
 	found, err := model.db.Insert(TaskTable).Rows(
 		goqu.Record{
-			"number":      task.Number,
-			"title":       task.Title,
-			"description": task.Description,
-			"status":      task.Status,
-			"priority":    task.Priority,
-			"project_id":  task.ProjectID,
-			"assignee_id": task.AssigneeID,
-			"author_id":   task.AuthorID,
-			"due_date":    task.DueDate,
+			"number":            task.Number,
+			"title":             task.Title,
+			"description":       task.Description,
+			"status":            task.Status,
+			"priority":          task.Priority,
+			"project_id":        task.ProjectID,
+			"assignee_id":       task.AssigneeID,
+			"author_id":         task.AuthorID,
+			"due_date":          task.DueDate,
+			"estimated_minutes": task.EstimatedMinutes,
 		},
 	).Returning("*").Executor().ScanStruct(&createdTask)
 
@@ -171,14 +173,15 @@ func (model *TaskModel) Update(task Task) (Task, error) {
 	// Here we update everything passed in the struct except immutable IDs.
 
 	record := goqu.Record{
-		"title":        task.Title,
-		"description":  task.Description,
-		"status":       task.Status,
-		"priority":     task.Priority,
-		"assignee_id":  task.AssigneeID,
-		"due_date":     task.DueDate,
-		"completed_at": task.CompletedAt,
-		"updated_at":   time.Now(),
+		"title":             task.Title,
+		"description":       task.Description,
+		"status":            task.Status,
+		"priority":          task.Priority,
+		"assignee_id":       task.AssigneeID,
+		"due_date":          task.DueDate,
+		"estimated_minutes": task.EstimatedMinutes,
+		"completed_at":      task.CompletedAt,
+		"updated_at":        time.Now(),
 	}
 
 	_, err := model.db.Update(TaskTable).

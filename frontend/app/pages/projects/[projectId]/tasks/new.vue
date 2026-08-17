@@ -14,6 +14,9 @@ const { createTask } = useTasks(projectId.value);
 const { members } = useProjectMembers(projectId.value);
 
 const isSaving = ref(false);
+const estimateHours = ref(0);
+const estimateMins = ref(0);
+
 const formData = ref({
   title: "",
   description: "",
@@ -27,10 +30,13 @@ const handleSubmit = async () => {
   if (!formData.value.title.trim()) return;
   isSaving.value = true;
   try {
+    const totalMins =
+      (estimateHours.value || 0) * 60 + (estimateMins.value || 0);
     const payload = {
       ...formData.value,
       assignee_id: formData.value.assignee_id || undefined,
       due_date: formData.value.due_date || undefined,
+      estimated_minutes: totalMins > 0 ? totalMins : undefined,
     };
     await createTask(payload);
     router.push(`/projects/${projectId.value}`);
@@ -186,6 +192,34 @@ const handleMagicDraft = async () => {
               type="date"
               :disabled="isSaving"
             />
+          </div>
+
+          <div class="space-y-2">
+            <UiBaseLabel>Estimated Time</UiBaseLabel>
+            <div class="flex items-center gap-2">
+              <UiBaseInput
+                v-model.number="estimateHours"
+                type="number"
+                :min="0"
+                :max="999"
+                placeholder="0"
+                class-name="w-20"
+                :disabled="isSaving"
+              />
+              <span class="text-muted-foreground text-xs font-medium">hrs</span>
+              <UiBaseInput
+                v-model.number="estimateMins"
+                type="number"
+                :min="0"
+                :max="59"
+                placeholder="0"
+                class-name="w-20"
+                :disabled="isSaving"
+              />
+              <span class="text-muted-foreground text-xs font-medium"
+                >mins</span
+              >
+            </div>
           </div>
         </div>
       </div>

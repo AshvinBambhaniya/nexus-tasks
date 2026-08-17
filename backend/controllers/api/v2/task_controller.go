@@ -311,19 +311,20 @@ func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
 
 func (ctrl *TaskController) mapTaskToRes(t models.TaskWithAssignee) structs.ResTask {
 	res := structs.ResTask{
-		ID:          t.ID,
-		Number:      t.Number,
-		Title:       t.Title,
-		Description: t.Description,
-		Status:      t.Status,
-		Priority:    t.Priority,
-		ProjectID:   t.ProjectID,
-		AssigneeID:  t.AssigneeID,
-		AuthorID:    t.AuthorID,
-		DueDate:     t.DueDate,
-		CompletedAt: t.CompletedAt,
-		CreatedAt:   t.CreatedAt,
-		UpdatedAt:   t.UpdatedAt,
+		ID:               t.ID,
+		Number:           t.Number,
+		Title:            t.Title,
+		Description:      t.Description,
+		Status:           t.Status,
+		Priority:         t.Priority,
+		ProjectID:        t.ProjectID,
+		AssigneeID:       t.AssigneeID,
+		AuthorID:         t.AuthorID,
+		DueDate:          t.DueDate,
+		EstimatedMinutes: t.EstimatedMinutes,
+		CompletedAt:      t.CompletedAt,
+		CreatedAt:        t.CreatedAt,
+		UpdatedAt:        t.UpdatedAt,
 	}
 
 	if t.AssigneeID != nil && t.AssigneeEmail != nil {
