@@ -28,6 +28,50 @@ func NewTeamController(teamService services.TeamService, logger *zap.Logger) (*T
 }
 
 // Create handles the creation of a new team in a workspace.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/teams teams createTeam
+
+ # Create a team
+
+ Creates a new team within the specified workspace. Requires workspace admin privileges.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqCreateTeam"
+
+ responses:
+
+	201:
+	  description: Team created.
+	  schema:
+      "$ref": "#/definitions/ResTeam"
+	400:
+	  description: Validation error.
+	401:
+	  description: Not authenticated.
+	403:
+	  description: Insufficient permissions.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) Create(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -69,6 +113,43 @@ func (ctrl *TeamController) Create(c *fiber.Ctx) error {
 }
 
 // List handles listing all teams in a workspace.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/teams teams listTeams
+
+ # List teams in a workspace
+
+ Returns all teams that belong to the specified workspace.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+
+ responses:
+
+	200:
+	  description: List of teams.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResTeam"
+	400:
+	  description: Invalid workspace ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) List(c *fiber.Ctx) error {
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
@@ -96,6 +177,49 @@ func (ctrl *TeamController) List(c *fiber.Ctx) error {
 }
 
 // Get handles fetching a single team by its ID, including its projects.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/teams/{teamId} teams getTeam
+
+ # Get a team by ID
+
+ Returns the details of a single team, including its associated projects.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the team.
+
+ responses:
+
+	200:
+	  description: Team details with associated projects.
+	  schema:
+      "$ref": "#/definitions/ResTeamWithProjects"
+	400:
+	  description: Invalid team ID.
+	401:
+	  description: Not authenticated.
+	404:
+	  description: Team not found.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) Get(c *fiber.Ctx) error {
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)
@@ -112,6 +236,52 @@ func (ctrl *TeamController) Get(c *fiber.Ctx) error {
 }
 
 // Update handles updating an existing team.
+//
+/*
+ swagger:operation PATCH /workspaces/{workspaceId}/teams/{teamId} teams updateTeam
+
+ # Update a team
+
+ Updates the name and/or description of a team. Requires workspace admin privileges.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqUpdateTeam"
+
+ responses:
+
+	200:
+	  description: Team updated.
+	  schema:
+      "$ref": "#/definitions/ResTeam"
+	400:
+	  description: Invalid request.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) Update(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -150,6 +320,43 @@ func (ctrl *TeamController) Update(c *fiber.Ctx) error {
 }
 
 // Delete handles deleting a team.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/teams/{teamId} teams deleteTeam
+
+ # Delete a team
+
+ Permanently removes a team from the workspace. Requires workspace admin privileges.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Team deleted.
+	400:
+	  description: Invalid team or workspace ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) Delete(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -178,6 +385,50 @@ func (ctrl *TeamController) Delete(c *fiber.Ctx) error {
 }
 
 // AddMember handles adding a new member to a team.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/teams/{teamId}/members teams addTeamMember
+
+ # Add a member to a team
+
+ Adds an existing workspace member to the specified team with an assigned role.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqAddTeamMember"
+
+ responses:
+
+	200:
+	  description: Member added successfully.
+	400:
+	  description: Validation error or invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) AddMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -211,6 +462,49 @@ func (ctrl *TeamController) AddMember(c *fiber.Ctx) error {
 }
 
 // RemoveMember handles removing a member from a team.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/teams/{teamId}/members/{uid} teams removeTeamMember
+
+ # Remove a member from a team
+
+ Removes the specified user from the team. Their workspace membership is not affected.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: uid
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the user to remove.
+
+ responses:
+
+	200:
+	  description: Member removed.
+	400:
+	  description: Invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) RemoveMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -245,6 +539,47 @@ func (ctrl *TeamController) RemoveMember(c *fiber.Ctx) error {
 }
 
 // ListMembers handles listing all members of a team.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/teams/{teamId}/members teams listTeamMembers
+
+ # List team members
+
+ Returns all members of the specified team along with their roles.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: List of team members.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResTeamMember"
+	400:
+	  description: Invalid team ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TeamController) ListMembers(c *fiber.Ctx) error {
 	teamIDStr := c.Params(constants.ParamTeamID)
 	teamID, err := uuid.Parse(teamIDStr)

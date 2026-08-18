@@ -33,7 +33,40 @@ func NewAiController(aiService services.AiService, commentService services.Comme
 	}, nil
 }
 
-// DraftTask handles the POST /api/v2/ai/draft-task endpoint
+// DraftTask handles the POST /api/v2/ai/draft-task endpoint.
+/*
+swagger:operation POST /ai/draft-task ai draftTask
+
+# AI — Draft a task description
+
+Uses an AI model to generate a detailed task description based on the provided title.
+The response contains the generated markdown content as a string.
+
+---
+consumes:
+- application/json
+produces:
+- application/json
+security:
+- cookieAuth: []
+- apiKeyAuth: []
+parameters:
+  - name: body
+    in: body
+    required: true
+    schema:
+       "$ref": "#/definitions/ReqDraftTask"
+
+responses:
+  "200":
+    description: AI-generated task description.
+  "400":
+    description: Validation error.
+  "401":
+    description: Not authenticated.
+  "500":
+    description: AI service error or internal server error.
+*/
 func (ctrl *AiController) DraftTask(c *fiber.Ctx) error {
 	var req structs.ReqDraftTask
 	if err := c.BodyParser(&req); err != nil {
@@ -56,7 +89,50 @@ func (ctrl *AiController) DraftTask(c *fiber.Ctx) error {
 	})
 }
 
-// SummarizeComments handles the POST /api/v2/workspaces/:wsID/projects/:projectID/tasks/:taskID/ai/summarize-comments endpoint
+// SummarizeComments handles the POST /api/v2/workspaces/:wsID/projects/:projectID/tasks/:taskID/ai/summarize-comments endpoint.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/ai/summarize-comments ai summarizeComments
+
+ # AI — Summarize task comments
+
+ Uses an AI model to produce a concise summary of all comments on the specified task.
+ Returns an error if the task has no comments.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: AI-generated comment summary.
+	400:
+	  description: No comments to summarize, or invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: AI service error or internal server error.
+*/
 func (ctrl *AiController) SummarizeComments(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -100,7 +176,46 @@ func (ctrl *AiController) SummarizeComments(c *fiber.Ctx) error {
 	})
 }
 
-// GenerateWeeklyReport handles POST /api/v2/workspaces/:wsID/projects/:projectID/ai/generate-weekly-report
+// GenerateWeeklyReport handles POST /api/v2/workspaces/:wsID/projects/:projectID/ai/generate-weekly-report.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/ai/generate-weekly-report ai generateWeeklyReport
+
+ # AI — Generate a weekly project report
+
+ Uses an AI model to generate a structured weekly progress report for the project,
+ based on tasks completed in the last 7 days and their associated comments.
+ Returns an error if no tasks were completed in that window.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: AI-generated weekly report content.
+	400:
+	  description: No completed tasks found in the last 7 days.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: AI service error or internal server error.
+*/
 func (ctrl *AiController) GenerateWeeklyReport(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)

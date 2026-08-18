@@ -28,7 +28,32 @@ func NewTimeTrackingController(service services.TimeTrackingService, logger *zap
 	}, nil
 }
 
-// GetActiveTimer GET /timer/active
+// GetActiveTimer returns the currently running timer for the authenticated user.
+//
+/*
+ swagger:operation GET /timer/active timeTracking getActiveTimer
+
+ # Get the active timer
+
+ Returns the currently running timer for the authenticated user, or null if no timer is active.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ responses:
+
+	200:
+	  description: The active timer, or null.
+	  schema:
+      "$ref": "#/definitions/ResActiveTimer"
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) GetActiveTimer(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -45,7 +70,42 @@ func (c *TimeTrackingController) GetActiveTimer(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, timer)
 }
 
-// StartTimer POST /tasks/:taskId/timer/start
+// StartTimer starts a timer for the specified task.
+//
+/*
+ swagger:operation POST /tasks/{taskId}/timer/start timeTracking startTimer
+
+ # Start a task timer
+
+ Begins a new timer session for the specified task. Only one timer may be active per user at a time.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the task to time.
+
+ responses:
+
+	201:
+	  description: Timer started.
+	  schema:
+      "$ref": "#/definitions/ResActiveTimer"
+	400:
+	  description: Invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error (e.g. timer already running).
+*/
 func (c *TimeTrackingController) StartTimer(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -67,7 +127,49 @@ func (c *TimeTrackingController) StartTimer(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusCreated, timer)
 }
 
-// StopTimer POST /tasks/:taskId/timer/stop
+// StopTimer stops the active timer for the specified task.
+//
+/*
+ swagger:operation POST /tasks/{taskId}/timer/stop timeTracking stopTimer
+
+ # Stop a task timer
+
+ Stops the currently running timer for the task and converts it to a time entry.
+ An optional description and/or duration override may be provided.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     description: Optional stop parameters. Body may be omitted entirely.
+     schema:
+        "$ref": "#/definitions/ReqStopTimer"
+
+ responses:
+
+	200:
+	  description: Timer stopped and time entry created.
+	  schema:
+      "$ref": "#/definitions/ResTimeEntry"
+	400:
+	  description: Invalid task ID or malformed body.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) StopTimer(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -94,7 +196,38 @@ func (c *TimeTrackingController) StopTimer(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, entry)
 }
 
-// DiscardTimer POST /tasks/:taskId/timer/discard (Note: prompt says /tasks/:taskId but DiscardTimer only needs userID)
+// DiscardTimer discards the active timer without saving a time entry.
+//
+/*
+ swagger:operation POST /tasks/{taskId}/timer/discard timeTracking discardTimer
+
+ # Discard the active timer
+
+ Cancels and discards the running timer without creating a time entry.
+ Any elapsed time is permanently lost.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Timer discarded.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) DiscardTimer(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -111,7 +244,48 @@ func (c *TimeTrackingController) DiscardTimer(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, fiber.Map{"message": "Timer discarded successfully"})
 }
 
-// LogManualTime POST /tasks/:taskId/time-entries
+// LogManualTime manually logs time for a task.
+//
+/*
+ swagger:operation POST /tasks/{taskId}/time-entries timeTracking logManualTime
+
+ # Log manual time entry
+
+ Creates a manual time entry for the specified task without using the start/stop timer flow.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqLogManualTime"
+
+ responses:
+
+	201:
+	  description: Manual time entry created.
+	  schema:
+      "$ref": "#/definitions/ResTimeEntry"
+	400:
+	  description: Validation error or invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) LogManualTime(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -143,7 +317,42 @@ func (c *TimeTrackingController) LogManualTime(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusCreated, entry)
 }
 
-// ListTaskTimeEntries GET /tasks/:taskId/time-entries
+// ListTaskTimeEntries lists all time entries for a task.
+//
+/*
+ swagger:operation GET /tasks/{taskId}/time-entries timeTracking listTaskTimeEntries
+
+ # List time entries for a task
+
+ Returns all time entries logged against the specified task, together with
+ an aggregated total and the task's estimated duration.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Time entries with aggregate summary.
+	  schema:
+      "$ref": "#/definitions/ResTaskTimeEntries"
+	400:
+	  description: Invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) ListTaskTimeEntries(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -187,7 +396,40 @@ func (c *TimeTrackingController) ListTaskTimeEntries(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, res)
 }
 
-// DeleteTimeEntry DELETE /time-entries/:entryId
+// DeleteTimeEntry deletes a specific time entry.
+//
+/*
+ swagger:operation DELETE /time-entries/{entryId} timeTracking deleteTimeEntry
+
+ # Delete a time entry
+
+ Permanently removes the specified time entry. Only the user who created the entry may delete it.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: entryId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the time entry.
+
+ responses:
+
+	200:
+	  description: Time entry deleted.
+	400:
+	  description: Invalid entry ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) DeleteTimeEntry(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -209,7 +451,44 @@ func (c *TimeTrackingController) DeleteTimeEntry(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, fiber.Map{"message": "Time entry deleted successfully"})
 }
 
-// GetProjectAnalytics GET /projects/:projectId/time-analytics (mounted under workspaces/:workspaceId/projects/:projectId/time-analytics)
+// GetProjectAnalytics returns time tracking analytics for a project.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/time-analytics timeTracking getProjectAnalytics
+
+ # Get project time analytics
+
+ Returns aggregated time tracking statistics for all tasks within the specified project.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Project time analytics data.
+	400:
+	  description: Invalid project ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) GetProjectAnalytics(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)
@@ -231,7 +510,64 @@ func (c *TimeTrackingController) GetProjectAnalytics(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, analytics)
 }
 
-// ListProjectTimeEntries GET /workspaces/:workspaceId/projects/:projectId/time-entries
+// ListProjectTimeEntries returns all time entries for a project with optional filters.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/time-entries timeTracking listProjectTimeEntries
+
+ # List project time entries
+
+ Returns all time entries logged against tasks in the project. Supports filtering by
+ user, start date, and end date.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: user_id
+     in: query
+     type: string
+     format: uuid
+     description: Filter entries by a specific user UUID.
+   - name: start_date
+     in: query
+     type: string
+     format: date-time
+     description: "Filter entries starting from this RFC3339 timestamp (inclusive)."
+   - name: end_date
+     in: query
+     type: string
+     format: date-time
+     description: "Filter entries up to this RFC3339 timestamp (inclusive)."
+
+ responses:
+
+	200:
+	  description: List of time entries with task context.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResTimeEntryWithTask"
+	400:
+	  description: Invalid project ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (c *TimeTrackingController) ListProjectTimeEntries(ctx *fiber.Ctx) error {
 	uidStr := ctx.Locals(constants.ContextUID).(string)
 	userID, err := uuid.Parse(uidStr)

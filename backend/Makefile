@@ -17,12 +17,11 @@ endif
 	migrate create -ext sql -dir database/migrations $(file_name)
 
 swagger-gen:
-ifeq ($(SWAGGER_BIN),)
-	curl -L https://github.com/go-swagger/go-swagger/releases/download/v0.26.1/swagger_linux_amd64 --output swagger
-	chmod +x swagger
-	sudo mv ./swagger $(BIN)
-endif
-	swagger generate spec -o ./assets/swagger.json
+	@echo "⏳ Generating swagger.json using go run (compatible with Go $(shell go version | awk '{print $$3}'))..."
+	go run github.com/go-swagger/go-swagger/cmd/swagger@latest generate spec \
+		--scan-models \
+		-o ./assets/swagger.json
+	@echo "✅ swagger.json generated at ./assets/swagger.json"
 
 start-api:
 	go run app.go api

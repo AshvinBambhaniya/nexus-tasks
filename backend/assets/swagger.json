@@ -1,0 +1,4446 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "# Nexus Tasks REST API\n\nNexus Tasks is a collaborative project and task management platform.\nThis document describes the full REST API surface of the backend service.\n\n## Authentication\n\nMost endpoints require an authenticated session established via the `/api/v2/auth/login`\nor `/api/v2/auth/register` endpoints. Authentication state is maintained via an\nHTTP-only session cookie (`nexus_user`). Alternatively, machine clients may\nauthenticate using an API Key passed in the `X-API-Key` request header.\n\n## Base URL\n\nAll versioned resources are prefixed with `/api/v2`.",
+    "title": "provides the Swagger/OpenAPI specification metadata for the Nexus Tasks API.",
+    "version": "2.0.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/api/v2",
+  "paths": {
+    "/ai/draft-task": {
+      "post": {
+        "description": "Uses an AI model to generate a detailed task description based on the provided title.\nThe response contains the generated markdown content as a string.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "ai"
+        ],
+        "summary": "AI — Draft a task description",
+        "operationId": "draftTask",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqDraftTask"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI-generated task description."
+          },
+          "400": {
+            "description": "Validation error."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "AI service error or internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/api-keys": {
+      "get": {
+        "description": "Returns all API keys belonging to the authenticated user. The raw tokens are never included.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "apiKeys"
+        ],
+        "summary": "List API keys",
+        "operationId": "listAPIKeys",
+        "responses": {
+          "200": {
+            "description": "List of API key metadata objects."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Generates a new long-lived API key for machine-to-machine access. The raw token\nis returned only once and must be stored securely by the caller.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "apiKeys"
+        ],
+        "summary": "Create an API key",
+        "operationId": "createAPIKey",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createAPIKeyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "API key created. The raw_token is shown only once.",
+            "schema": {
+              "$ref": "#/definitions/createAPIKeyResponse"
+            }
+          },
+          "400": {
+            "description": "Name is missing or request body is malformed."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/api-keys/{keyId}": {
+      "delete": {
+        "description": "Permanently invalidates the specified API key. Any requests authenticated with this\nkey will be rejected immediately after revocation.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "apiKeys"
+        ],
+        "summary": "Revoke an API key",
+        "operationId": "revokeAPIKey",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the API key to revoke.",
+            "name": "keyId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key revoked."
+          },
+          "400": {
+            "description": "Invalid key ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Validates credentials and sets an HTTP-only session cookie on success.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Authenticate and obtain a session cookie",
+        "operationId": "login",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqLoginUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful. Session cookie is set."
+          },
+          "400": {
+            "description": "Validation error or malformed request body."
+          },
+          "401": {
+            "description": "Incorrect email or password."
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Clears the session cookie, effectively logging the user out.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Terminate the current user session",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Logout successful."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "description": "Returns the profile of the currently authenticated user based on the session cookie.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Retrieve the authenticated user's profile",
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "description": "Current user profile.",
+            "schema": {
+              "$ref": "#/definitions/ResUser"
+            }
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "404": {
+            "description": "User not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Creates a new user account and sets an authenticated session cookie.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register a new user account",
+        "operationId": "register",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqRegisterUser"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully.",
+            "schema": {
+              "$ref": "#/definitions/ResUser"
+            }
+          },
+          "400": {
+            "description": "Validation error or malformed request body."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "description": "Returns 200 if the API server and its critical dependencies (database) are healthy.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "health"
+        ],
+        "summary": "Overall system health check",
+        "operationId": "overallHealthCheck",
+        "responses": {
+          "200": {
+            "description": "All systems healthy."
+          },
+          "500": {
+            "description": "One or more dependencies are unhealthy."
+          }
+        }
+      }
+    },
+    "/healthz/db": {
+      "get": {
+        "description": "Performs a lightweight ping against the primary database and returns 200 if reachable.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "health"
+        ],
+        "summary": "Database connectivity check",
+        "operationId": "dbHealthCheck",
+        "responses": {
+          "200": {
+            "description": "Database is reachable."
+          },
+          "500": {
+            "description": "Database connectivity check failed."
+          }
+        }
+      }
+    },
+    "/healthz/self": {
+      "get": {
+        "description": "Returns 200 as long as the HTTP server process is running. Does not check external dependencies.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "health"
+        ],
+        "summary": "Self / liveness check",
+        "operationId": "selfHealthCheck",
+        "responses": {
+          "200": {
+            "description": "Server process is alive."
+          }
+        }
+      }
+    },
+    "/inbox": {
+      "get": {
+        "description": "Returns all unread and uncleared notifications for the authenticated user, ordered by most recent first.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get notification inbox",
+        "operationId": "getInbox",
+        "responses": {
+          "200": {
+            "description": "List of notifications."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/inbox/clear-all": {
+      "patch": {
+        "description": "Marks all of the authenticated user's notifications as cleared in a single operation.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Clear all notifications",
+        "operationId": "clearAllNotifications",
+        "responses": {
+          "200": {
+            "description": "All notifications cleared."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/inbox/{notificationId}/clear": {
+      "patch": {
+        "description": "Marks a notification as cleared, removing it from the user's active inbox view.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Clear a notification",
+        "operationId": "clearNotification",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the notification.",
+            "name": "notificationId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification cleared."
+          },
+          "400": {
+            "description": "Invalid notification ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/inbox/{notificationId}/read": {
+      "patch": {
+        "description": "Sets the read flag on the specified notification. The notification remains visible until cleared.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Mark a notification as read",
+        "operationId": "markNotificationRead",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the notification.",
+            "name": "notificationId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marked as read."
+          },
+          "400": {
+            "description": "Invalid notification ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/tasks/me": {
+      "get": {
+        "description": "Returns all tasks currently assigned to the authenticated user across all projects.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "List tasks assigned to me",
+        "operationId": "listMyTasks",
+        "responses": {
+          "200": {
+            "description": "List of tasks assigned to the current user.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResTask"
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/tasks/{taskId}/time-entries": {
+      "get": {
+        "description": "Returns all time entries logged against the specified task, together with\nan aggregated total and the task's estimated duration.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "List time entries for a task",
+        "operationId": "listTaskTimeEntries",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time entries with aggregate summary.",
+            "schema": {
+              "$ref": "#/definitions/ResTaskTimeEntries"
+            }
+          },
+          "400": {
+            "description": "Invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates a manual time entry for the specified task without using the start/stop timer flow.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Log manual time entry",
+        "operationId": "logManualTime",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqLogManualTime"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Manual time entry created.",
+            "schema": {
+              "$ref": "#/definitions/ResTimeEntry"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/tasks/{taskId}/timer/discard": {
+      "post": {
+        "description": "Cancels and discards the running timer without creating a time entry.\nAny elapsed time is permanently lost.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Discard the active timer",
+        "operationId": "discardTimer",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timer discarded."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/tasks/{taskId}/timer/start": {
+      "post": {
+        "description": "Begins a new timer session for the specified task. Only one timer may be active per user at a time.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Start a task timer",
+        "operationId": "startTimer",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task to time.",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Timer started.",
+            "schema": {
+              "$ref": "#/definitions/ResActiveTimer"
+            }
+          },
+          "400": {
+            "description": "Invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error (e.g. timer already running)."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/tasks/{taskId}/timer/stop": {
+      "post": {
+        "description": "Stops the currently running timer for the task and converts it to a time entry.\nAn optional description and/or duration override may be provided.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Stop a task timer",
+        "operationId": "stopTimer",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Optional stop parameters. Body may be omitted entirely.",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ReqStopTimer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timer stopped and time entry created.",
+            "schema": {
+              "$ref": "#/definitions/ResTimeEntry"
+            }
+          },
+          "400": {
+            "description": "Invalid task ID or malformed body."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/time-entries/{entryId}": {
+      "delete": {
+        "description": "Permanently removes the specified time entry. Only the user who created the entry may delete it.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Delete a time entry",
+        "operationId": "deleteTimeEntry",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the time entry.",
+            "name": "entryId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time entry deleted."
+          },
+          "400": {
+            "description": "Invalid entry ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/timer/active": {
+      "get": {
+        "description": "Returns the currently running timer for the authenticated user, or null if no timer is active.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Get the active timer",
+        "operationId": "getActiveTimer",
+        "responses": {
+          "200": {
+            "description": "The active timer, or null.",
+            "schema": {
+              "$ref": "#/definitions/ResActiveTimer"
+            }
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces": {
+      "get": {
+        "description": "Returns all workspaces the authenticated user is a member of.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "List workspaces",
+        "operationId": "listWorkspaces",
+        "responses": {
+          "200": {
+            "description": "List of workspaces.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResWorkspace"
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates a new workspace owned by the authenticated user.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Create a workspace",
+        "operationId": "createWorkspace",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqCreateWorkspace"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Workspace created.",
+            "schema": {
+              "$ref": "#/definitions/ResWorkspace"
+            }
+          },
+          "400": {
+            "description": "Validation error."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/members": {
+      "get": {
+        "description": "Returns all users who are members of the given workspace.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "List workspace members",
+        "operationId": "listWorkspaceMembers",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workspace members.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResWorkspaceMember"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid workspace ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Sends an invitation (or directly adds) a user to the workspace by email address.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Invite a user to a workspace",
+        "operationId": "inviteWorkspaceMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqInviteWorkspaceMember"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member invited successfully."
+          },
+          "400": {
+            "description": "Validation error or invalid workspace ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "Removes the specified user from the workspace. Only workspace admins may perform this action.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Remove a member from a workspace",
+        "operationId": "removeWorkspaceMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the user to remove.",
+            "name": "uid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed successfully."
+          },
+          "400": {
+            "description": "Invalid workspace or user ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects": {
+      "get": {
+        "description": "Returns all projects belonging to the specified workspace that the authenticated user has access to.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "List projects in a workspace",
+        "operationId": "listProjects",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of projects.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResProject"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid workspace ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates a new project within the specified workspace. Requires workspace admin privileges.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Create a project",
+        "operationId": "createProject",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqCreateProject"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Project created.",
+            "schema": {
+              "$ref": "#/definitions/ResProject"
+            }
+          },
+          "400": {
+            "description": "Validation error."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}": {
+      "get": {
+        "description": "Returns the full details of a single project.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get a project by ID",
+        "operationId": "getProject",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details.",
+            "schema": {
+              "$ref": "#/definitions/ResProject"
+            }
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "404": {
+            "description": "Project not found or not accessible."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "description": "Partially updates project metadata. Supports archiving via `is_archived`.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Update a project",
+        "operationId": "updateProject",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqUpdateProject"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project updated.",
+            "schema": {
+              "$ref": "#/definitions/ResProject"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/ai/generate-weekly-report": {
+      "post": {
+        "description": "Uses an AI model to generate a structured weekly progress report for the project,\nbased on tasks completed in the last 7 days and their associated comments.\nReturns an error if no tasks were completed in that window.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "ai"
+        ],
+        "summary": "AI — Generate a weekly project report",
+        "operationId": "generateWeeklyReport",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI-generated weekly report content."
+          },
+          "400": {
+            "description": "No completed tasks found in the last 7 days."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "AI service error or internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/members": {
+      "get": {
+        "description": "Returns all members with access to the project, including both direct members and\nthose with access via team membership.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "List project members",
+        "operationId": "listProjectMembers",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of project members.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResProjectMember"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Directly assigns a user to the project with the specified role.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Add a member to a project",
+        "operationId": "addProjectMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqAddProjectMember"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member added.",
+            "schema": {
+              "$ref": "#/definitions/ResProjectMember"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/members/{uid}": {
+      "delete": {
+        "description": "Revokes a user's direct membership in the project. Their access via team membership is not affected.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Remove a member from a project",
+        "operationId": "removeProjectMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the user to remove.",
+            "name": "uid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed."
+          },
+          "400": {
+            "description": "Invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/tasks": {
+      "get": {
+        "description": "Returns all tasks belonging to the specified project, with optional filtering by status or assignee.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "List tasks in a project",
+        "operationId": "listProjectTasks",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the project.",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Filter tasks by status (e.g. TODO, IN_PROGRESS, DONE).",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Filter tasks by assignee UUID.",
+            "name": "assignee_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tasks.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResTask"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates a new task within the specified project. The authenticated user becomes the task author.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create a task",
+        "operationId": "createTask",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the project.",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqCreateTask"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Task created successfully.",
+            "schema": {
+              "$ref": "#/definitions/ResTask"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}": {
+      "get": {
+        "description": "Returns the full details of a single task, including its assignee and author.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get a task by ID",
+        "operationId": "getTask",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the project.",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task.",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task details.",
+            "schema": {
+              "$ref": "#/definitions/ResTask"
+            }
+          },
+          "400": {
+            "description": "Invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "Permanently removes a task and all its associated comments.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Delete a task",
+        "operationId": "deleteTask",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the project.",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task to delete.",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task deleted."
+          },
+          "400": {
+            "description": "Invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "description": "Partially updates the specified task. Only non-zero fields in the request body are applied.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Update a task",
+        "operationId": "updateTask",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the project.",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task.",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqUpdateTask"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task updated.",
+            "schema": {
+              "$ref": "#/definitions/ResTask"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/ai/summarize-comments": {
+      "post": {
+        "description": "Uses an AI model to produce a concise summary of all comments on the specified task.\nReturns an error if the task has no comments.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "ai"
+        ],
+        "summary": "AI — Summarize task comments",
+        "operationId": "summarizeComments",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI-generated comment summary."
+          },
+          "400": {
+            "description": "No comments to summarize, or invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "AI service error or internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments": {
+      "get": {
+        "description": "Returns all comments on the specified task, ordered by creation time ascending.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "comments"
+        ],
+        "summary": "List comments on a task",
+        "operationId": "listTaskComments",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of comments.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResComment"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Adds a new comment to the specified task. Mentioned users will receive notifications.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "comments"
+        ],
+        "summary": "Post a comment on a task",
+        "operationId": "createComment",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqCreateComment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Comment created.",
+            "schema": {
+              "$ref": "#/definitions/ResComment"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid task ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments/{commentId}": {
+      "delete": {
+        "description": "Permanently removes a comment. Only the comment author may delete their own comment.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "comments"
+        ],
+        "summary": "Delete a comment",
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "taskId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "commentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment deleted."
+          },
+          "400": {
+            "description": "Invalid comment ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/teams": {
+      "get": {
+        "description": "Returns all teams that have been associated with the specified project.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "List teams in a project",
+        "operationId": "listProjectTeams",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of teams associated with the project.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResProjectTeam"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Associates an existing workspace team with the project, granting all team members access.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Add a team to a project",
+        "operationId": "addProjectTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqAddProjectTeam"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team added to project.",
+            "schema": {
+              "$ref": "#/definitions/ResProjectTeam"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/teams/{teamId}": {
+      "delete": {
+        "description": "Removes the team association from the project. Team members lose project access unless they have direct membership.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "projects"
+        ],
+        "summary": "Remove a team from a project",
+        "operationId": "removeProjectTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team removed from project."
+          },
+          "400": {
+            "description": "Invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/time-analytics": {
+      "get": {
+        "description": "Returns aggregated time tracking statistics for all tasks within the specified project.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "Get project time analytics",
+        "operationId": "getProjectAnalytics",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project time analytics data."
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/projects/{projectId}/time-entries": {
+      "get": {
+        "description": "Returns all time entries logged against tasks in the project. Supports filtering by\nuser, start date, and end date.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "timeTracking"
+        ],
+        "summary": "List project time entries",
+        "operationId": "listProjectTimeEntries",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "projectId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Filter entries by a specific user UUID.",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "Filter entries starting from this RFC3339 timestamp (inclusive).",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "Filter entries up to this RFC3339 timestamp (inclusive).",
+            "name": "end_date",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of time entries with task context.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResTimeEntryWithTask"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/teams": {
+      "get": {
+        "description": "Returns all teams that belong to the specified workspace.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "List teams in a workspace",
+        "operationId": "listTeams",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of teams.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResTeam"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid workspace ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Creates a new team within the specified workspace. Requires workspace admin privileges.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Create a team",
+        "operationId": "createTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqCreateTeam"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Team created.",
+            "schema": {
+              "$ref": "#/definitions/ResTeam"
+            }
+          },
+          "400": {
+            "description": "Validation error."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "403": {
+            "description": "Insufficient permissions."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/teams/{teamId}": {
+      "get": {
+        "description": "Returns the details of a single team, including its associated projects.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Get a team by ID",
+        "operationId": "getTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the workspace.",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the team.",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team details with associated projects.",
+            "schema": {
+              "$ref": "#/definitions/ResTeamWithProjects"
+            }
+          },
+          "400": {
+            "description": "Invalid team ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "404": {
+            "description": "Team not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "Permanently removes a team from the workspace. Requires workspace admin privileges.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Delete a team",
+        "operationId": "deleteTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team deleted."
+          },
+          "400": {
+            "description": "Invalid team or workspace ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "description": "Updates the name and/or description of a team. Requires workspace admin privileges.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Update a team",
+        "operationId": "updateTeam",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqUpdateTeam"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team updated.",
+            "schema": {
+              "$ref": "#/definitions/ResTeam"
+            }
+          },
+          "400": {
+            "description": "Invalid request."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/teams/{teamId}/members": {
+      "get": {
+        "description": "Returns all members of the specified team along with their roles.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "List team members",
+        "operationId": "listTeamMembers",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of team members.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ResTeamMember"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid team ID."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Adds an existing workspace member to the specified team with an assigned role.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Add a member to a team",
+        "operationId": "addTeamMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReqAddTeamMember"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member added successfully."
+          },
+          "400": {
+            "description": "Validation error or invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/workspaces/{workspaceId}/teams/{teamId}/members/{uid}": {
+      "delete": {
+        "description": "Removes the specified user from the team. Their workspace membership is not affected.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "teams"
+        ],
+        "summary": "Remove a member from a team",
+        "operationId": "removeTeamMember",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "workspaceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "teamId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the user to remove.",
+            "name": "uid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed."
+          },
+          "400": {
+            "description": "Invalid path parameter."
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Project": {
+      "type": "object",
+      "title": "Project represents a project in a workspace.",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "description": {
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID"
+        },
+        "is_archived": {
+          "type": "boolean",
+          "x-go-name": "IsArchived"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt"
+        },
+        "workspace_id": {
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "WorkspaceID"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "ProjectRole": {
+      "type": "string",
+      "title": "ProjectRole defines the role of a user in a project.",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "ReqAddProjectMember": {
+      "type": "object",
+      "title": "ReqAddProjectMember defines the request payload for adding a member to a project.",
+      "required": [
+        "email"
+      ],
+      "properties": {
+        "email": {
+          "description": "Email of the user to add.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "dev@example.com"
+        },
+        "role": {
+          "$ref": "#/definitions/ProjectRole"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqAddProjectTeam": {
+      "type": "object",
+      "title": "ReqAddProjectTeam defines the request payload for adding a team to a project.",
+      "required": [
+        "team_id"
+      ],
+      "properties": {
+        "team_id": {
+          "description": "UUID of the team to associate with the project.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TeamID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqAddTeamMember": {
+      "type": "object",
+      "title": "ReqAddTeamMember defines the request payload for adding a member to a team.",
+      "required": [
+        "email",
+        "role"
+      ],
+      "properties": {
+        "email": {
+          "description": "Email of the user to add.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "dev@example.com"
+        },
+        "role": {
+          "description": "Role to assign to the member. Must be a valid team role enum value.",
+          "type": "string",
+          "x-go-name": "Role",
+          "example": "MEMBER"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqCreateComment": {
+      "type": "object",
+      "title": "ReqCreateComment defines the request payload for creating a comment.",
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "content": {
+          "description": "Comment body text.",
+          "type": "string",
+          "x-go-name": "Content",
+          "example": "LGTM, merging this"
+        },
+        "mentioned_user_ids": {
+          "description": "List of UUIDs of users mentioned in the comment.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x-go-name": "MentionedUserIDs",
+          "example": [
+            "550e8400-e29b-41d4-a716-446655440000"
+          ]
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqCreateProject": {
+      "type": "object",
+      "title": "ReqCreateProject defines the request payload for creating a project.",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "description": "Optional project description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Full redesign of the marketing website"
+        },
+        "name": {
+          "description": "Project name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Website Redesign"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqCreateTask": {
+      "type": "object",
+      "title": "ReqCreateTask defines the request payload for creating a task.",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "assignee_id": {
+          "description": "Optional UUID of the assignee.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AssigneeID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "description": {
+          "description": "Optional task description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Integrate OAuth2 with the existing auth service"
+        },
+        "due_date": {
+          "description": "Optional due date in RFC3339 format.",
+          "type": "string",
+          "x-go-name": "DueDate",
+          "x-go-type": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs.CustomTime",
+          "example": "2025-12-31T23:59:59Z"
+        },
+        "estimated_minutes": {
+          "description": "Estimated effort in minutes.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "EstimatedMinutes",
+          "example": 120
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "title": {
+          "description": "Task title.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Implement OAuth2 login"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqCreateTeam": {
+      "type": "object",
+      "title": "ReqCreateTeam defines the request payload for creating a team.",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "description": "Optional team description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Responsible for all server-side services"
+        },
+        "name": {
+          "description": "Team name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backend Squad"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqCreateWorkspace": {
+      "type": "object",
+      "title": "ReqCreateWorkspace defines the request payload for creating a workspace.",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Workspace display name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Acme Corp"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqDraftTask": {
+      "type": "object",
+      "title": "ReqDraftTask defines the request payload for drafting a task description via AI.",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "description": "Task title used as the AI prompt seed.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Set up CI/CD pipeline with GitHub Actions"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqInviteWorkspaceMember": {
+      "type": "object",
+      "title": "ReqInviteWorkspaceMember defines the request payload for inviting a member to a workspace.",
+      "required": [
+        "email"
+      ],
+      "properties": {
+        "email": {
+          "description": "Email of the user to invite.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "colleague@example.com"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqLogManualTime": {
+      "type": "object",
+      "title": "ReqLogManualTime defines the request payload for manually logging time on a task.",
+      "required": [
+        "duration_minutes"
+      ],
+      "properties": {
+        "date": {
+          "description": "Date the work was performed (YYYY-MM-DD). Defaults to today if omitted.",
+          "type": "string",
+          "x-go-name": "Date",
+          "example": "2025-11-01"
+        },
+        "description": {
+          "description": "Optional description of work done.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Code review and feedback"
+        },
+        "duration_minutes": {
+          "description": "Duration of work in minutes.",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "x-go-name": "DurationMinutes",
+          "example": 60
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqLoginUser": {
+      "type": "object",
+      "title": "ReqLoginUser defines the request payload for user login.",
+      "required": [
+        "email",
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "description": "User's email address.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "user@example.com"
+        },
+        "password": {
+          "description": "User's account password.",
+          "type": "string",
+          "x-go-name": "Password",
+          "example": "s3cr3tPassw0rd"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqRegisterUser": {
+      "type": "object",
+      "title": "ReqRegisterUser defines the request payload for user registration.",
+      "required": [
+        "email",
+        "password",
+        "full_name"
+      ],
+      "properties": {
+        "email": {
+          "description": "User's email address.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "user@example.com"
+        },
+        "full_name": {
+          "description": "User's display name.",
+          "type": "string",
+          "x-go-name": "FullName",
+          "example": "Jane Doe"
+        },
+        "password": {
+          "description": "User's password. Minimum 6 characters.",
+          "type": "string",
+          "minLength": 6,
+          "x-go-name": "Password",
+          "example": "s3cr3tPassw0rd"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqStopTimer": {
+      "type": "object",
+      "title": "ReqStopTimer defines the request payload for stopping a running timer.",
+      "properties": {
+        "description": {
+          "description": "Optional description for the time entry.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Worked on authentication module"
+        },
+        "duration_minutes": {
+          "description": "Optional override for the recorded duration in minutes.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DurationMinutes",
+          "example": 45
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqUpdateProject": {
+      "type": "object",
+      "title": "ReqUpdateProject defines the request payload for updating a project.",
+      "properties": {
+        "description": {
+          "description": "New project description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Updated scope including mobile"
+        },
+        "is_archived": {
+          "description": "Whether to archive this project.",
+          "type": "boolean",
+          "x-go-name": "IsArchived",
+          "example": false
+        },
+        "name": {
+          "description": "New project name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Website Redesign v2"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqUpdateTask": {
+      "type": "object",
+      "title": "ReqUpdateTask defines the request payload for updating a task.",
+      "properties": {
+        "assignee_id": {
+          "description": "Updated assignee UUID.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AssigneeID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "description": {
+          "description": "Updated task description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Added PKCE support"
+        },
+        "due_date": {
+          "description": "Updated due date in RFC3339 format.",
+          "type": "string",
+          "x-go-name": "DueDate",
+          "x-go-type": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs.CustomTime",
+          "example": "2026-01-15T23:59:59Z"
+        },
+        "estimated_minutes": {
+          "description": "Updated estimated effort in minutes.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "EstimatedMinutes",
+          "example": 90
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "title": {
+          "description": "Updated task title.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Implement OAuth2 login (revised)"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ReqUpdateTeam": {
+      "type": "object",
+      "title": "ReqUpdateTeam defines the request payload for updating a team.",
+      "properties": {
+        "description": {
+          "description": "New team description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Handles platform infrastructure"
+        },
+        "name": {
+          "description": "New team name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Platform Team"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResActiveTimer": {
+      "type": "object",
+      "title": "ResActiveTimer defines the response for the currently running timer.",
+      "properties": {
+        "id": {
+          "description": "Unique time entry identifier for the active timer.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "start_time": {
+          "description": "Time when the timer was started (RFC3339).",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "StartTime",
+          "example": "2025-11-01T09:00:00Z"
+        },
+        "task_id": {
+          "description": "UUID of the task being timed.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TaskID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "task_number": {
+          "description": "Human-readable number of the task being timed.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TaskNumber",
+          "example": 42
+        },
+        "task_title": {
+          "description": "Title of the task being timed.",
+          "type": "string",
+          "x-go-name": "TaskTitle",
+          "example": "Implement OAuth2 login"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResComment": {
+      "type": "object",
+      "title": "ResComment defines the response payload for a task comment.",
+      "properties": {
+        "author": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "author_id": {
+          "description": "UUID of the comment author.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AuthorID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        },
+        "content": {
+          "description": "Comment body text.",
+          "type": "string",
+          "x-go-name": "Content",
+          "example": "LGTM, merging this"
+        },
+        "created_at": {
+          "description": "Timestamp when the comment was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-06-01T09:00:00Z"
+        },
+        "id": {
+          "description": "Unique comment identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "task_id": {
+          "description": "UUID of the task this comment belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TaskID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "updated_at": {
+          "description": "Timestamp when the comment was last updated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt",
+          "example": "2025-06-01T09:05:00Z"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResProject": {
+      "type": "object",
+      "title": "ResProject defines the response payload for a project.",
+      "properties": {
+        "created_at": {
+          "description": "Timestamp when the project was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-01-15T10:00:00Z"
+        },
+        "description": {
+          "description": "Project description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Full redesign of the marketing website"
+        },
+        "id": {
+          "description": "Unique project identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "is_archived": {
+          "description": "Whether the project is archived.",
+          "type": "boolean",
+          "x-go-name": "IsArchived",
+          "example": false
+        },
+        "name": {
+          "description": "Project name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Website Redesign"
+        },
+        "workspace_id": {
+          "description": "UUID of the workspace this project belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "WorkspaceID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResProjectMember": {
+      "type": "object",
+      "title": "ResProjectMember defines the response payload for a project member.",
+      "properties": {
+        "email": {
+          "description": "Member's email address.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "jane@example.com"
+        },
+        "full_name": {
+          "description": "Member's full name.",
+          "type": "string",
+          "x-go-name": "FullName",
+          "example": "Jane Doe"
+        },
+        "is_direct": {
+          "description": "Whether membership was directly assigned (vs. inherited from a team).",
+          "type": "boolean",
+          "x-go-name": "IsDirect",
+          "example": true
+        },
+        "role": {
+          "$ref": "#/definitions/ProjectRole"
+        },
+        "user_id": {
+          "description": "UUID of the member user.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResProjectTeam": {
+      "type": "object",
+      "title": "ResProjectTeam defines the response payload for a project–team association.",
+      "properties": {
+        "project_id": {
+          "description": "UUID of the project.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ProjectID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "team_id": {
+          "description": "UUID of the team.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TeamID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        },
+        "team_name": {
+          "description": "Name of the team.",
+          "type": "string",
+          "x-go-name": "TeamName",
+          "example": "Backend Squad"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTask": {
+      "type": "object",
+      "title": "ResTask defines the response payload for a task.",
+      "properties": {
+        "assignee": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "assignee_id": {
+          "description": "UUID of the assignee. Null if unassigned.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AssigneeID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        },
+        "author": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "author_id": {
+          "description": "UUID of the task author. Null if unknown.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AuthorID",
+          "example": "550e8400-e29b-41d4-a716-446655440003"
+        },
+        "comment_count": {
+          "description": "Total number of comments on this task.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CommentCount",
+          "example": 5
+        },
+        "completed_at": {
+          "description": "Timestamp when the task was completed. Null if not yet completed.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CompletedAt",
+          "example": "2025-11-30T17:00:00Z"
+        },
+        "created_at": {
+          "description": "Timestamp when the task was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-10-01T08:00:00Z"
+        },
+        "description": {
+          "description": "Task description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Integrate OAuth2 with the existing auth service"
+        },
+        "due_date": {
+          "description": "Task due date. Null if not set.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "DueDate",
+          "example": "2025-12-31T23:59:59Z"
+        },
+        "estimated_minutes": {
+          "description": "Estimated effort in minutes. Null if not set.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "EstimatedMinutes",
+          "example": 120
+        },
+        "id": {
+          "description": "Unique task identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "number": {
+          "description": "Human-readable task number within the project.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number",
+          "example": 42
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "project_id": {
+          "description": "UUID of the project this task belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ProjectID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "title": {
+          "description": "Task title.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Implement OAuth2 login"
+        },
+        "updated_at": {
+          "description": "Timestamp when the task was last updated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt",
+          "example": "2025-11-01T12:00:00Z"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTaskTimeEntries": {
+      "type": "object",
+      "title": "ResTaskTimeEntries defines the aggregated response for time entries on a task.",
+      "properties": {
+        "entries": {
+          "description": "List of individual time entries.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ResTimeEntry"
+          },
+          "x-go-name": "Entries"
+        },
+        "estimated_minutes": {
+          "description": "Task's estimated effort in minutes. Null if not set.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "EstimatedMinutes",
+          "example": 300
+        },
+        "total_logged_minutes": {
+          "description": "Total logged time in minutes across all entries.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TotalLoggedMinutes",
+          "example": 240
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTaskWithProject": {
+      "type": "object",
+      "title": "ResTaskWithProject defines the response payload for a task with its parent project.",
+      "properties": {
+        "assignee": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "assignee_id": {
+          "description": "UUID of the assignee. Null if unassigned.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AssigneeID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        },
+        "author": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "author_id": {
+          "description": "UUID of the task author. Null if unknown.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "AuthorID",
+          "example": "550e8400-e29b-41d4-a716-446655440003"
+        },
+        "comment_count": {
+          "description": "Total number of comments on this task.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CommentCount",
+          "example": 5
+        },
+        "completed_at": {
+          "description": "Timestamp when the task was completed. Null if not yet completed.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CompletedAt",
+          "example": "2025-11-30T17:00:00Z"
+        },
+        "created_at": {
+          "description": "Timestamp when the task was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-10-01T08:00:00Z"
+        },
+        "description": {
+          "description": "Task description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Integrate OAuth2 with the existing auth service"
+        },
+        "due_date": {
+          "description": "Task due date. Null if not set.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "DueDate",
+          "example": "2025-12-31T23:59:59Z"
+        },
+        "estimated_minutes": {
+          "description": "Estimated effort in minutes. Null if not set.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "EstimatedMinutes",
+          "example": 120
+        },
+        "id": {
+          "description": "Unique task identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "number": {
+          "description": "Human-readable task number within the project.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Number",
+          "example": 42
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "project": {
+          "$ref": "#/definitions/ResProject"
+        },
+        "project_id": {
+          "description": "UUID of the project this task belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ProjectID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "title": {
+          "description": "Task title.",
+          "type": "string",
+          "x-go-name": "Title",
+          "example": "Implement OAuth2 login"
+        },
+        "updated_at": {
+          "description": "Timestamp when the task was last updated.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "UpdatedAt",
+          "example": "2025-11-01T12:00:00Z"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTeam": {
+      "type": "object",
+      "title": "ResTeam defines the response payload for a team.",
+      "properties": {
+        "description": {
+          "description": "Team description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Responsible for all server-side services"
+        },
+        "id": {
+          "description": "Unique team identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "name": {
+          "description": "Team name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backend Squad"
+        },
+        "workspace_id": {
+          "description": "UUID of the workspace this team belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "WorkspaceID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTeamMember": {
+      "type": "object",
+      "title": "ResTeamMember defines the response payload for a team member.",
+      "properties": {
+        "role": {
+          "$ref": "#/definitions/TeamRole"
+        },
+        "team_id": {
+          "description": "UUID of the team.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TeamID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "user": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "user_id": {
+          "description": "UUID of the member user.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTeamWithProjects": {
+      "type": "object",
+      "title": "ResTeamWithProjects defines the response payload for a team with its associated projects.",
+      "properties": {
+        "description": {
+          "description": "Team description.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Responsible for all server-side services"
+        },
+        "id": {
+          "description": "Unique team identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "name": {
+          "description": "Team name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Backend Squad"
+        },
+        "projects": {
+          "description": "Projects associated with this team.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Project"
+          },
+          "x-go-name": "Projects"
+        },
+        "workspace_id": {
+          "description": "UUID of the workspace this team belongs to.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "WorkspaceID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTimeEntry": {
+      "type": "object",
+      "title": "ResTimeEntry defines the response payload for a time entry.",
+      "properties": {
+        "created_at": {
+          "description": "Timestamp when the entry record was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-11-01T10:30:05Z"
+        },
+        "description": {
+          "description": "Description of work performed.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Reviewed PR and added test cases"
+        },
+        "duration_minutes": {
+          "description": "Total duration in minutes. Null if the timer is still running.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DurationMinutes",
+          "example": 90
+        },
+        "end_time": {
+          "description": "Timer end time. Null if the timer is still running.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "EndTime",
+          "example": "2025-11-01T10:30:00Z"
+        },
+        "id": {
+          "description": "Unique time entry identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "is_manual": {
+          "description": "Whether this entry was manually logged (vs. started/stopped via timer).",
+          "type": "boolean",
+          "x-go-name": "IsManual",
+          "example": false
+        },
+        "start_time": {
+          "description": "Timer start time (RFC3339).",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "StartTime",
+          "example": "2025-11-01T09:00:00Z"
+        },
+        "task_id": {
+          "description": "UUID of the task this entry is associated with.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TaskID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "user_full_name": {
+          "description": "Full name of the user who logged the time.",
+          "type": "string",
+          "x-go-name": "UserFullName",
+          "example": "Jane Doe"
+        },
+        "user_id": {
+          "description": "UUID of the user who logged the time.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResTimeEntryWithTask": {
+      "type": "object",
+      "title": "ResTimeEntryWithTask defines the response payload for a time entry with task context.",
+      "properties": {
+        "created_at": {
+          "description": "Timestamp when the entry record was created.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt",
+          "example": "2025-11-01T10:30:05Z"
+        },
+        "description": {
+          "description": "Description of work performed.",
+          "type": "string",
+          "x-go-name": "Description",
+          "example": "Reviewed PR and added test cases"
+        },
+        "duration_minutes": {
+          "description": "Total duration in minutes. Null if the timer is still running.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "DurationMinutes",
+          "example": 90
+        },
+        "end_time": {
+          "description": "Timer end time. Null if the timer is still running.",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "EndTime",
+          "example": "2025-11-01T10:30:00Z"
+        },
+        "id": {
+          "description": "Unique time entry identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "is_manual": {
+          "description": "Whether this entry was manually logged (vs. started/stopped via timer).",
+          "type": "boolean",
+          "x-go-name": "IsManual",
+          "example": false
+        },
+        "start_time": {
+          "description": "Timer start time (RFC3339).",
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "StartTime",
+          "example": "2025-11-01T09:00:00Z"
+        },
+        "task_id": {
+          "description": "UUID of the task this entry is associated with.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "TaskID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "task_number": {
+          "description": "Human-readable number of the associated task.",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TaskNumber",
+          "example": 42
+        },
+        "task_title": {
+          "description": "Title of the associated task.",
+          "type": "string",
+          "x-go-name": "TaskTitle",
+          "example": "Implement OAuth2 login"
+        },
+        "user_full_name": {
+          "description": "Full name of the user who logged the time.",
+          "type": "string",
+          "x-go-name": "UserFullName",
+          "example": "Jane Doe"
+        },
+        "user_id": {
+          "description": "UUID of the user who logged the time.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID",
+          "example": "550e8400-e29b-41d4-a716-446655440002"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResUser": {
+      "type": "object",
+      "title": "ResUser defines the response payload for a user.",
+      "properties": {
+        "email": {
+          "description": "User's email address.",
+          "type": "string",
+          "x-go-name": "Email",
+          "example": "user@example.com"
+        },
+        "full_name": {
+          "description": "User's display name.",
+          "type": "string",
+          "x-go-name": "FullName",
+          "example": "Jane Doe"
+        },
+        "id": {
+          "description": "Unique user identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "is_active": {
+          "description": "Whether the user account is active.",
+          "type": "boolean",
+          "x-go-name": "IsActive",
+          "example": true
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResWorkspace": {
+      "type": "object",
+      "title": "ResWorkspace defines the response payload for a workspace.",
+      "properties": {
+        "id": {
+          "description": "Unique workspace identifier.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "ID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "name": {
+          "description": "Workspace display name.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "Acme Corp"
+        },
+        "owner_id": {
+          "description": "UUID of the workspace owner.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "OwnerID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "type": {
+          "$ref": "#/definitions/WorkspaceType"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "ResWorkspaceMember": {
+      "type": "object",
+      "title": "ResWorkspaceMember defines the response payload for a workspace member.",
+      "properties": {
+        "role": {
+          "$ref": "#/definitions/WorkspaceRole"
+        },
+        "user": {
+          "$ref": "#/definitions/ResUser"
+        },
+        "user_id": {
+          "description": "UUID of the member user.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "UserID",
+          "example": "550e8400-e29b-41d4-a716-446655440001"
+        },
+        "workspace_id": {
+          "description": "UUID of the workspace.",
+          "type": "string",
+          "format": "uuid",
+          "x-go-name": "WorkspaceID",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/structs"
+    },
+    "TaskPriority": {
+      "type": "string",
+      "title": "TaskPriority defines the priority of a task.",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "TaskStatus": {
+      "type": "string",
+      "title": "TaskStatus defines the status of a task.",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "TeamRole": {
+      "type": "string",
+      "title": "TeamRole defines the role of a user in a team.",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "WorkspaceRole": {
+      "description": "WorkspaceRole represents the role of a user in a workspace",
+      "type": "string",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "WorkspaceType": {
+      "description": "WorkspaceType represents the type of a workspace",
+      "type": "string",
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/models"
+    },
+    "createAPIKeyRequest": {
+      "type": "object",
+      "title": "createAPIKeyRequest represents the request body for creating an API key.",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Human-readable label for this API key.",
+          "type": "string",
+          "x-go-name": "Name",
+          "example": "CI/CD Pipeline Key"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/controllers/api/v2"
+    },
+    "createAPIKeyResponse": {
+      "description": "The raw_token is only included in this response and never shown again.",
+      "type": "object",
+      "title": "createAPIKeyResponse represents the response after creating an API key.",
+      "properties": {
+        "key": {
+          "description": "The stored API key metadata (without the secret).",
+          "x-go-name": "Key"
+        },
+        "raw_token": {
+          "description": "The plaintext API key token. Store this securely — it is only shown once.",
+          "type": "string",
+          "x-go-name": "RawToken",
+          "example": "nxt_abc123secrettoken"
+        }
+      },
+      "x-go-package": "github.com/AshvinBambhaniya/nexus-tasks/v2/controllers/api/v2"
+    }
+  },
+  "responses": {
+    "GenericResError": {
+      "description": "ResError is returned when an unexpected error occurs.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "message": {
+            "type": "string",
+            "x-go-name": "Message"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "error"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "GenericResFailBadRequest": {
+      "description": "ResFailBadRequest is returned when a request fails due to invalid user input.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fail"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "GenericResFailConflict": {
+      "description": "ResFailConflict is returned when a request fails due to a conflict.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fail"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "GenericResFailNotFound": {
+      "description": "ResFailNotFound is returned when a requested resource is not found.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fail"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "GenericResFailUnprocessableEntity": {
+      "description": "ResFailUnprocessableEntity is returned when a request is well-formed but unable to be processed.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fail"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "GenericResOk": {
+      "description": "ResOK is returned when a request is successful.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    },
+    "ResForbiddenRequest": {
+      "description": "ResForbiddenRequest is returned when a request is forbidden.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "x-go-name": "Data"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "fail"
+            ],
+            "x-go-name": "Status"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "apiKeyAuth": {
+      "description": "A long-lived API key generated via the `/api/v2/auth/api-keys` endpoint. Intended for machine-to-machine access.",
+      "type": "apiKey",
+      "name": "X-API-Key",
+      "in": "header"
+    },
+    "cookieAuth": {
+      "description": "HTTP-only session cookie set by the login/register endpoints. The cookie name is `nexus_user` and contains a signed JWT.\n",
+      "type": "apiKey",
+      "name": "Cookie",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "cookieAuth": []
+    },
+    {
+      "apiKeyAuth": []
+    }
+  ]
+}

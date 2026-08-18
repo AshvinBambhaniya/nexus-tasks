@@ -16,6 +16,7 @@ import (
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/pkg/watermill"
 	"github.com/AshvinBambhaniya/nexus-tasks/v2/services"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
@@ -29,13 +30,15 @@ func Setup(app *fiber.App, goqu *goqu.Database, logger *zap.Logger, config *conf
 	app.Use(middlewares.LogHandler(logger))
 	app.Use(middlewares.SentryMiddleware())
 
-	// TODO: Setup swagger docs
-	// app.Use(swagger.New(swagger.Config{
-	// 	BasePath: "/api/v1/",
-	// 	FilePath: "./assets/swagger.json",
-	// 	Path:     "docs",
-	// 	Title:    "Swagger API Docs",
-	// }))
+	// Serve Swagger UI at /api/docs — reads the pre-generated ./assets/swagger.json.
+	// Run `make swagger-gen` to regenerate the spec after changing annotations.
+	app.Use(swagger.New(swagger.Config{
+		BasePath: "/api/v2/",
+		FilePath: "./assets/swagger.json",
+		Path:     "docs",
+		Title:    "Nexus Tasks API Docs",
+		CacheAge: 3600,
+	}))
 
 	hub := realtime.NewHub(logger)
 	go hub.Run()

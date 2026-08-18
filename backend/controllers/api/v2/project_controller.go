@@ -29,6 +29,50 @@ func NewProjectController(projectService services.ProjectService, logger *zap.Lo
 }
 
 // Create handles the creation of a new project.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects projects createProject
+
+ # Create a project
+
+ Creates a new project within the specified workspace. Requires workspace admin privileges.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqCreateProject"
+
+ responses:
+
+	201:
+	  description: Project created.
+	  schema:
+      "$ref": "#/definitions/ResProject"
+	400:
+	  description: Validation error.
+	401:
+	  description: Not authenticated.
+	403:
+	  description: Insufficient permissions.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) Create(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -72,6 +116,43 @@ func (ctrl *ProjectController) Create(c *fiber.Ctx) error {
 }
 
 // List handles listing all projects in a workspace.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects projects listProjects
+
+ # List projects in a workspace
+
+ Returns all projects belonging to the specified workspace that the authenticated user has access to.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+
+ responses:
+
+	200:
+	  description: List of projects.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResProject"
+	400:
+	  description: Invalid workspace ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
 	wsID, err := uuid.Parse(wsIDStr)
@@ -100,6 +181,47 @@ func (ctrl *ProjectController) List(c *fiber.Ctx) error {
 }
 
 // Get handles fetching a single project by its ID.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId} projects getProject
+
+ # Get a project by ID
+
+ Returns the full details of a single project.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Project details.
+	  schema:
+      "$ref": "#/definitions/ResProject"
+	400:
+	  description: Invalid project ID.
+	401:
+	  description: Not authenticated.
+	404:
+	  description: Project not found or not accessible.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -129,6 +251,52 @@ func (ctrl *ProjectController) Get(c *fiber.Ctx) error {
 }
 
 // Update handles updating an existing project.
+//
+/*
+ swagger:operation PATCH /workspaces/{workspaceId}/projects/{projectId} projects updateProject
+
+ # Update a project
+
+ Partially updates project metadata. Supports archiving via `is_archived`.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqUpdateProject"
+
+ responses:
+
+	200:
+	  description: Project updated.
+	  schema:
+      "$ref": "#/definitions/ResProject"
+	400:
+	  description: Validation error or invalid project ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -163,6 +331,52 @@ func (ctrl *ProjectController) Update(c *fiber.Ctx) error {
 }
 
 // AddMember handles adding a new member to a project.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/members projects addProjectMember
+
+ # Add a member to a project
+
+ Directly assigns a user to the project with the specified role.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqAddProjectMember"
+
+ responses:
+
+	200:
+	  description: Member added.
+	  schema:
+      "$ref": "#/definitions/ResProjectMember"
+	400:
+	  description: Validation error or invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -201,6 +415,49 @@ func (ctrl *ProjectController) AddMember(c *fiber.Ctx) error {
 }
 
 // RemoveMember handles removing a member from a project.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/projects/{projectId}/members/{uid} projects removeProjectMember
+
+ # Remove a member from a project
+
+ Revokes a user's direct membership in the project. Their access via team membership is not affected.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: uid
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the user to remove.
+
+ responses:
+
+	200:
+	  description: Member removed.
+	400:
+	  description: Invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -229,6 +486,48 @@ func (ctrl *ProjectController) RemoveMember(c *fiber.Ctx) error {
 }
 
 // ListMembers handles listing all members of a project.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/members projects listProjectMembers
+
+ # List project members
+
+ Returns all members with access to the project, including both direct members and
+ those with access via team membership.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: List of project members.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResProjectMember"
+	400:
+	  description: Invalid project ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -252,6 +551,52 @@ func (ctrl *ProjectController) ListMembers(c *fiber.Ctx) error {
 }
 
 // AddTeam handles adding a team to a project.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/teams projects addProjectTeam
+
+ # Add a team to a project
+
+ Associates an existing workspace team with the project, granting all team members access.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqAddProjectTeam"
+
+ responses:
+
+	200:
+	  description: Team added to project.
+	  schema:
+      "$ref": "#/definitions/ResProjectTeam"
+	400:
+	  description: Validation error or invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -284,6 +629,48 @@ func (ctrl *ProjectController) AddTeam(c *fiber.Ctx) error {
 }
 
 // RemoveTeam handles removing a team from a project.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/projects/{projectId}/teams/{teamId} projects removeProjectTeam
+
+ # Remove a team from a project
+
+ Removes the team association from the project. Team members lose project access unless they have direct membership.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: teamId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Team removed from project.
+	400:
+	  description: Invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -312,6 +699,47 @@ func (ctrl *ProjectController) RemoveTeam(c *fiber.Ctx) error {
 }
 
 // ListTeams handles listing all teams associated with a project.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/teams projects listProjectTeams
+
+ # List teams in a project
+
+ Returns all teams that have been associated with the specified project.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: List of teams associated with the project.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResProjectTeam"
+	400:
+	  description: Invalid project ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *ProjectController) ListTeams(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)

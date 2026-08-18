@@ -35,6 +35,37 @@ func NewAuthController(userSvc services.UserService, logger *zap.Logger, cfg *co
 }
 
 // Register handles user registration.
+//
+/*
+ swagger:operation POST /auth/register auth register
+
+ # Register a new user account
+
+ Creates a new user account and sets an authenticated session cookie.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ parameters:
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqRegisterUser"
+
+ responses:
+
+	201:
+	  description: User registered successfully.
+	  schema:
+      "$ref": "#/definitions/ResUser"
+	400:
+	  description: Validation error or malformed request body.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 	var req structs.ReqRegisterUser
 	if err := c.BodyParser(&req); err != nil {
@@ -71,6 +102,35 @@ func (ctrl *AuthController) Register(c *fiber.Ctx) error {
 }
 
 // Login handles user login and sets the authentication cookie.
+//
+/*
+ swagger:operation POST /auth/login auth login
+
+ # Authenticate and obtain a session cookie
+
+ Validates credentials and sets an HTTP-only session cookie on success.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ parameters:
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqLoginUser"
+
+ responses:
+
+	200:
+	  description: Login successful. Session cookie is set.
+	400:
+	  description: Validation error or malformed request body.
+	401:
+	  description: Incorrect email or password.
+*/
 func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 	var req structs.ReqLoginUser
 
@@ -102,6 +162,24 @@ func (ctrl *AuthController) Login(c *fiber.Ctx) error {
 }
 
 // Logout handles user logout by clearing the authentication cookie.
+//
+/*
+ swagger:operation POST /auth/logout auth logout
+
+ # Terminate the current user session
+
+ Clears the session cookie, effectively logging the user out.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ responses:
+
+	200:
+	  description: Logout successful.
+*/
 func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     constants.CookieUser,
@@ -116,6 +194,33 @@ func (ctrl *AuthController) Logout(c *fiber.Ctx) error {
 }
 
 // Me returns the current authenticated user's information.
+//
+/*
+ swagger:operation GET /auth/me auth getMe
+
+ # Retrieve the authenticated user's profile
+
+ Returns the profile of the currently authenticated user based on the session cookie.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ responses:
+
+	200:
+	  description: Current user profile.
+	  schema:
+      "$ref": "#/definitions/ResUser"
+	401:
+	  description: Not authenticated.
+	404:
+	  description: User not found.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *AuthController) Me(c *fiber.Ctx) error {
 	// Got from middleware
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))

@@ -24,20 +24,25 @@ func NewHealthController(healthService services.HealthService, logger *zap.Logge
 	}, nil
 }
 
-// Overall check overall health of application as well as dependencies health check
-// swagger:route GET /healthz Healthcheck overallHealthCheck
+// Overall check overall health of application as well as dependencies health check.
 //
-//	Overall health check
-//
-//	Overall health check
-//
-// Produces:
-// - application/json
-//
-// Responses:
-//
-//	200: GenericResOk
-//	500: GenericResError
+/*
+ swagger:operation GET /healthz health overallHealthCheck
+
+ # Overall system health check
+
+ Returns 200 if the API server and its critical dependencies (database) are healthy.
+
+ ---
+ produces:
+ - application/json
+ responses:
+
+	200:
+	  description: All systems healthy.
+	500:
+	  description: One or more dependencies are unhealthy.
+*/
 func (hc *HealthController) Overall(ctx *fiber.Ctx) error {
 	err := hc.healthService.CheckDatabaseHealth(ctx.Context())
 	if err != nil {
@@ -48,25 +53,46 @@ func (hc *HealthController) Overall(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, "ok")
 }
 
-// Self returns the status of the application.
+// Self returns the status of the application process.
+//
+/*
+ swagger:operation GET /healthz/self health selfHealthCheck
+
+ # Self / liveness check
+
+ Returns 200 as long as the HTTP server process is running. Does not check external dependencies.
+
+ ---
+ produces:
+ - application/json
+ responses:
+
+	200:
+	  description: Server process is alive.
+*/
 func (hc *HealthController) Self(ctx *fiber.Ctx) error {
 	return utils.JSONSuccess(ctx, http.StatusOK, "ok")
 }
 
 // Db handles database health check.
-// swagger:route GET /healthz/db Healthcheck dbHealthCheck
 //
-//	Database health check
-//
-//	Database health check
-//
-// Produces:
-// - application/json
-//
-// Responses:
-//
-//	200: GenericResOk
-//	500: GenericResError
+/*
+ swagger:operation GET /healthz/db health dbHealthCheck
+
+ # Database connectivity check
+
+ Performs a lightweight ping against the primary database and returns 200 if reachable.
+
+ ---
+ produces:
+ - application/json
+ responses:
+
+	200:
+	  description: Database is reachable.
+	500:
+	  description: Database connectivity check failed.
+*/
 func (hc *HealthController) Db(ctx *fiber.Ctx) error {
 	err := hc.healthService.CheckDatabaseHealth(ctx.Context())
 	if err != nil {

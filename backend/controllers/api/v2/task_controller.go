@@ -32,6 +32,54 @@ func NewTaskController(taskService services.TaskService, commentService services
 }
 
 // CreateTask handles the creation of a new task in a project.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/tasks tasks createTask
+
+ # Create a task
+
+ Creates a new task within the specified project. The authenticated user becomes the task author.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the project.
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqCreateTask"
+
+ responses:
+
+	201:
+	  description: Task created successfully.
+	  schema:
+      "$ref": "#/definitions/ResTask"
+	400:
+	  description: Validation error or invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -65,6 +113,58 @@ func (ctrl *TaskController) CreateTask(c *fiber.Ctx) error {
 }
 
 // ListProjectTasks handles listing all tasks in a project.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/tasks tasks listProjectTasks
+
+ # List tasks in a project
+
+ Returns all tasks belonging to the specified project, with optional filtering by status or assignee.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the project.
+   - name: status
+     in: query
+     type: string
+     description: "Filter tasks by status (e.g. TODO, IN_PROGRESS, DONE)."
+   - name: assignee_id
+     in: query
+     type: string
+     format: uuid
+     description: Filter tasks by assignee UUID.
+
+ responses:
+
+	200:
+	  description: List of tasks.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResTask"
+	400:
+	  description: Invalid path parameter.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -109,6 +209,55 @@ func (ctrl *TaskController) ListProjectTasks(c *fiber.Ctx) error {
 }
 
 // GetTask handles fetching a single task by its ID.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId} tasks getTask
+
+ # Get a task by ID
+
+ Returns the full details of a single task, including its assignee and author.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the project.
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the task.
+
+ responses:
+
+	200:
+	  description: Task details.
+	  schema:
+      "$ref": "#/definitions/ResTask"
+	400:
+	  description: Invalid task ID.
+	401:
+	  description: Not authenticated.
+	404:
+	  description: Task not found.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -131,6 +280,60 @@ func (ctrl *TaskController) GetTask(c *fiber.Ctx) error {
 }
 
 // UpdateTask handles updating an existing task.
+//
+/*
+ swagger:operation PATCH /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId} tasks updateTask
+
+ # Update a task
+
+ Partially updates the specified task. Only non-zero fields in the request body are applied.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the project.
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the task.
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqUpdateTask"
+
+ responses:
+
+	200:
+	  description: Task updated.
+	  schema:
+      "$ref": "#/definitions/ResTask"
+	400:
+	  description: Validation error or invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -158,6 +361,51 @@ func (ctrl *TaskController) UpdateTask(c *fiber.Ctx) error {
 }
 
 // DeleteTask handles deleting a task.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId} tasks deleteTask
+
+ # Delete a task
+
+ Permanently removes a task and all its associated comments.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the project.
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the task to delete.
+
+ responses:
+
+	200:
+	  description: Task deleted.
+	400:
+	  description: Invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -180,6 +428,33 @@ func (ctrl *TaskController) DeleteTask(c *fiber.Ctx) error {
 }
 
 // ListMyTasks handles listing all tasks assigned to the current user.
+//
+/*
+ swagger:operation GET /tasks/me tasks listMyTasks
+
+ # List tasks assigned to me
+
+ Returns all tasks currently assigned to the authenticated user across all projects.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ responses:
+
+	200:
+	  description: List of tasks assigned to the current user.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResTask"
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -207,6 +482,57 @@ func (ctrl *TaskController) ListMyTasks(c *fiber.Ctx) error {
 // Comments
 
 // CreateComment handles creating a new comment on a task.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments comments createComment
+
+ # Post a comment on a task
+
+ Adds a new comment to the specified task. Mentioned users will receive notifications.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqCreateComment"
+
+ responses:
+
+	201:
+	  description: Comment created.
+	  schema:
+      "$ref": "#/definitions/ResComment"
+	400:
+	  description: Validation error or invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -249,6 +575,52 @@ func (ctrl *TaskController) CreateComment(c *fiber.Ctx) error {
 }
 
 // ListTaskComments handles listing all comments on a task.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments comments listTaskComments
+
+ # List comments on a task
+
+ Returns all comments on the specified task, ordered by creation time ascending.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: List of comments.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResComment"
+	400:
+	  description: Invalid task ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -288,6 +660,53 @@ func (ctrl *TaskController) ListTaskComments(c *fiber.Ctx) error {
 }
 
 // DeleteComment handles deleting a comment.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments/{commentId} comments deleteComment
+
+ # Delete a comment
+
+ Permanently removes a comment. Only the comment author may delete their own comment.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: projectId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: taskId
+     in: path
+     required: true
+     type: string
+     format: uuid
+   - name: commentId
+     in: path
+     required: true
+     type: string
+     format: uuid
+
+ responses:
+
+	200:
+	  description: Comment deleted.
+	400:
+	  description: Invalid comment ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *TaskController) DeleteComment(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)

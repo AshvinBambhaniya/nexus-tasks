@@ -26,18 +26,65 @@ func NewAPIKeyController(apiKeyService services.APIKeyService, logger *zap.Logge
 }
 
 // createAPIKeyRequest represents the request body for creating an API key.
+//
+// swagger:model createAPIKeyRequest
 type createAPIKeyRequest struct {
+	// Human-readable label for this API key.
+	// Required: true
+	// example: CI/CD Pipeline Key
 	Name string `json:"name"`
 }
 
 // createAPIKeyResponse represents the response after creating an API key.
 // The raw_token is only included in this response and never shown again.
+//
+// swagger:model createAPIKeyResponse
 type createAPIKeyResponse struct {
-	RawToken string      `json:"raw_token"`
-	Key      interface{} `json:"key"`
+	// The plaintext API key token. Store this securely — it is only shown once.
+	// example: nxt_abc123secrettoken
+	RawToken string `json:"raw_token"`
+
+	// The stored API key metadata (without the secret).
+	Key interface{} `json:"key"`
 }
 
-// Create handles POST /api/v2/auth/api-keys
+// Create handles POST /api/v2/auth/api-keys.
+//
+/*
+ swagger:operation POST /auth/api-keys apiKeys createAPIKey
+
+ # Create an API key
+
+ Generates a new long-lived API key for machine-to-machine access. The raw token
+ is returned only once and must be stored securely by the caller.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ parameters:
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/createAPIKeyRequest"
+
+ responses:
+
+	201:
+	  description: API key created. The raw_token is shown only once.
+	  schema:
+      "$ref": "#/definitions/createAPIKeyResponse"
+	400:
+	  description: Name is missing or request body is malformed.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ac *APIKeyController) Create(c *fiber.Ctx) error {
 	userIDStr := utils.GetString(c.Locals(constants.ContextUID))
 	userID, err := uuid.Parse(userIDStr)
@@ -67,7 +114,29 @@ func (ac *APIKeyController) Create(c *fiber.Ctx) error {
 	})
 }
 
-// List handles GET /api/v2/auth/api-keys
+// List handles GET /api/v2/auth/api-keys.
+//
+/*
+ swagger:operation GET /auth/api-keys apiKeys listAPIKeys
+
+ # List API keys
+
+ Returns all API keys belonging to the authenticated user. The raw tokens are never included.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ responses:
+
+	200:
+	  description: List of API key metadata objects.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ac *APIKeyController) List(c *fiber.Ctx) error {
 	userIDStr := utils.GetString(c.Locals(constants.ContextUID))
 	userID, err := uuid.Parse(userIDStr)
@@ -84,7 +153,40 @@ func (ac *APIKeyController) List(c *fiber.Ctx) error {
 	return utils.JSONSuccess(c, http.StatusOK, keys)
 }
 
-// Revoke handles DELETE /api/v2/auth/api-keys/:keyId
+// Revoke handles DELETE /api/v2/auth/api-keys/:keyId.
+//
+/*
+ swagger:operation DELETE /auth/api-keys/{keyId} apiKeys revokeAPIKey
+
+ # Revoke an API key
+
+ Permanently invalidates the specified API key. Any requests authenticated with this
+ key will be rejected immediately after revocation.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ parameters:
+   - name: keyId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the API key to revoke.
+
+ responses:
+
+	200:
+	  description: API key revoked.
+	400:
+	  description: Invalid key ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ac *APIKeyController) Revoke(c *fiber.Ctx) error {
 	userIDStr := utils.GetString(c.Locals(constants.ContextUID))
 	userID, err := uuid.Parse(userIDStr)

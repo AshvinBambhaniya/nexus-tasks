@@ -28,6 +28,42 @@ func NewWorkspaceController(workspaceService services.WorkspaceService, logger *
 }
 
 // Create handles the creation of a new workspace.
+//
+/*
+ swagger:operation POST /workspaces workspaces createWorkspace
+
+ # Create a workspace
+
+ Creates a new workspace owned by the authenticated user.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqCreateWorkspace"
+
+ responses:
+
+	201:
+	  description: Workspace created.
+	  schema:
+      "$ref": "#/definitions/ResWorkspace"
+	400:
+	  description: Validation error.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -61,6 +97,33 @@ func (ctrl *WorkspaceController) Create(c *fiber.Ctx) error {
 }
 
 // List returns a list of workspaces for the authenticated user.
+//
+/*
+ swagger:operation GET /workspaces workspaces listWorkspaces
+
+ # List workspaces
+
+ Returns all workspaces the authenticated user is a member of.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ responses:
+
+	200:
+	  description: List of workspaces.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResWorkspace"
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -90,6 +153,43 @@ func (ctrl *WorkspaceController) List(c *fiber.Ctx) error {
 }
 
 // ListMembers returns a list of members for a specific workspace.
+//
+/*
+ swagger:operation GET /workspaces/{workspaceId}/members workspaces listWorkspaceMembers
+
+ # List workspace members
+
+ Returns all users who are members of the given workspace.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+
+ responses:
+
+	200:
+	  description: List of workspace members.
+	  schema:
+	    type: array
+	    items:
+	      "$ref": "#/definitions/ResWorkspaceMember"
+	400:
+	  description: Invalid workspace ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 
 	wsIDStr := c.Params(constants.ParamWorkspaceID)
@@ -122,6 +222,46 @@ func (ctrl *WorkspaceController) ListMembers(c *fiber.Ctx) error {
 }
 
 // InviteMember invites a new member to the workspace.
+//
+/*
+ swagger:operation POST /workspaces/{workspaceId}/members workspaces inviteWorkspaceMember
+
+ # Invite a user to a workspace
+
+ Sends an invitation (or directly adds) a user to the workspace by email address.
+
+ ---
+ consumes:
+ - application/json
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: body
+     in: body
+     required: true
+     schema:
+        "$ref": "#/definitions/ReqInviteWorkspaceMember"
+
+ responses:
+
+	200:
+	  description: Member invited successfully.
+	400:
+	  description: Validation error or invalid workspace ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
@@ -154,6 +294,45 @@ func (ctrl *WorkspaceController) InviteMember(c *fiber.Ctx) error {
 }
 
 // RemoveMember removes a member from the workspace.
+//
+/*
+ swagger:operation DELETE /workspaces/{workspaceId}/members workspaces removeWorkspaceMember
+
+ # Remove a member from a workspace
+
+ Removes the specified user from the workspace. Only workspace admins may perform this action.
+
+ ---
+ produces:
+ - application/json
+ security:
+ - cookieAuth: []
+ - apiKeyAuth: []
+ parameters:
+   - name: workspaceId
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the workspace.
+   - name: uid
+     in: path
+     required: true
+     type: string
+     format: uuid
+     description: UUID of the user to remove.
+
+ responses:
+
+	200:
+	  description: Member removed successfully.
+	400:
+	  description: Invalid workspace or user ID.
+	401:
+	  description: Not authenticated.
+	500:
+	  description: Internal server error.
+*/
 func (ctrl *WorkspaceController) RemoveMember(c *fiber.Ctx) error {
 	uidStr := utils.GetString(c.Locals(constants.ContextUID))
 	uid, err := uuid.Parse(uidStr)
